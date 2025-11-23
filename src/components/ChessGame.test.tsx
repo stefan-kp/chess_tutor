@@ -46,12 +46,19 @@ jest.mock("./Tutor", () => ({
 
 // Mock APIKeyInput to avoid portal issues or complex interactions if needed, 
 // but since we integrated it into the start screen, we can test the interaction directly.
-jest.mock("./APIKeyInput", () => ({
-    APIKeyInput: ({ onKeySubmit }: any) => (
-        <button onClick={() => onKeySubmit("test-key")} data-testid="api-key-trigger">
-            Set API Key
-        </button>
-    ),
+APIKeyInput: ({ onKeySubmit }: any) => (
+    <button onClick={() => onKeySubmit("test-key")} data-testid="api-key-trigger">
+        Set API Key
+    </button>
+),
+}));
+
+jest.mock("./GameAnalysisModal", () => ({
+    GameAnalysisModal: () => <div data-testid="analysis-modal">Analysis Modal Mock</div>,
+}));
+
+jest.mock("./GameOverModal", () => ({
+    GameOverModal: () => <div data-testid="game-over-modal">Game Over Modal Mock</div>,
 }));
 
 describe("ChessGame Component", () => {

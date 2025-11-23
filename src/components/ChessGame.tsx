@@ -12,6 +12,7 @@ import { Personality, PERSONALITIES } from "@/lib/personalities";
 import { lookupOpening, OpeningMetadata } from "@/lib/openings";
 
 import { GameAnalysisModal } from "./GameAnalysisModal";
+import { GameOverModal, MoveHistoryItem } from "./GameOverModal";
 import { Brain } from "lucide-react";
 
 export default function ChessGame() {
@@ -41,6 +42,10 @@ export default function ChessGame() {
     const [showAnalysisModal, setShowAnalysisModal] = useState(false);
     const [customFen, setCustomFen] = useState("");
 
+    // Game Over & History State
+    const [gameOverState, setGameOverState] = useState<{ result: string, winner: "White" | "Black" | "Draw" } | null>(null);
+    const [moveHistory, setMoveHistory] = useState<MoveHistoryItem[]>([]);
+
     // Personality State
     const [selectedPersonality, setSelectedPersonality] = useState<Personality | null>(null);
 
@@ -64,6 +69,8 @@ export default function ChessGame() {
                 if (data.language) setLanguage(data.language);
                 if (data.selectedPersonality) setSelectedPersonality(data.selectedPersonality);
                 if (data.apiKey) setApiKey(data.apiKey);
+                // Note: We don't persist full move history yet for simplicity,
+                // but we could add it to localStorage if needed.
             } catch (e) {
                 console.error("Failed to load game:", e);
             }
@@ -82,14 +89,41 @@ export default function ChessGame() {
         localStorage.setItem("chess_tutor_save", JSON.stringify(saveData));
     }, [fen, language, selectedPersonality, apiKey, gameStarted]);
 
+    // Game Over Detection
+    useEffect(() => {
+        const game = gameRef.current;
+        if (game.isGameOver()) {
+            let result = "";
+            let winner: "White" | "Black" | "Draw" = "Draw";
+
+            if (game.isCheckmate()) {
+                if (game.turn() === 'w') {
+                    result = "Checkmate! You lost.";
+                    winner = "Black";
+                } else {
+                    result = "Checkmate! You won!";
+                    winner = "White";
+                }
+            } else if (game.isDraw()) {
+                result = "Draw!";
+                winner = "Draw";
+            } else if (game.isStalemate()) {
+                result = "Stalemate!";
+                winner = "Draw";
+            }
+
+            setGameOverState({ result, winner });
+        }
+    }, [fen]);
+
     // Pre-Analysis (P0): Run whenever it's White's turn (User) and we are waiting for a move
     useEffect(() => {
-        if (stockfish && gameRef.current.turn() === 'w' && !isAnalyzing) {
+        if (stockfish && gameRef.current.turn() === 'w' && !isAnalyzing && !gameOverState) {
             stockfish.evaluate(gameRef.current.fen(), stockfishDepth).then(evalResult => {
                 setEvalP0(evalResult);
             }).catch(err => console.error("Pre-analysis failed:", err));
         }
-    }, [fen, stockfish, stockfishDepth, isAnalyzing]);
+    }, [fen, stockfish, stockfishDepth, isAnalyzing, gameOverState]);
 
     const makeAMove = useCallback(
         (move: { from: string; to: string; promotion?: string }) => {
@@ -111,7 +145,7 @@ export default function ChessGame() {
     );
 
     function onDrop({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }) {
-        if (!targetSquare || !stockfish) return false;
+        if (!targetSquare || !stockfish || gameOverState) return false;
 
         const move = {
             from: sourceSquare,
@@ -138,6 +172,33 @@ export default function ChessGame() {
         // We need to find the best move for Black from P1
         stockfish.evaluate(fenP1, stockfishDepth).then(p1Eval => {
             // We don't store p1Eval for the Tutor, but we use it to decide the move
+
+            // Record User Move History (P0 -> P1)
+            // We compare evalP0 (Before) vs p1Eval (After)
+            // Note: p1Eval is from Black's perspective usually in engines, but our wrapper might normalize.
+            // Let's assume our wrapper returns CP relative to side to move or absolute?
+            // Standard Stockfish returns relative to side to move.
+            // So if White is winning +100:
+            // P0 (White to move): +100
+            // P1 (Black to move): -100 (Black is losing)
+            // So we need to negate p1Eval.score to compare with evalP0.score (if evalP0 is White's perspective).
+            // Actually, let's check our Stockfish wrapper. It usually returns absolute or relative.
+            // Assuming relative:
+            // P0 (White): +1.0
+            // P1 (Black): -1.0 (Black is down 1.0)
+            // So evalAfter = -p1Eval.score
+
+            if (evalP0) {
+                const evalAfter = -p1Eval.score; // Convert back to White's perspective
+                const historyItem: MoveHistoryItem = {
+                    moveNumber: gameRef.current.moveNumber(),
+                    move: moveResult.result.san,
+                    evalBefore: evalP0.score,
+                    evalAfter: evalAfter,
+                    bestMove: evalP0.bestMove
+                };
+                setMoveHistory(prev => [...prev, historyItem]);
+            }
 
             setTimeout(() => {
                 const computerMoveData = {
@@ -196,6 +257,8 @@ export default function ChessGame() {
             setEvalP0(null);
             setEvalP2(null);
             setOpeningData(null);
+            setGameOverState(null);
+            setMoveHistory([]);
 
             setGameStarted(true);
             setCustomFen(""); // Clear input
@@ -333,6 +396,7 @@ export default function ChessGame() {
             </div>
         );
     }
+
 
     return (
         <div className="flex flex-col md:flex-row gap-8 w-full max-w-6xl mx-auto p-4">
@@ -484,6 +548,19 @@ export default function ChessGame() {
                     apiKey={apiKey}
                     language={language}
                     onClose={() => setShowAnalysisModal(false)}
+                />
+            )}
+
+            {/* Game Over Modal */}
+            {gameOverState && (
+                <GameOverModal
+                    result={gameOverState.result}
+                    winner={gameOverState.winner}
+                    history={moveHistory}
+                    apiKey={apiKey}
+                    language={language}
+                    onClose={() => setGameOverState(null)}
+                    onNewGame={() => handleNewGame(selectedPersonality!)}
                 />
             )}
         </div>
