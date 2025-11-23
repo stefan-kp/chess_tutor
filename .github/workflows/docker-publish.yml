@@ -3,8 +3,8 @@ name: Build and publish Docker image to GHCR
 on:
   push:
     branches: [ "main" ]
-  tags:
-    - "v*"
+    tags:
+      - "v*"
 
 jobs:
   build-and-push:
