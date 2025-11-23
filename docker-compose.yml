@@ -5,9 +5,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        # Optional: Set API key at build time (not recommended for security)
-        # NEXT_PUBLIC_GEMINI_API_KEY: ${NEXT_PUBLIC_GEMINI_API_KEY}
+      # Optional: Uncomment to set API key at build time (not recommended for security)
+      # args:
+      #   NEXT_PUBLIC_GEMINI_API_KEY: ${NEXT_PUBLIC_GEMINI_API_KEY}
     image: chess-tutor:latest
     container_name: chess-tutor
     restart: unless-stopped
