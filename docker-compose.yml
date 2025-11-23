@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  chess-tutor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Optional: Set API key at build time (not recommended for security)
+        # NEXT_PUBLIC_GEMINI_API_KEY: ${NEXT_PUBLIC_GEMINI_API_KEY}
+    image: chess-tutor:latest
+    container_name: chess-tutor
+    restart: unless-stopped
+    ports:
+      - "3050:3050"
+    environment:
+      # Optional: Set API key at runtime (recommended approach)
+      # Users can still use browser-based API key if this is not set
+      - NEXT_PUBLIC_GEMINI_API_KEY=${NEXT_PUBLIC_GEMINI_API_KEY:-}
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3050', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Optional: Add volumes for persistent data if needed
+    # volumes:
+    #   - ./data:/app/data
+    networks:
+      - chess-tutor-network
+
+networks:
+  chess-tutor-network:
+    driver: bridge

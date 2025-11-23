@@ -99,6 +99,84 @@ You have two options for providing your Gemini API key:
 > [!NOTE]
 > You can update your API key anytime by clicking the key icon in the bottom-right corner of the application.
 
+## Docker Deployment
+
+### Quick Start with Docker
+
+The easiest way to deploy Chess Tutor is using Docker Compose:
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/chess_tutor.git
+cd chess_tutor
+
+# (Optional) Create .env file with your API key
+echo "NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here" > .env
+
+# Build and start the container
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+```
+
+The application will be available at `http://localhost:3050`
+
+### Environment Variables
+
+You have two options for providing the Gemini API key:
+
+1. **Environment Variable** (recommended for server deployment):
+   - Create a `.env` file in the project root
+   - Add: `NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here`
+   - The application will automatically use this key
+
+2. **Browser Storage** (fallback):
+   - If no environment variable is set, users will be prompted to enter their API key
+   - The key is stored in browser localStorage
+
+> [!NOTE]
+> The API key is never logged or exposed in application logs. It's only used for API calls to Google Gemini.
+
+### Nginx Reverse Proxy
+
+For production deployment behind nginx, use the provided `nginx.conf.example`:
+
+```bash
+# Copy the example configuration
+sudo cp nginx.conf.example /etc/nginx/sites-available/chess-tutor
+
+# Edit the configuration
+sudo nano /etc/nginx/sites-available/chess-tutor
+# Update: server_name, SSL certificates (if using HTTPS)
+
+# Enable the site
+sudo ln -s /etc/nginx/sites-available/chess-tutor /etc/nginx/sites-enabled/
+
+# Test nginx configuration
+sudo nginx -t
+
+# Reload nginx
+sudo systemctl reload nginx
+```
+
+### Manual Docker Build
+
+If you prefer to build manually:
+
+```bash
+# Build the image
+docker build -t chess-tutor:latest .
+
+# Run the container
+docker run -d \
+  --name chess-tutor \
+  -p 3050:3050 \
+  -e NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here \
+  --restart unless-stopped \
+  chess-tutor:latest
+```
+
 ## Credits
 - Opening collection originally by [ragizaki/ChessOpeningsRecommender](https://github.com/ragizaki/ChessOpeningsRecommender)
 - Chess engine: [Stockfish](https://stockfishchess.org/)
@@ -119,7 +197,7 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3050) with your browser to see the result.
+Open [http://localhost:3050](http://localhost:3050) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

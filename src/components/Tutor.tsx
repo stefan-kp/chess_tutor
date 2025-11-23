@@ -10,6 +10,9 @@ import clsx from "clsx";
 import { Personality } from "@/lib/personalities";
 import { OpeningMetadata } from "@/lib/openings";
 
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { SupportedLanguage } from '@/lib/i18n/translations';
+
 interface TutorProps {
     currentFen: string;
     userMove: Move | null;
@@ -21,7 +24,8 @@ interface TutorProps {
     onAnalysisComplete: () => void;
     apiKey: string | null;
     personality: Personality;
-    language: 'en' | 'de' | 'fr' | 'it';
+    language: SupportedLanguage;
+    playerColor: 'white' | 'black';
 }
 
 interface Message {
@@ -30,14 +34,19 @@ interface Message {
     timestamp: number;
 }
 
-export function Tutor({ currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, onAnalysisComplete, apiKey, personality, language }: TutorProps) {
-    const [messages, setMessages] = useState<Message[]>([
-        { role: "model", text: "Hello! I am " + personality.name + ". " + personality.description + " Let's play!", timestamp: Date.now() }
-    ]);
+export function Tutor({ currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, onAnalysisComplete, apiKey, personality, language, playerColor }: TutorProps) {
+    const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [chatSession, setChatSession] = useState<ChatSession | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const t = useTranslation(language);
+
+    // Determine tutor color (opposite of player)
+    const tutorColor = playerColor === 'white' ? 'black' : 'white';
+    const playerColorName = playerColor === 'white' ? 'White' : 'Black';
+    const tutorColorName = tutorColor === 'white' ? 'White' : 'Black';
 
     // Initialize chat session with Personality System Prompt
     useEffect(() => {
@@ -57,7 +66,7 @@ PERSONALITY:
 ${personality.systemPrompt}
 
 INSTRUCTIONS:
-- You are the opponent (Black). You are playing against the User (White).
+- You are the opponent (${tutorColorName}). You are playing against the User (${playerColorName}).
 - You are NOT an AI assistant analyzing a game. You ARE the player.
 - Refer to the moves as YOUR moves ("I played e5", "My response was...").
 - Refer to the evaluation as YOUR thoughts/assessment ("I think I'm winning", "I missed that").
@@ -73,15 +82,23 @@ INSTRUCTIONS:
                     },
                     {
                         role: "model",
-                        parts: [{ text: `Understood. I am the player (Black). I will speak in ${language} and never mention the engine.` }]
+                        parts: [{ text: `Understood. I am the player (${tutorColorName}). I will speak in ${language} and never mention the engine.` }]
                     }
                 ],
             });
             setChatSession(session);
-            // Reset messages on language/personality change
-            setMessages([{ role: "model", text: `Hello! I am ${personality.name}. Let's play!`, timestamp: Date.now() }]);
+
+            // Get initial greeting in the selected language
+            session.sendMessage(`Introduce yourself briefly to start our game. Keep it short and in ${language}.`).then(result => {
+                const greetingText = result.response.text();
+                setMessages([{ role: "model", text: greetingText, timestamp: Date.now() }]);
+            }).catch(err => {
+                console.error("Failed to get greeting:", err);
+                // Fallback to English if greeting fails
+                setMessages([{ role: "model", text: `Hello! I am ${personality.name}. Let's play!`, timestamp: Date.now() }]);
+            });
         }
-    }, [apiKey, personality, language]);
+    }, [apiKey, personality, language, playerColor]);
 
     // Scroll to bottom
     useEffect(() => {
@@ -276,13 +293,13 @@ React to this exchange as the player.
                     onClick={() => sendMessageToChat("Give me a hint")}
                     className="flex items-center gap-1 px-3 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full hover:bg-yellow-200 dark:bg-yellow-900 dark:text-yellow-200"
                 >
-                    <Lightbulb size={12} /> Hint
+                    <Lightbulb size={12} /> {t.tutor.hint}
                 </button>
                 <button
                     onClick={() => sendMessageToChat("What is the best move?")}
                     className="flex items-center gap-1 px-3 py-1 text-xs bg-green-100 text-green-800 rounded-full hover:bg-green-200 dark:bg-green-900 dark:text-green-200"
                 >
-                    <Trophy size={12} /> Best Move
+                    <Trophy size={12} /> {t.tutor.bestMove}
                 </button>
             </div>
 
@@ -292,7 +309,7 @@ React to this exchange as the player.
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask your coach..."
+                    placeholder={t.tutor.askCoach}
                     className="flex-1 p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     disabled={isLoading}
                 />
