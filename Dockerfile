@@ -9,6 +9,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install all dependencies (including dev dependencies needed for build)
+ENV NODE_ENV=development
 RUN npm ci
 
 # Stage 2: Builder
@@ -33,6 +34,11 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Optional: OCI-Labels für GHCR
+LABEL org.opencontainers.image.source="https://github.com/stefan-kp/chess_tutor"
+LABEL org.opencontainers.image.title="Chess Tutor"
+LABEL org.opencontainers.image.description="AI-based chess tutor using Stockfish and Gemini"
 
 # Create non-root user for security
 RUN addgroup --system --gid 1001 nodejs

@@ -8,6 +8,7 @@ export interface Translations {
         confirm: string;
         loading: string;
         error: string;
+        save: string;
     };
 
     // Header
@@ -104,6 +105,7 @@ const en: Translations = {
         confirm: 'Confirm',
         loading: 'Loading...',
         error: 'Error',
+        save: 'Save',
     },
     header: {
         tagline: 'with Gemini & Stockfish',
@@ -186,6 +188,7 @@ const de: Translations = {
         confirm: 'Bestätigen',
         loading: 'Lädt...',
         error: 'Fehler',
+        save: 'Speichern',
     },
     header: {
         tagline: 'mit Gemini & Stockfish',
@@ -268,6 +271,7 @@ const fr: Translations = {
         confirm: 'Confirmer',
         loading: 'Chargement...',
         error: 'Erreur',
+        save: 'Enregistrer',
     },
     header: {
         tagline: 'avec Gemini & Stockfish',
@@ -350,6 +354,7 @@ const it: Translations = {
         confirm: 'Conferma',
         loading: 'Caricamento...',
         error: 'Errore',
+        save: 'Salva',
     },
     header: {
         tagline: 'con Gemini & Stockfish',

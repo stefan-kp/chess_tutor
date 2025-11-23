@@ -170,13 +170,14 @@ You can use this metadata to explain the position:
 
                 const prompt = `
 [SYSTEM TRIGGER: move_exchange]
-User (White) Move: ${userMove.san}
-My (Black) Reply: ${computerMove.san}
+User (${playerColorName}) Move: ${userMove.san}
+My (${tutorColorName}) Reply: ${computerMove.san}
 
 My Internal Thoughts (Data):
 - Pre-Eval (Before User Move): ${preScore} cp
 - Post-Eval (After My Reply): ${postScore} cp
 - Delta: ${delta} cp
+(Note: Scores are from White's perspective. Positive = White advantage, Negative = Black advantage.)
 
 INSTRUCTIONS:
 1. ${evalInstruction}

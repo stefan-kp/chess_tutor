@@ -27,7 +27,7 @@ export class Stockfish {
   }
 
   async evaluate(fen: string, depth: number = 15, multiPV: number = 1): Promise<StockfishEvaluation> {
-    return new Promise((resolve, reject) => {
+    return new Promise<StockfishEvaluation>((resolve, reject) => {
       if (!this.worker) {
         reject("Stockfish worker not initialized");
         return;
@@ -81,6 +81,15 @@ export class Stockfish {
       this.worker.addEventListener("message", handler);
       this.worker.postMessage(`position fen ${fen}`);
       this.worker.postMessage(`go depth ${depth}`);
+    }).then((evalResult: StockfishEvaluation) => {
+      // Normalize score to be from White's perspective
+      // Stockfish returns score relative to side to move
+      const sideToMove = fen.split(" ")[1]; // 'w' or 'b'
+      if (sideToMove === 'b') {
+        if (evalResult.score !== 0) evalResult.score = -evalResult.score;
+        if (evalResult.mate !== null && evalResult.mate !== 0) evalResult.mate = -evalResult.mate;
+      }
+      return evalResult;
     });
   }
 
