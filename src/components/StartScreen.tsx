@@ -48,7 +48,7 @@ export default function StartScreen({ onStartGame, onResumeGame, hasSavedGame }:
     return (
         <>
             <Header language={language} />
-            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 flex flex-col items-center justify-center">
+            <div className="flex-grow bg-gray-100 dark:bg-gray-900 p-4 flex flex-col items-center justify-center relative">
                 <div className="absolute top-4 right-4 md:top-8 md:right-8">
                     <button
                         onClick={() => router.push("/settings")}
@@ -105,8 +105,8 @@ export default function StartScreen({ onStartGame, onResumeGame, hasSavedGame }:
                                             <button
                                                 onClick={() => setColorSelection('white')}
                                                 className={`py-4 px-4 rounded-xl border-2 text-sm font-bold transition-all flex flex-col items-center gap-2 ${colorSelection === 'white'
-                                                        ? 'bg-blue-50 border-blue-600 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                                                        : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
+                                                    ? 'bg-blue-50 border-blue-600 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                                                    : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
                                                     }`}
                                             >
                                                 <span className="text-3xl">♔</span> {t.start.playAsWhite}
@@ -114,8 +114,8 @@ export default function StartScreen({ onStartGame, onResumeGame, hasSavedGame }:
                                             <button
                                                 onClick={() => setColorSelection('black')}
                                                 className={`py-4 px-4 rounded-xl border-2 text-sm font-bold transition-all flex flex-col items-center gap-2 ${colorSelection === 'black'
-                                                        ? 'bg-blue-50 border-blue-600 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                                                        : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
+                                                    ? 'bg-blue-50 border-blue-600 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                                                    : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
                                                     }`}
                                             >
                                                 <span className="text-3xl">♚</span> {t.start.playAsBlack}
@@ -123,8 +123,8 @@ export default function StartScreen({ onStartGame, onResumeGame, hasSavedGame }:
                                             <button
                                                 onClick={() => setColorSelection('random')}
                                                 className={`py-4 px-4 rounded-xl border-2 text-sm font-bold transition-all flex flex-col items-center gap-2 ${colorSelection === 'random'
-                                                        ? 'bg-blue-50 border-blue-600 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                                                        : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
+                                                    ? 'bg-blue-50 border-blue-600 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                                                    : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
                                                     }`}
                                             >
                                                 <span className="text-3xl">🎲</span> {t.start.randomColor}

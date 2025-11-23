@@ -9,6 +9,10 @@ services:
     ports:
       - "3050:3050"
 
+      # Data Privacy & Imprint Configuration
+      IMPRINT_URL: ${IMPRINT_URL:-}
+      DATA_PRIVACY_RESPONSIBLE_PERSON: ${DATA_PRIVACY_RESPONSIBLE_PERSON:-}
+      
     env_file:
       - .env
 

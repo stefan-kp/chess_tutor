@@ -16,6 +16,7 @@ export default function Home() {
     // Game Initialization State
     const [gameProps, setGameProps] = useState<{
         initialFen?: string;
+        initialPgn?: string;
         initialPersonality: Personality;
         initialColor: 'white' | 'black';
     } | null>(null);
@@ -64,6 +65,7 @@ export default function Home() {
                 if (data.fen && data.selectedPersonality) {
                     setGameProps({
                         initialFen: data.fen,
+                        initialPgn: data.pgn,
                         initialPersonality: data.selectedPersonality,
                         initialColor: data.playerColor || 'white'
                     });
@@ -85,7 +87,7 @@ export default function Home() {
     if (!mounted) return null;
 
     return (
-        <main>
+        <main className="flex-grow flex flex-col">
             {view === 'start' && (
                 <StartScreen
                     onStartGame={handleStartGame}
@@ -96,6 +98,7 @@ export default function Home() {
             {view === 'game' && gameProps && (
                 <ChessGame
                     initialFen={gameProps.initialFen}
+                    initialPgn={gameProps.initialPgn}
                     initialPersonality={gameProps.initialPersonality}
                     initialColor={gameProps.initialColor}
                     onBack={handleBackToMenu}

@@ -18,6 +18,7 @@ import { CapturedPieces } from "./CapturedPieces";
 
 interface ChessGameProps {
     initialFen?: string;
+    initialPgn?: string;
     initialPersonality: Personality;
     initialColor: 'white' | 'black';
     onBack: () => void;
@@ -32,7 +33,7 @@ const PIECE_VALUES: Record<string, number> = {
     'k': 0
 };
 
-export default function ChessGame({ initialFen, initialPersonality, initialColor, onBack }: ChessGameProps) {
+export default function ChessGame({ initialFen, initialPgn, initialPersonality, initialColor, onBack }: ChessGameProps) {
     const gameRef = useRef(new Chess(initialFen || "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"));
     const [fen, setFen] = useState(gameRef.current.fen());
     const [stockfish, setStockfish] = useState<Stockfish | null>(null);
@@ -89,6 +90,17 @@ export default function ChessGame({ initialFen, initialPersonality, initialColor
             updateCapturedPieces(); // Update captured pieces for loaded game
         }
 
+        // If initialPgn is provided, load it to restore history
+        if (initialPgn) {
+            try {
+                gameRef.current.loadPgn(initialPgn);
+                setFen(gameRef.current.fen());
+                updateCapturedPieces();
+            } catch (e) {
+                console.error("Failed to load PGN:", e);
+            }
+        }
+
         // If computer is white (player is black) and it's the start of the game, make a move
         // But only if we are at the start position
         if (initialColor === 'black' &&
@@ -117,7 +129,9 @@ export default function ChessGame({ initialFen, initialPersonality, initialColor
             language,
             selectedPersonality,
             apiKey,
-            playerColor // Save player color too
+            apiKey,
+            playerColor, // Save player color too
+            pgn: gameRef.current.pgn()
         };
         localStorage.setItem("chess_tutor_save", JSON.stringify(saveData));
     }, [fen, language, selectedPersonality, apiKey, playerColor]);
@@ -307,7 +321,7 @@ export default function ChessGame({ initialFen, initialPersonality, initialColor
     return (
         <>
             <Header language={language} />
-            <div className="flex flex-col md:flex-row gap-8 w-full max-w-6xl mx-auto p-4">
+            <div className="flex-grow flex flex-col md:flex-row gap-8 w-full max-w-6xl mx-auto p-4">
                 <div className="w-full md:w-2/3 flex flex-col gap-4">
                     {/* Header with Back Button */}
                     <div className="flex justify-between items-center">
