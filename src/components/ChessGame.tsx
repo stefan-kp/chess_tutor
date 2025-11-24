@@ -199,12 +199,13 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
 
     // Pre-Analysis (P0)
     useEffect(() => {
-        if (stockfish && gameRef.current.turn() === 'w' && !isAnalyzing && !gameOverState) {
+        const playerTurn = playerColor === 'white' ? 'w' : 'b';
+        if (stockfish && gameRef.current.turn() === playerTurn && !isAnalyzing && !gameOverState) {
             stockfish.evaluate(gameRef.current.fen(), stockfishDepth).then(evalResult => {
                 setEvalP0(evalResult);
             }).catch(err => console.error("Pre-analysis failed:", err));
         }
-    }, [fen, stockfish, stockfishDepth, isAnalyzing, gameOverState]);
+    }, [playerColor, fen, stockfish, stockfishDepth, isAnalyzing, gameOverState]);
 
     const updateCapturedPieces = useCallback(() => {
         const history = gameRef.current.history({ verbose: true });

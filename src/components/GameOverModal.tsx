@@ -10,6 +10,8 @@ export interface MoveHistoryItem {
     evalBefore: number; // cp
     evalAfter: number; // cp
     bestMove?: string;
+    category?: 'inaccuracy' | 'mistake' | 'blunder';
+    cpLoss?: number;
 }
 
 interface GameOverModalProps {
@@ -31,41 +33,56 @@ export function GameOverModal({ result, winner, history, apiKey, language, onClo
         const analyzeGame = async () => {
             setIsLoading(true);
             try {
-                // 1. Identify Mistakes (Blunders)
-                // A blunder is roughly a drop of > 100cp (1 pawn) or missing a mate
-                const detectedMistakes = history.filter(item => {
-                    const delta = item.evalAfter - item.evalBefore;
-                    // Note: eval is from White's perspective.
-                    // If White moves, eval should ideally go up or stay same.
-                    // If eval drops significantly, it's a mistake.
-                    return delta <= -100;
-                });
+                // 1. Identify Mistakes with proper categorization
+                // Standard chess analysis thresholds:
+                // - Inaccuracy: 50-100 centipawns loss
+                // - Mistake: 100-300 centipawns loss
+                // - Blunder: 300+ centipawns loss
+                const detectedMistakes = history.map(item => {
+                    const delta = item.evalBefore - item.evalAfter; // Positive = eval got worse for player
+                    let category: 'inaccuracy' | 'mistake' | 'blunder' | null = null;
+
+                    if (delta >= 300) category = 'blunder';
+                    else if (delta >= 100) category = 'mistake';
+                    else if (delta >= 50) category = 'inaccuracy';
+
+                    return { ...item, category, cpLoss: delta };
+                }).filter(item => item.category !== null) as MoveHistoryItem[];
+
                 setMistakes(detectedMistakes);
 
                 // 2. LLM Analysis
                 if (apiKey) {
                     const model = getGenAIModel(apiKey, "gemini-2.5-flash");
 
+                    const blunders = detectedMistakes.filter(m => m.category === 'blunder');
+                    const mistakes = detectedMistakes.filter(m => m.category === 'mistake');
+                    const inaccuracies = detectedMistakes.filter(m => m.category === 'inaccuracy');
+
                     const mistakesText = detectedMistakes.map(m =>
-                        `Move ${m.moveNumber}: Played ${m.move} (Eval dropped from ${m.evalBefore} to ${m.evalAfter}). Best move was likely ${m.bestMove}.`
+                        `Move ${m.moveNumber}: ${m.move} (${m.category?.toUpperCase()}: -${m.cpLoss}cp, eval ${m.evalBefore} → ${m.evalAfter}). Best: ${m.bestMove}`
                     ).join("\n");
 
                     const prompt = `
 You are a Chess Coach. The game is over.
 Result: ${result} (${winner === "Draw" ? "Draw" : winner + " Won"}).
 
-Here are the player's (White) key mistakes (Blunders):
-${mistakesText || "No major blunders detected."}
+Player's Performance Summary:
+- Blunders (300+ cp loss): ${blunders.length}
+- Mistakes (100-300 cp loss): ${mistakes.length}
+- Inaccuracies (50-100 cp loss): ${inaccuracies.length}
+
+${mistakesText ? `Detailed Mistakes:\n${mistakesText}` : "No significant mistakes detected - excellent play!"}
 
 INSTRUCTIONS:
 1. Briefly comment on the game result.
-2. If there were mistakes, explain WHY they were bad and what the player should have looked for (tactics, hanging pieces, etc.).
-3. If no mistakes, praise the solid play.
-4. Be encouraging but educational.
+2. If there were mistakes, explain WHY the worst ones were bad and what the player should have looked for (tactics, hanging pieces, positional errors, etc.).
+3. If no mistakes, praise the solid play and suggest areas for improvement.
+4. Be encouraging but educational. Focus on learning.
 5. Respond in ${language.toUpperCase()}.
 
 OUTPUT FORMAT:
-Plain text paragraph.
+Plain text paragraph (2-3 sentences).
                     `;
 
                     const resultGen = await model.generateContent(prompt);
@@ -112,18 +129,35 @@ Plain text paragraph.
                                         Key Moments / Mistakes
                                     </h3>
                                     <div className="max-h-40 overflow-y-auto space-y-2 pr-2">
-                                        {mistakes.map((m, idx) => (
-                                            <div key={idx} className="p-3 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 rounded-lg text-sm">
-                                                <span className="font-bold text-gray-900 dark:text-white">Move {m.moveNumber}: {m.move}</span>
-                                                <span className="mx-2 text-gray-400">|</span>
-                                                <span className="text-red-600 dark:text-red-400">Eval: {m.evalBefore} ➝ {m.evalAfter}</span>
-                                                {m.bestMove && (
-                                                    <div className="text-gray-500 dark:text-gray-400 mt-1">
-                                                        Best was likely: <span className="font-mono">{m.bestMove}</span>
+                                        {mistakes.map((m, idx) => {
+                                            const categoryColors = {
+                                                inaccuracy: 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+                                                mistake: 'bg-orange-50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-900/30 text-orange-700 dark:text-orange-400',
+                                                blunder: 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-400'
+                                            };
+                                            const categoryColor = categoryColors[m.category || 'inaccuracy'];
+
+                                            return (
+                                                <div key={idx} className={`p-3 border rounded-lg text-sm ${categoryColor}`}>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-gray-900 dark:text-white">Move {m.moveNumber}: {m.move}</span>
+                                                        <span className="px-2 py-0.5 rounded text-xs font-semibold uppercase bg-white/50 dark:bg-black/20">
+                                                            {m.category}
+                                                        </span>
                                                     </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                                    <div className="mt-1 text-xs">
+                                                        <span className="font-medium">Loss: -{m.cpLoss}cp</span>
+                                                        <span className="mx-2 text-gray-400">|</span>
+                                                        <span>Eval: {m.evalBefore} → {m.evalAfter}</span>
+                                                    </div>
+                                                    {m.bestMove && (
+                                                        <div className="text-gray-600 dark:text-gray-400 mt-1 text-xs">
+                                                            Best: <span className="font-mono">{m.bestMove}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}

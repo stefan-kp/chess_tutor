@@ -38,19 +38,22 @@ export function GameAnalysisModal({ fen, stockfish, apiKey, language, onClose }:
                 // 3. LLM Summary
                 if (apiKey && evalResult) {
                     const model = getGenAIModel(apiKey, "gemini-2.5-flash");
+                    const evalInPawns = (evalResult.score / 100).toFixed(2);
                     const prompt = `
 You are a Chess Grandmaster Analyst.
 Analyze this position for the user.
 
 DATA:
 - FEN: ${fen}
-- Evaluation: ${evalResult.score} cp (positive = White advantage, negative = Black advantage)
+- Evaluation: ${evalInPawns} pawns (${evalResult.score} centipawns)
+  Note: Positive = White advantage, Negative = Black advantage
+  100 centipawns = 1 pawn
 - Mate in: ${evalResult.mate ?? "N/A"}
 - Best Move: ${evalResult.bestMove}
 - Opening: ${openingData ? `${openingData.name} (${openingData.eco})` : "Unknown/Midgame"}
 
 INSTRUCTIONS:
-1. Summarize who is winning and why (based on score).
+1. Summarize who is winning and why (based on score). Use the pawn value (e.g., "White is up 2.5 pawns" not "250 centipawns").
 2. Identify the key strategic factors (space, piece activity, king safety).
 3. Mention the opening if relevant.
 4. Keep it concise (max 3-4 sentences).
