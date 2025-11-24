@@ -13,7 +13,7 @@ import { SupportedLanguage } from "@/lib/i18n/translations";
 import { lookupOpening, OpeningMetadata } from "@/lib/openings";
 import { GameAnalysisModal } from "./GameAnalysisModal";
 import { GameOverModal, MoveHistoryItem } from "./GameOverModal";
-import { Brain } from "lucide-react";
+import { Brain, ArrowLeft } from "lucide-react";
 import { CapturedPieces } from "./CapturedPieces";
 
 interface ChessGameProps {
@@ -60,6 +60,35 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
     const [gameOverState, setGameOverState] = useState<{ result: string, winner: "White" | "Black" | "Draw" } | null>(null);
     const [moveHistory, setMoveHistory] = useState<MoveHistoryItem[]>([]);
     const [selectedPersonality, setSelectedPersonality] = useState<Personality>(initialPersonality);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Sound Refs
+    const moveSound = useRef<HTMLAudioElement | null>(null);
+    const captureSound = useRef<HTMLAudioElement | null>(null);
+    const checkSound = useRef<HTMLAudioElement | null>(null);
+    const victorySound = useRef<HTMLAudioElement | null>(null);
+    const defeatSound = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        moveSound.current = new Audio('/sounds/move.wav');
+        captureSound.current = new Audio('/sounds/capture.wav');
+        checkSound.current = new Audio('/sounds/check.wav');
+        victorySound.current = new Audio('/sounds/victory.wav');
+        defeatSound.current = new Audio('/sounds/defeat.wav');
+    }, []);
+
+    const playMoveSound = (captured: boolean) => {
+        if (captured) {
+            captureSound.current?.play().catch(e => console.error("Audio play failed", e));
+        } else {
+            moveSound.current?.play().catch(e => console.error("Audio play failed", e));
+        }
+    };
+
+    // Scroll to bottom of move history
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [moveHistory]);
 
     // Captured Pieces State
     const [capturedWhitePieces, setCapturedWhitePieces] = useState<string[]>([]);
@@ -129,7 +158,6 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
             language,
             selectedPersonality,
             apiKey,
-            apiKey,
             playerColor, // Save player color too
             pgn: gameRef.current.pgn()
         };
@@ -147,9 +175,13 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
                 if (game.turn() === 'w') {
                     result = "Checkmate! You lost.";
                     winner = "Black";
+                    if (playerColor === 'white') defeatSound.current?.play().catch(e => console.error(e));
+                    else victorySound.current?.play().catch(e => console.error(e));
                 } else {
                     result = "Checkmate! You won!";
                     winner = "White";
+                    if (playerColor === 'white') victorySound.current?.play().catch(e => console.error(e));
+                    else defeatSound.current?.play().catch(e => console.error(e));
                 }
             } else if (game.isDraw()) {
                 result = "Draw!";
@@ -157,11 +189,13 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
             } else if (game.isStalemate()) {
                 result = "Stalemate!";
                 winner = "Draw";
+            } else if (game.inCheck()) {
+                checkSound.current?.play().catch(e => console.error(e));
             }
 
             setGameOverState({ result, winner });
         }
-    }, [fen]);
+    }, [fen, playerColor]);
 
     // Pre-Analysis (P0)
     useEffect(() => {
@@ -206,6 +240,7 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
                     const newFen = game.fen();
                     setFen(newFen);
                     updateCapturedPieces();
+                    playMoveSound(!!result.captured);
 
                     // If it was computer's move, update state
                     if (game.turn() === 'w') { // Computer just moved (assuming computer is Black? No, wait)
@@ -318,42 +353,52 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
     const whiteAdvantage = materialScore.black - materialScore.white;
     const blackAdvantage = materialScore.white - materialScore.black;
 
+    const [showStrengthSlider, setShowStrengthSlider] = useState(false);
+
     return (
         <>
             <Header language={language} />
-            <div className="flex-grow flex flex-col md:flex-row gap-8 w-full max-w-6xl mx-auto p-4">
-                <div className="w-full md:w-2/3 flex flex-col gap-4">
-                    {/* Header with Back Button */}
-                    <div className="flex justify-between items-center">
-                        <button
-                            onClick={onBack}
-                            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-sm font-medium transition-colors"
-                        >
-                            {t.game.backToMenu}
-                        </button>
-                        <div className="text-sm text-gray-500">
-                            {t.game.playingAs} {playerColor === 'white' ? t.game.white : t.game.black} {t.game.vs} {selectedPersonality?.name}
-                        </div>
+            <div className="flex-grow grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 w-full max-w-6xl mx-auto p-4">
+
+
+                {/* 1. Header (Col 1-3) */}
+                <div className="md:col-span-3 flex justify-between items-center">
+                    <button
+                        onClick={onBack}
+                        className="p-2 md:px-4 md:py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-sm font-medium transition-colors"
+                        aria-label={t.game.backToMenu}
+                    >
+                        <span className="hidden md:inline">{t.game.backToMenu}</span>
+                        <ArrowLeft className="md:hidden" size={20} />
+                    </button>
+                    <div className="text-sm text-gray-500 hidden md:block">
+                        {t.game.playingAs} {playerColor === 'white' ? t.game.white : t.game.black} {t.game.vs} {selectedPersonality?.name}
+                    </div>
+                </div>
+
+                {/* 2. Board Area (Col 1-2) */}
+                <div className="md:col-span-2 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col md:flex-row gap-4 relative">
+                    {/* Desktop Eval Bar (Vertical) */}
+                    <div className="hidden md:block h-[560px]">
+                        <EvaluationBar
+                            score={isAnalyzing ? null : evalP0?.score}
+                            mate={isAnalyzing ? null : evalP0?.mate}
+                            isPlayerWhite={playerColor === 'white'}
+                            orientation="vertical"
+                        />
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg flex gap-4">
-                        <div className="h-[560px]">
-                            <EvaluationBar
-                                score={isAnalyzing ? null : evalP0?.score}
-                                mate={isAnalyzing ? null : evalP0?.mate}
-                                isPlayerWhite={playerColor === 'white'}
+                    <div className="flex-1 flex flex-col justify-center">
+                        {/* Opponent's Captured Pieces (Top) */}
+                        <div className="mb-2 h-8">
+                            <CapturedPieces
+                                captured={playerColor === 'white' ? capturedWhitePieces : capturedBlackPieces}
+                                color={playerColor === 'white' ? 'w' : 'b'}
+                                score={playerColor === 'white' ? (blackAdvantage > 0 ? blackAdvantage : null) : (whiteAdvantage > 0 ? whiteAdvantage : null)}
                             />
                         </div>
-                        <div className="flex-1 flex flex-col justify-center">
-                            {/* Opponent's Captured Pieces (Top) */}
-                            <div className="mb-2 h-8">
-                                <CapturedPieces
-                                    captured={playerColor === 'white' ? capturedWhitePieces : capturedBlackPieces}
-                                    color={playerColor === 'white' ? 'w' : 'b'} // If player is white, opponent is black. Show White's lost pieces (capturedWhitePieces)
-                                    score={playerColor === 'white' ? (blackAdvantage > 0 ? blackAdvantage : null) : (whiteAdvantage > 0 ? whiteAdvantage : null)}
-                                />
-                            </div>
 
+                        <div className="bg-[#779954] p-[2px] rounded-sm">
                             <Chessboard
                                 options={{
                                     position: fen,
@@ -364,23 +409,43 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
                                     boardOrientation: playerColor
                                 }}
                             />
-
-                            {/* Player's Captured Pieces (Bottom) */}
-                            <div className="mt-2 h-8">
-                                <CapturedPieces
-                                    captured={playerColor === 'white' ? capturedBlackPieces : capturedWhitePieces}
-                                    color={playerColor === 'white' ? 'b' : 'w'} // If player is white, show Black's lost pieces (capturedBlackPieces)
-                                    score={playerColor === 'white' ? (whiteAdvantage > 0 ? whiteAdvantage : null) : (blackAdvantage > 0 ? blackAdvantage : null)}
-                                />
-                            </div>
                         </div>
-                    </div>
 
-                    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg">
-                        <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Stockfish Strength (Depth: {stockfishDepth})
-                            </label>
+                        {/* Player's Captured Pieces (Bottom) */}
+                        <div className="mt-2 h-8">
+                            <CapturedPieces
+                                captured={playerColor === 'white' ? capturedBlackPieces : capturedWhitePieces}
+                                color={playerColor === 'white' ? 'b' : 'w'}
+                                score={playerColor === 'white' ? (whiteAdvantage > 0 ? whiteAdvantage : null) : (blackAdvantage > 0 ? blackAdvantage : null)}
+                            />
+                        </div>
+
+                        {/* Board Footer: Controls */}
+                        <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowStrengthSlider(!showStrengthSlider)}
+                                    className="hover:text-gray-700 dark:hover:text-gray-200 underline decoration-dotted underline-offset-2"
+                                >
+                                    Stockfish Level: {stockfishDepth}
+                                </button>
+                                {showStrengthSlider && (
+                                    <div className="absolute bottom-full left-0 mb-2 w-48 bg-white dark:bg-gray-700 p-3 rounded shadow-xl border border-gray-200 dark:border-gray-600 z-10">
+                                        <label className="block text-xs font-bold mb-1 text-gray-700 dark:text-gray-200">
+                                            Strength (Depth: {stockfishDepth})
+                                        </label>
+                                        <input
+                                            type="range"
+                                            min="1"
+                                            max="20"
+                                            value={stockfishDepth}
+                                            onChange={(e) => setStockfishDepth(parseInt(e.target.value))}
+                                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-600"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
                             <button
                                 onClick={() => {
                                     const game = gameRef.current;
@@ -394,72 +459,31 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
                                     setOpeningData(null);
                                     updateCapturedPieces();
                                 }}
-                                className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 dark:bg-red-900 dark:text-red-200 transition-colors"
+                                className="flex items-center gap-1 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                             >
-                                Undo Last Move
+                                <ArrowLeft size={12} /> Undo
                             </button>
                         </div>
-                        <input
-                            type="range"
-                            min="1"
-                            max="20"
-                            value={stockfishDepth}
-                            onChange={(e) => setStockfishDepth(parseInt(e.target.value))}
-                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                        />
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg flex-1 min-h-0 flex flex-col">
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Game History</h3>
-                            <button
-                                onClick={() => setShowAnalysisModal(true)}
-                                className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200 flex items-center gap-1"
-                            >
-                                <Brain size={12} /> Analyze
-                            </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900 p-2">
-                            <table className="w-full text-sm text-left">
-                                <thead>
-                                    <tr className="text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                                        <th className="py-1 px-2 w-12">#</th>
-                                        <th className="py-1 px-2">White</th>
-                                        <th className="py-1 px-2">Black</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {(() => {
-                                        const history = gameRef.current.history();
-                                        const rows = [];
-                                        for (let i = 0; i < history.length; i += 2) {
-                                            rows.push(
-                                                <tr key={i} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
-                                                    <td className="py-1 px-2 text-gray-500 dark:text-gray-500">{Math.floor(i / 2) + 1}.</td>
-                                                    <td className="py-1 px-2 font-medium text-gray-900 dark:text-gray-200">{history[i]}</td>
-                                                    <td className="py-1 px-2 font-medium text-gray-900 dark:text-gray-200">{history[i + 1] || ""}</td>
-                                                </tr>
-                                            );
-                                        }
-                                        if (rows.length === 0) {
-                                            return (
-                                                <tr>
-                                                    <td colSpan={3} className="py-4 text-center text-gray-500 italic">
-                                                        No moves yet.
-                                                    </td>
-                                                </tr>
-                                            );
-                                        }
-                                        return rows;
-                                    })()}
-                                </tbody>
-                            </table>
-                            <div ref={(el) => el?.scrollIntoView({ behavior: "smooth" })} />
-                        </div>
+                    {/* Mobile Eval Bar (Horizontal) */}
+                    <div className="md:hidden w-full">
+                        <EvaluationBar
+                            score={isAnalyzing ? null : evalP0?.score}
+                            mate={isAnalyzing ? null : evalP0?.mate}
+                            isPlayerWhite={playerColor === 'white'}
+                            orientation="horizontal"
+                        />
                     </div>
                 </div>
 
-                <div className="w-full md:w-1/3">
+                {/* 3. Tutor (Col 3) - Side by side with Board on Desktop */}
+                <div className="md:col-span-1 h-[400px] md:h-auto">
+                    {/* Note: We rely on Tutor's internal height styling or pass a class.
+                         The Tutor component has 'h-[400px] md:h-full'.
+                         Since it's in a grid cell that might stretch, 'h-full' should work if the row has height.
+                         However, the Board Area defines the row height.
+                     */}
                     <Tutor
                         currentFen={fen}
                         userMove={userMove}
@@ -476,28 +500,78 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
                     />
                 </div>
 
-                {showAnalysisModal && (
-                    <GameAnalysisModal
-                        fen={fen}
-                        stockfish={stockfish}
-                        apiKey={apiKey}
-                        language={language}
-                        onClose={() => setShowAnalysisModal(false)}
-                    />
-                )}
-
-                {gameOverState && (
-                    <GameOverModal
-                        result={gameOverState.result}
-                        winner={gameOverState.winner}
-                        history={moveHistory}
-                        apiKey={apiKey}
-                        language={language}
-                        onClose={() => setGameOverState(null)}
-                        onNewGame={handleNewGame}
-                    />
-                )}
+                {/* 4. History (Col 1-3) - Full width at bottom */}
+                <div className="md:col-span-3 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col">
+                    <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Game History</h3>
+                        <button
+                            onClick={() => setShowAnalysisModal(true)}
+                            className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200 flex items-center gap-1"
+                        >
+                            <Brain size={12} /> Analyze
+                        </button>
+                    </div>
+                    <div className="overflow-y-auto border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900 p-2 max-h-40">
+                        <table className="w-full text-sm text-left">
+                            <thead>
+                                <tr className="text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                                    <th className="py-1 px-2 w-12">#</th>
+                                    <th className="py-1 px-2">White</th>
+                                    <th className="py-1 px-2">Black</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(() => {
+                                    const history = gameRef.current.history();
+                                    const rows = [];
+                                    for (let i = 0; i < history.length; i += 2) {
+                                        rows.push(
+                                            <tr key={i} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                                                <td className="py-1 px-2 text-gray-500 dark:text-gray-500">{Math.floor(i / 2) + 1}.</td>
+                                                <td className="py-1 px-2 font-medium text-gray-900 dark:text-gray-200">{history[i]}</td>
+                                                <td className="py-1 px-2 font-medium text-gray-900 dark:text-gray-200">{history[i + 1] || ""}</td>
+                                            </tr>
+                                        );
+                                    }
+                                    if (rows.length === 0) {
+                                        return (
+                                            <tr>
+                                                <td colSpan={3} className="py-4 text-center text-gray-500 italic">
+                                                    No moves yet.
+                                                </td>
+                                            </tr>
+                                        );
+                                    }
+                                    return rows;
+                                })()}
+                            </tbody>
+                        </table>
+                        <div ref={messagesEndRef} />
+                    </div>
+                </div>
             </div>
+
+            {showAnalysisModal && (
+                <GameAnalysisModal
+                    fen={fen}
+                    stockfish={stockfish}
+                    apiKey={apiKey}
+                    language={language}
+                    onClose={() => setShowAnalysisModal(false)}
+                />
+            )}
+
+            {gameOverState && (
+                <GameOverModal
+                    result={gameOverState.result}
+                    winner={gameOverState.winner}
+                    history={moveHistory}
+                    apiKey={apiKey}
+                    language={language}
+                    onClose={() => setGameOverState(null)}
+                    onNewGame={handleNewGame}
+                />
+            )}
         </>
     );
 }
