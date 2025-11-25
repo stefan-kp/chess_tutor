@@ -9,12 +9,12 @@ describe("EvaluationBar", () => {
     });
 
     it("renders positive score for white advantage", () => {
-        render(<EvaluationBar score={150} />);
+        render(<EvaluationBar score={150} isPlayerWhite={true} />);
         expect(screen.getByText("+1.5")).toBeInTheDocument();
     });
 
     it("renders negative score for black advantage", () => {
-        render(<EvaluationBar score={-230} />);
+        render(<EvaluationBar score={-230} isPlayerWhite={true} />);
         expect(screen.getByText("-2.3")).toBeInTheDocument();
     });
 

@@ -486,6 +486,7 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
                          However, the Board Area defines the row height.
                      */}
                     <Tutor
+                        game={gameRef.current}
                         currentFen={fen}
                         userMove={userMove}
                         computerMove={computerMove}

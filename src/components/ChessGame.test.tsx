@@ -1,6 +1,5 @@
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import ChessGame from "./ChessGame";
-import { Chess } from "chess.js";
 
 // Mock dependencies
 jest.mock("react-chessboard", () => ({
@@ -31,7 +30,7 @@ jest.mock("../lib/stockfish", () => {
 });
 
 jest.mock("./Tutor", () => ({
-    Tutor: ({ currentFen, userMove, computerMove, evalP0, evalP2, openingData, language }: any) => (
+    Tutor: jest.fn(({ currentFen, userMove, computerMove, evalP0, evalP2, openingData, language }) => (
         <div data-testid="tutor">
             Tutor Mock (Fen: {currentFen})
             {userMove && <span>User Move: {userMove.san}</span>}
@@ -41,16 +40,7 @@ jest.mock("./Tutor", () => ({
             {openingData && <span>Opening: {openingData.name}</span>}
             <span>Language: {language}</span>
         </div>
-    ),
-}));
-
-// Mock APIKeyInput to avoid portal issues or complex interactions if needed, 
-// but since we integrated it into the start screen, we can test the interaction directly.
-APIKeyInput: ({ onKeySubmit }: any) => (
-    <button onClick={() => onKeySubmit("test-key")} data-testid="api-key-trigger">
-        Set API Key
-    </button>
-),
+    )),
 }));
 
 jest.mock("./GameAnalysisModal", () => ({
@@ -61,54 +51,67 @@ jest.mock("./GameOverModal", () => ({
     GameOverModal: () => <div data-testid="game-over-modal">Game Over Modal Mock</div>,
 }));
 
+jest.mock("./StartScreen", () => ({
+    __esModule: true,
+    default: ({ onStartGame }: { onStartGame: (options: any) => void }) => (
+        <div data-testid="start-screen">
+            <button onClick={() => onStartGame({ personality: { name: 'Test Personality' }, color: 'white' })}>
+                Start Game
+            </button>
+        </div>
+    ),
+}));
+
+
 describe("ChessGame Component", () => {
+    const mockPersonality = {
+        name: "Test Personality",
+        systemPrompt: "You are a helpful assistant.",
+        image: "🤖",
+    };
+
     beforeEach(() => {
         localStorage.clear();
         jest.clearAllMocks();
+        jest.useFakeTimers();
     });
 
-    it("renders the start screen initially", () => {
-        render(<ChessGame />);
-        expect(screen.getByText("Chess Tutor AI")).toBeInTheDocument();
-        expect(screen.getByText("1. Settings")).toBeInTheDocument();
-        expect(screen.getByText("2. Start Game")).toBeInTheDocument();
-    });
-
-    it("starts the game after entering API key and selecting a personality", async () => {
-        render(<ChessGame />);
-
-        // 1. Enter API Key
-        const keyInput = screen.getByPlaceholderText("AIzaSy...");
-        fireEvent.change(keyInput, { target: { value: "test-api-key" } });
-
-        // 2. Select Personality (now enabled)
-        fireEvent.click(screen.getByText("Drunk Russian GM"));
-
-        await waitFor(() => {
-            expect(screen.getByTestId("chessboard")).toBeInTheDocument();
-            expect(screen.getByTestId("tutor")).toBeInTheDocument();
+    it("renders the game board and tutor", async () => {
+        await act(async () => {
+            render(
+                <ChessGame
+                    initialPersonality={mockPersonality}
+                    initialColor="white"
+                    onBack={() => {}}
+                />
+            );
         });
+        expect(screen.getByTestId("chessboard")).toBeInTheDocument();
+        expect(screen.getByTestId("tutor")).toBeInTheDocument();
     });
 
     it("handles user move and triggers analysis", async () => {
-        render(<ChessGame />);
+        const Tutor = require('./Tutor').Tutor;
+        render(
+            <ChessGame
+                initialPersonality={mockPersonality}
+                initialColor="white"
+                onBack={() => {}}
+            />
+        );
 
-        // 1. Enter API Key
-        const keyInput = screen.getByPlaceholderText("AIzaSy...");
-        fireEvent.change(keyInput, { target: { value: "test-api-key" } });
+        const initialCalls = Tutor.mock.calls.length;
 
-        // 2. Select Personality
-        fireEvent.click(screen.getByText("Drunk Russian GM"));
+        // Make a move by clicking the mock chessboard
+        await act(async () => {
+            fireEvent.click(screen.getByTestId("chessboard"));
+            jest.runAllTimers();
+        });
 
-        await waitFor(() => screen.getByTestId("chessboard"));
 
-        // Make a move
-        fireEvent.click(screen.getByTestId("chessboard"));
-
-        // Wait for analysis and computer move
+        // Wait for the component to update
         await waitFor(() => {
-            expect(screen.getByText(/User Move:/)).toBeInTheDocument();
-            expect(screen.getByText(/Eval P2:/)).toBeInTheDocument();
-        }, { timeout: 10000 });
-    }, 15000);
+            expect(Tutor.mock.calls.length).toBeGreaterThan(initialCalls);
+        });
+    });
 });

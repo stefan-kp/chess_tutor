@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Stockfish, StockfishEvaluation } from "@/lib/stockfish";
-import { Move } from "chess.js";
+import { Chess, Move } from "chess.js";
 import { getGenAIModel } from "@/lib/gemini";
 import { ChatSession } from "@google/generative-ai";
 import { Send, Bot, User as UserIcon, Loader2, Lightbulb, Trophy } from "lucide-react";
@@ -14,6 +14,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { SupportedLanguage } from '@/lib/i18n/translations';
 
 interface TutorProps {
+    game: Chess;
     currentFen: string;
     userMove: Move | null;
     computerMove: Move | null;
@@ -34,7 +35,7 @@ interface Message {
     timestamp: number;
 }
 
-export function Tutor({ currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, onAnalysisComplete, apiKey, personality, language, playerColor }: TutorProps) {
+export function Tutor({ game, currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, onAnalysisComplete, apiKey, personality, language, playerColor }: TutorProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -198,6 +199,20 @@ React to this exchange as the player.
         analyzeExchange();
     }, [computerMove, chatSession, evalP0, evalP2, userMove, onAnalysisComplete, openingData, language]);
 
+    const evaluateCurrentPosition = async () => {
+        if (!stockfish) {
+            return null;
+        }
+        try {
+            const currentFen = game.fen();
+            const evaluation = await stockfish.evaluate(currentFen, 15);
+            return evaluation;
+        } catch (error) {
+            console.error("Error evaluating position:", error);
+            return null;
+        }
+    };
+
     const sendMessageToChat = async (text: string, isSystemMessage: boolean = false) => {
         if (!chatSession) return;
 
@@ -212,10 +227,13 @@ React to this exchange as the player.
             let finalPrompt = text;
             if (!isSystemMessage) {
                 const lower = text.toLowerCase();
+                const evaluation = await evaluateCurrentPosition();
+
                 if (lower.includes("best move") || lower.includes("solution") || lower.includes("tell me")) {
-                    finalPrompt = `[SYSTEM TRIGGER: exact_move]\nUser Question: ${text}\nData: Post-Eval Best Move: ${evalP2?.bestMove}`;
+
+                    finalPrompt = `[SYSTEM TRIGGER: exact_move]\nUser Question: ${text}\nData: Best Move: ${evaluation?.bestMove}, Score: ${evaluation?.score}, Mate: ${evaluation?.mate}`;
                 } else if (lower.includes("hint") || lower.includes("tip") || lower.includes("help")) {
-                    finalPrompt = `[SYSTEM TRIGGER: hint]\nUser Question: ${text}`;
+                    finalPrompt = `[SYSTEM TRIGGER: hint]\nUser Question: ${text}\nData: Best Move: ${evaluation?.bestMove}, Score: ${evaluation?.score}, Mate: ${evaluation?.mate}`;
                 }
             }
 
