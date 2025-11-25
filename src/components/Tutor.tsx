@@ -273,7 +273,7 @@ User Question: ${text}
 
 Current Position Data:
 - Best Move: ${evaluation?.bestMove}
-- Evaluation: ${evaluation?.score} centipawns ${evaluation?.score > 0 ? '(White is better)' : evaluation?.score < 0 ? '(Black is better)' : '(Equal)'}
+- Evaluation: ${evaluation?.score ?? 'N/A'} centipawns ${evaluation?.score !== undefined ? (evaluation.score > 0 ? '(White is better)' : evaluation.score < 0 ? '(Black is better)' : '(Equal)') : ''}
 - Mate in: ${evaluation?.mate || 'None'}
 
 INSTRUCTIONS:
