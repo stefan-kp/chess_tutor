@@ -85,10 +85,8 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
         }
     };
 
-    // Scroll to bottom of move history
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [moveHistory]);
+    // Removed auto-scroll to prevent page jumping when moves are added
+    // Users can manually scroll to see move history if needed
 
     // Captured Pieces State
     const [capturedWhitePieces, setCapturedWhitePieces] = useState<string[]>([]);
@@ -544,32 +542,52 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
                                     <th className="py-1 px-2 w-12">#</th>
                                     <th className="py-1 px-2">White</th>
                                     <th className="py-1 px-2">Black</th>
+                                    <th className="py-1 px-2 text-center w-20">Eval Δ</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {(() => {
-                                    const history = gameRef.current.history();
-                                    const rows = [];
-                                    for (let i = 0; i < history.length; i += 2) {
-                                        rows.push(
-                                            <tr key={i} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
-                                                <td className="py-1 px-2 text-gray-500 dark:text-gray-500">{Math.floor(i / 2) + 1}.</td>
-                                                <td className="py-1 px-2 font-medium text-gray-900 dark:text-gray-200">{history[i]}</td>
-                                                <td className="py-1 px-2 font-medium text-gray-900 dark:text-gray-200">{history[i + 1] || ""}</td>
-                                            </tr>
-                                        );
-                                    }
-                                    if (rows.length === 0) {
+                                {moveHistory.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={4} className="py-4 text-center text-gray-500 italic">
+                                            No moves yet.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    moveHistory.map((item, idx) => {
+                                        // Calculate evaluation change for player's move
+                                        const evalBefore = item.evalBeforePlayerMove.score ?? 0;
+                                        const evalAfter = item.evalAfterPlayerMove.score ?? 0;
+                                        const evalChange = evalAfter - evalBefore;
+
+                                        // Determine color based on evaluation change
+                                        // Positive change = good for white, negative = good for black
+                                        let evalColor = 'text-gray-500';
+                                        if (Math.abs(evalChange) > 50) {
+                                            if (item.playerColor === 'white') {
+                                                evalColor = evalChange > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+                                            } else {
+                                                evalColor = evalChange < 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+                                            }
+                                        }
+
+                                        const evalDisplay = evalChange > 0 ? `+${(evalChange / 100).toFixed(1)}` : (evalChange / 100).toFixed(1);
+
                                         return (
-                                            <tr>
-                                                <td colSpan={3} className="py-4 text-center text-gray-500 italic">
-                                                    No moves yet.
+                                            <tr key={idx} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                                                <td className="py-1 px-2 text-gray-500 dark:text-gray-500">{item.moveNumber}.</td>
+                                                <td className="py-1 px-2 font-medium text-gray-900 dark:text-gray-200">
+                                                    {item.playerColor === 'white' ? item.playerMove : item.computerMove}
+                                                </td>
+                                                <td className="py-1 px-2 font-medium text-gray-900 dark:text-gray-200">
+                                                    {item.playerColor === 'black' ? item.playerMove : item.computerMove}
+                                                </td>
+                                                <td className={`py-1 px-2 text-center font-mono text-xs ${evalColor}`}>
+                                                    {evalDisplay}
                                                 </td>
                                             </tr>
                                         );
-                                    }
-                                    return rows;
-                                })()}
+                                    })
+                                )}
                             </tbody>
                         </table>
                         <div ref={messagesEndRef} />
