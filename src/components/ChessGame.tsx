@@ -259,6 +259,15 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
     function onDrop({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }) {
         if (!targetSquare || !stockfish || gameOverState) return false;
 
+        // Check if it's the player's turn
+        const currentTurn = gameRef.current.turn(); // 'w' or 'b'
+        const playerTurn = playerColor === 'white' ? 'w' : 'b';
+
+        if (currentTurn !== playerTurn) {
+            // Not the player's turn - prevent move
+            return false;
+        }
+
         const move = {
             from: sourceSquare,
             to: targetSquare,
@@ -285,40 +294,40 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
 
         // 2. Bot Move (P1 -> P2)
         stockfish.evaluate(fenP1, stockfishDepth).then(p1Eval => {
-            if (evalP0) {
-                // We now have all data for the player's move, but we need to wait for computer's move
-                // to complete the history item. Store partial data temporarily.
-                const partialHistoryItem = {
-                    moveNumber: gameRef.current.moveNumber(),
-                    playerMove: moveResult.result.san,
-                    playerColor: playerColor,
-                    fenBeforePlayerMove: fenP0,
-                    evalBeforePlayerMove: evalP0,
-                    fenAfterPlayerMove: fenP1,
-                    evalAfterPlayerMove: p1Eval,
+            // Store partial history data if evalP0 is available
+            const partialHistoryItem = evalP0 ? {
+                moveNumber: gameRef.current.moveNumber(),
+                playerMove: moveResult.result.san,
+                playerColor: playerColor,
+                fenBeforePlayerMove: fenP0,
+                evalBeforePlayerMove: evalP0,
+                fenAfterPlayerMove: fenP1,
+                evalAfterPlayerMove: p1Eval,
+            } : null;
+
+            // Computer should ALWAYS move, even if evalP0 is missing
+            setTimeout(() => {
+                const computerMoveData = {
+                    from: p1Eval.bestMove.substring(0, 2),
+                    to: p1Eval.bestMove.substring(2, 4),
+                    promotion: p1Eval.bestMove.length > 4 ? p1Eval.bestMove.substring(4, 5) : "q"
                 };
 
-                setTimeout(() => {
-                    const computerMoveData = {
-                        from: p1Eval.bestMove.substring(0, 2),
-                        to: p1Eval.bestMove.substring(2, 4),
-                        promotion: p1Eval.bestMove.length > 4 ? p1Eval.bestMove.substring(4, 5) : "q"
-                    };
+                const compResult = makeAMove(computerMoveData);
+                if (compResult) {
+                    setComputerMove(compResult.result);
+                    const { newFen: fenP2 } = compResult;
 
-                    const compResult = makeAMove(computerMoveData);
-                    if (compResult) {
-                        setComputerMove(compResult.result);
-                        const { newFen: fenP2 } = compResult;
+                    // 3. Post-Eval (P2)
+                    stockfish.evaluate(fenP2, stockfishDepth).then(p2Eval => {
+                        setEvalP2(p2Eval);
 
-                        // 3. Post-Eval (P2)
-                        stockfish.evaluate(fenP2, stockfishDepth).then(p2Eval => {
-                            setEvalP2(p2Eval);
+                        // 4. Opening Lookup
+                        const opening = lookupOpening(fenP2);
+                        setOpeningData(opening);
 
-                            // 4. Opening Lookup
-                            const opening = lookupOpening(fenP2);
-                            setOpeningData(opening);
-
-                            // 5. Complete the history item with computer's move data
+                        // 5. Complete the history item with computer's move data (only if we have evalP0)
+                        if (partialHistoryItem && evalP0) {
                             const completeHistoryItem: MoveHistoryItem = {
                                 ...partialHistoryItem,
                                 computerMove: compResult.result.san,
@@ -332,21 +341,19 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
                                 bestMove: evalP0.bestMove,
                             };
                             setMoveHistory(prev => [...prev, completeHistoryItem]);
+                        } else {
+                            console.warn("Skipping move history - evalP0 was not available when player moved");
+                        }
 
-                            setIsAnalyzing(false);
-                        }).catch(err => {
-                            console.error("P2 analysis failed:", err);
-                            setIsAnalyzing(false);
-                        });
-                    } else {
                         setIsAnalyzing(false);
-                    }
-                }, 500);
-            } else {
-                // No evalP0 available - this shouldn't happen in normal gameplay
-                console.warn("No P0 evaluation available for move history");
-                setIsAnalyzing(false);
-            }
+                    }).catch(err => {
+                        console.error("P2 analysis failed:", err);
+                        setIsAnalyzing(false);
+                    });
+                } else {
+                    setIsAnalyzing(false);
+                }
+            }, 500);
         }).catch(err => {
             console.error("Bot move analysis failed:", err);
             setIsAnalyzing(false);
@@ -354,6 +361,51 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
 
         return true;
     }
+
+    // Check if computer needs to move (safety net for race conditions)
+    const checkAndMakeComputerMove = useCallback(() => {
+        if (!stockfish || gameOverState || isAnalyzing) return;
+
+        const currentTurn = gameRef.current.turn();
+        const computerTurn = playerColor === 'white' ? 'b' : 'w';
+
+        // If it's the computer's turn and we're not already analyzing, make a move
+        if (currentTurn === computerTurn) {
+            console.log("Safety check: Computer's turn detected, making move...");
+            setIsAnalyzing(true);
+
+            const currentFen = gameRef.current.fen();
+            stockfish.evaluate(currentFen, stockfishDepth).then(evalResult => {
+                const computerMoveData = {
+                    from: evalResult.bestMove.substring(0, 2),
+                    to: evalResult.bestMove.substring(2, 4),
+                    promotion: evalResult.bestMove.length > 4 ? evalResult.bestMove.substring(4, 5) : "q"
+                };
+
+                const compResult = makeAMove(computerMoveData);
+                if (compResult) {
+                    setComputerMove(compResult.result);
+                    const { newFen } = compResult;
+
+                    // Evaluate the position after computer's move
+                    stockfish.evaluate(newFen, stockfishDepth).then(p2Eval => {
+                        setEvalP2(p2Eval);
+                        const opening = lookupOpening(newFen);
+                        setOpeningData(opening);
+                        setIsAnalyzing(false);
+                    }).catch(err => {
+                        console.error("Post-computer-move analysis failed:", err);
+                        setIsAnalyzing(false);
+                    });
+                } else {
+                    setIsAnalyzing(false);
+                }
+            }).catch(err => {
+                console.error("Computer move evaluation failed:", err);
+                setIsAnalyzing(false);
+            });
+        }
+    }, [stockfish, gameOverState, isAnalyzing, playerColor, stockfishDepth, makeAMove]);
 
     const handleNewGame = () => {
         // Reset game to initial props or just reload?
@@ -521,6 +573,7 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
                         personality={selectedPersonality}
                         language={language}
                         playerColor={playerColor}
+                        onCheckComputerMove={checkAndMakeComputerMove}
                     />
                 </div>
 

@@ -28,6 +28,7 @@ interface TutorProps {
     personality: Personality;
     language: SupportedLanguage;
     playerColor: 'white' | 'black';
+    onCheckComputerMove: () => void;
 }
 
 interface Message {
@@ -36,12 +37,12 @@ interface Message {
     timestamp: number;
 }
 
-export function Tutor({ game, currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, onAnalysisComplete, apiKey, personality, language, playerColor }: TutorProps) {
+export function Tutor({ game, currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, onAnalysisComplete, apiKey, personality, language, playerColor, onCheckComputerMove }: TutorProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [chatSession, setChatSession] = useState<ChatSession | null>(null);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
 
     const t = useTranslation(language);
 
@@ -111,9 +112,11 @@ CRITICAL RULES:
         }
     }, [apiKey, personality, language, playerColor]);
 
-    // Scroll to bottom
+    // Scroll chat container to bottom (not the whole page)
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
     }, [messages]);
 
     const lastAnalyzedMoveRef = useRef<string | null>(null);
@@ -304,6 +307,12 @@ INSTRUCTIONS:
         if (!input.trim() || !chatSession) return;
         sendMessageToChat(input);
         setInput("");
+
+        // Safety check: Ensure computer makes a move if it's their turn
+        // This handles race conditions where the player moved before evalP0 was ready
+        setTimeout(() => {
+            onCheckComputerMove();
+        }, 100);
     };
 
     if (!apiKey) return null;
@@ -320,7 +329,7 @@ INSTRUCTIONS:
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.map((msg, idx) => (
                     <div key={idx} className={clsx(
                         "flex gap-3 max-w-[85%]",
@@ -371,7 +380,6 @@ INSTRUCTIONS:
                         </div>
                     </div>
                 )}
-                <div ref={messagesEndRef} />
             </div>
 
             {/* Quick Actions */}
