@@ -44,6 +44,7 @@ export default function Home() {
         personality: Personality;
         color: 'white' | 'black' | 'random';
         fen?: string;
+        pgn?: string;
     }) => {
         const color = options.color === 'random'
             ? (Math.random() < 0.5 ? 'white' : 'black')
@@ -51,6 +52,7 @@ export default function Home() {
 
         setGameProps({
             initialFen: options.fen,
+            initialPgn: options.pgn,
             initialPersonality: options.personality,
             initialColor: color
         });

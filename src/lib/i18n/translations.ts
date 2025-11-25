@@ -32,6 +32,10 @@ export interface Translations {
         chooseCoach: string;
         importPosition: string;
         importPositionPlaceholder: string;
+        formatDetected: string;
+        formatFen: string;
+        formatPgn: string;
+        formatInvalid: string;
         apiKeyRequired: string;
         colorSelection: string;
         playAsWhite: string;
@@ -123,8 +127,12 @@ const en: Translations = {
         resumeGame: 'Resume Previous Game',
         startNewGame: 'Start New Game instead...',
         chooseCoach: 'Choose Your Coach:',
-        importPosition: 'Import Position (Optional FEN)',
-        importPositionPlaceholder: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        importPosition: 'Import Position or Game (FEN or PGN)',
+        importPositionPlaceholder: 'Paste FEN position or PGN game here...',
+        formatDetected: 'Format detected:',
+        formatFen: 'FEN Position',
+        formatPgn: 'PGN Game',
+        formatInvalid: 'Invalid format - please paste a valid FEN or PGN',
         apiKeyRequired: 'Please enter a valid API Key to continue.',
         colorSelection: 'Choose Your Color:',
         playAsWhite: 'Play as White',
@@ -206,8 +214,12 @@ const de: Translations = {
         resumeGame: 'Vorheriges Spiel fortsetzen',
         startNewGame: 'Stattdessen neues Spiel starten...',
         chooseCoach: 'Wähle deinen Trainer:',
-        importPosition: 'Position importieren (Optional FEN)',
-        importPositionPlaceholder: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        importPosition: 'Position oder Partie importieren (FEN oder PGN)',
+        importPositionPlaceholder: 'FEN-Position oder PGN-Partie hier einfügen...',
+        formatDetected: 'Format erkannt:',
+        formatFen: 'FEN-Position',
+        formatPgn: 'PGN-Partie',
+        formatInvalid: 'Ungültiges Format - bitte gültiges FEN oder PGN einfügen',
         apiKeyRequired: 'Bitte geben Sie einen gültigen API-Schlüssel ein, um fortzufahren.',
         colorSelection: 'Wähle deine Farbe:',
         playAsWhite: 'Als Weiß spielen',
@@ -289,8 +301,12 @@ const fr: Translations = {
         resumeGame: 'Reprendre la partie précédente',
         startNewGame: 'Démarrer une nouvelle partie...',
         chooseCoach: 'Choisissez votre coach :',
-        importPosition: 'Importer une position (FEN optionnel)',
-        importPositionPlaceholder: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        importPosition: 'Importer une position ou partie (FEN ou PGN)',
+        importPositionPlaceholder: 'Collez une position FEN ou partie PGN ici...',
+        formatDetected: 'Format détecté :',
+        formatFen: 'Position FEN',
+        formatPgn: 'Partie PGN',
+        formatInvalid: 'Format invalide - veuillez coller un FEN ou PGN valide',
         apiKeyRequired: 'Veuillez entrer une clé API valide pour continuer.',
         colorSelection: 'Choisissez votre couleur :',
         playAsWhite: 'Jouer Blancs',
@@ -372,8 +388,12 @@ const it: Translations = {
         resumeGame: 'Riprendi partita precedente',
         startNewGame: 'Inizia nuova partita...',
         chooseCoach: 'Scegli il tuo allenatore:',
-        importPosition: 'Importa posizione (FEN opzionale)',
-        importPositionPlaceholder: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        importPosition: 'Importa posizione o partita (FEN o PGN)',
+        importPositionPlaceholder: 'Incolla posizione FEN o partita PGN qui...',
+        formatDetected: 'Formato rilevato:',
+        formatFen: 'Posizione FEN',
+        formatPgn: 'Partita PGN',
+        formatInvalid: 'Formato non valido - incolla un FEN o PGN valido',
         apiKeyRequired: 'Inserisci una chiave API valida per continuare.',
         colorSelection: 'Scegli il tuo colore:',
         playAsWhite: 'Gioca Bianco',

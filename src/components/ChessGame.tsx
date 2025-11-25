@@ -267,6 +267,9 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
             promotion: "q",
         };
 
+        // Capture FEN BEFORE player's move (P0)
+        const fenP0 = gameRef.current.fen();
+
         // 1. User Move (P0 -> P1)
         const moveResult = makeAMove(move);
 
@@ -285,46 +288,67 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
         // 2. Bot Move (P1 -> P2)
         stockfish.evaluate(fenP1, stockfishDepth).then(p1Eval => {
             if (evalP0) {
-                const evalAfter = -p1Eval.score;
-                const historyItem: MoveHistoryItem = {
+                // We now have all data for the player's move, but we need to wait for computer's move
+                // to complete the history item. Store partial data temporarily.
+                const partialHistoryItem = {
                     moveNumber: gameRef.current.moveNumber(),
-                    move: moveResult.result.san,
-                    evalBefore: evalP0.score,
-                    evalAfter: evalAfter,
-                    bestMove: evalP0.bestMove
+                    playerMove: moveResult.result.san,
+                    playerColor: playerColor,
+                    fenBeforePlayerMove: fenP0,
+                    evalBeforePlayerMove: evalP0,
+                    fenAfterPlayerMove: fenP1,
+                    evalAfterPlayerMove: p1Eval,
                 };
-                setMoveHistory(prev => [...prev, historyItem]);
+
+                setTimeout(() => {
+                    const computerMoveData = {
+                        from: p1Eval.bestMove.substring(0, 2),
+                        to: p1Eval.bestMove.substring(2, 4),
+                        promotion: p1Eval.bestMove.length > 4 ? p1Eval.bestMove.substring(4, 5) : "q"
+                    };
+
+                    const compResult = makeAMove(computerMoveData);
+                    if (compResult) {
+                        setComputerMove(compResult.result);
+                        const { newFen: fenP2 } = compResult;
+
+                        // 3. Post-Eval (P2)
+                        stockfish.evaluate(fenP2, stockfishDepth).then(p2Eval => {
+                            setEvalP2(p2Eval);
+
+                            // 4. Opening Lookup
+                            const opening = lookupOpening(fenP2);
+                            setOpeningData(opening);
+
+                            // 5. Complete the history item with computer's move data
+                            const completeHistoryItem: MoveHistoryItem = {
+                                ...partialHistoryItem,
+                                computerMove: compResult.result.san,
+                                fenAfterComputerMove: fenP2,
+                                evalAfterComputerMove: p2Eval,
+                                opening: opening?.name,
+                                // Legacy fields for backward compatibility
+                                move: moveResult.result.san,
+                                evalBefore: evalP0.score,
+                                evalAfter: p1Eval.score,
+                                bestMove: evalP0.bestMove,
+                            };
+                            setMoveHistory(prev => [...prev, completeHistoryItem]);
+
+                            setIsAnalyzing(false);
+                        }).catch(err => {
+                            console.error("P2 analysis failed:", err);
+                            setIsAnalyzing(false);
+                        });
+                    } else {
+                        setIsAnalyzing(false);
+                    }
+                }, 500);
+            } else {
+                // No evalP0 available - this shouldn't happen in normal gameplay
+                console.warn("No P0 evaluation available for move history");
+                setIsAnalyzing(false);
             }
-
-            setTimeout(() => {
-                const computerMoveData = {
-                    from: p1Eval.bestMove.substring(0, 2),
-                    to: p1Eval.bestMove.substring(2, 4),
-                    promotion: p1Eval.bestMove.length > 4 ? p1Eval.bestMove.substring(4, 5) : "q"
-                };
-
-                const compResult = makeAMove(computerMoveData);
-                if (compResult) {
-                    setComputerMove(compResult.result);
-                    const { newFen: fenP2 } = compResult;
-
-                    // 3. Post-Eval (P2)
-                    stockfish.evaluate(fenP2, stockfishDepth).then(p2Eval => {
-                        setEvalP2(p2Eval);
-
-                        // 4. Opening Lookup
-                        const opening = lookupOpening(fenP2);
-                        setOpeningData(opening);
-
-                        setIsAnalyzing(false);
-                    }).catch(err => {
-                        console.error("P2 analysis failed:", err);
-                        setIsAnalyzing(false);
-                    });
-                } else {
-                    setIsAnalyzing(false);
-                }
-            }, 500);
         }).catch(err => {
             console.error("Bot move analysis failed:", err);
             setIsAnalyzing(false);

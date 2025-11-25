@@ -6,6 +6,7 @@ import { Settings, ChevronDown, ChevronUp } from "lucide-react";
 import { Personality, PERSONALITIES } from "@/lib/personalities";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { SupportedLanguage } from "@/lib/i18n/translations";
+import { detectChessFormat, ChessFormat } from "@/lib/chessFormatDetector";
 import Header from "./Header";
 
 interface StartScreenProps {
@@ -13,6 +14,7 @@ interface StartScreenProps {
         personality: Personality;
         color: 'white' | 'black' | 'random';
         fen?: string;
+        pgn?: string;
     }) => void;
     onResumeGame: () => void;
     hasSavedGame: boolean;
@@ -22,7 +24,8 @@ export default function StartScreen({ onStartGame, onResumeGame, hasSavedGame }:
     const router = useRouter();
     const [language, setLanguage] = useState<SupportedLanguage>('en');
     const [showNewGameOptions, setShowNewGameOptions] = useState(false);
-    const [customFen, setCustomFen] = useState("");
+    const [importInput, setImportInput] = useState("");
+    const [detectedFormat, setDetectedFormat] = useState<ChessFormat | null>(null);
     const [colorSelection, setColorSelection] = useState<'white' | 'black' | 'random'>('white');
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -35,11 +38,21 @@ export default function StartScreen({ onStartGame, onResumeGame, hasSavedGame }:
 
     const t = useTranslation(language);
 
+    const handleImportChange = (value: string) => {
+        setImportInput(value);
+        const format = detectChessFormat(value);
+        setDetectedFormat(format);
+    };
+
     const handleNewGame = (personality: Personality) => {
+        const trimmedInput = importInput.trim();
+        const format = trimmedInput ? detectChessFormat(trimmedInput) : null;
+
         onStartGame({
             personality,
             color: colorSelection,
-            fen: customFen.trim() || undefined
+            fen: format === 'fen' ? trimmedInput : undefined,
+            pgn: format === 'pgn' ? trimmedInput : undefined
         });
     };
 
@@ -165,17 +178,47 @@ export default function StartScreen({ onStartGame, onResumeGame, hasSavedGame }:
                                         </button>
 
                                         {showAdvanced && (
-                                            <div className="mt-4 animate-in fade-in slide-in-from-top-2">
+                                            <div className="mt-4 animate-in fade-in slide-in-from-top-2 space-y-2">
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                     {t.start.importPosition}
                                                 </label>
-                                                <input
-                                                    type="text"
+                                                <textarea
                                                     placeholder={t.start.importPositionPlaceholder}
-                                                    value={customFen}
-                                                    onChange={(e) => setCustomFen(e.target.value)}
-                                                    className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                    value={importInput}
+                                                    onChange={(e) => handleImportChange(e.target.value)}
+                                                    className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-vertical min-h-[80px]"
+                                                    rows={4}
                                                 />
+
+                                                {/* Format Detection Indicator */}
+                                                {importInput && (
+                                                    <div className="text-xs">
+                                                        {detectedFormat === 'fen' && (
+                                                            <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                                {t.start.formatDetected} {t.start.formatFen}
+                                                            </span>
+                                                        )}
+                                                        {detectedFormat === 'pgn' && (
+                                                            <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                                {t.start.formatDetected} {t.start.formatPgn}
+                                                            </span>
+                                                        )}
+                                                        {detectedFormat === 'invalid' && (
+                                                            <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                                {t.start.formatInvalid}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>

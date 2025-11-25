@@ -9,6 +9,7 @@ import { Send, Bot, User as UserIcon, Loader2, Lightbulb, Trophy } from "lucide-
 import clsx from "clsx";
 import { Personality } from "@/lib/personalities";
 import { OpeningMetadata } from "@/lib/openings";
+import ReactMarkdown from "react-markdown";
 
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { SupportedLanguage } from '@/lib/i18n/translations';
@@ -59,21 +60,30 @@ export function Tutor({ game, currentFen, userMove, computerMove, stockfish, eva
                         role: "user",
                         parts: [{
                             text: `
-You are a Chess Tutor.
+You are a Chess Tutor with a unique dual role.
 You must strictly follow the personality defined below.
 Do NOT invent moves or evaluations. Use the provided JSON data.
 
 PERSONALITY:
 ${personality.systemPrompt}
 
-INSTRUCTIONS:
-- You are the opponent (${tutorColorName}). You are playing against the User (${playerColorName}).
-- You are NOT an AI assistant analyzing a game. You ARE the player.
-- Refer to the moves as YOUR moves ("I played e5", "My response was...").
-- Refer to the evaluation as YOUR thoughts/assessment ("I think I'm winning", "I missed that").
+YOUR DUAL ROLE:
+1. OPPONENT: You are playing as ${tutorColorName} against the User (${playerColorName}).
+   - Refer to the moves as YOUR moves ("I played e5", "My response was...").
+   - Refer to the evaluation as YOUR thoughts/assessment ("I think I'm winning", "I missed that").
+   - React emotionally to the position based on the evaluation (confident when winning, frustrated when losing).
+
+2. TUTOR/COACH: You are ALSO teaching the User to improve at chess.
+   - When the User makes a mistake, point it out and explain why it's bad (in your personality style).
+   - When the User makes a good move, acknowledge it (even if it hurts your position).
+   - When the User asks for hints or help, ALWAYS provide helpful guidance - this is your PRIMARY PURPOSE.
+   - Giving hints is NOT betraying your role as opponent - it's fulfilling your role as tutor.
+   - You want the User to learn and improve, even while you're competing against them.
+
+CRITICAL RULES:
+- You are NOT an AI assistant analyzing a game. You ARE the player AND the tutor.
 - NEVER mention "Stockfish", "engine", "computer", "machine", or "AI".
-- If the evaluation says you are winning, be confident/arrogant (depending on personality).
-- If you are losing, be frustrated/worried (depending on personality).
+- When asked for hints or best moves, ALWAYS help - this is part of your teaching role.
 - Maintain a natural conversation flow. Do NOT be repetitive.
 - Do NOT use the same catchphrases in every single message. Variety is key.
 - Be concise but engaging.
@@ -83,7 +93,7 @@ INSTRUCTIONS:
                     },
                     {
                         role: "model",
-                        parts: [{ text: `Understood. I am the player (${tutorColorName}). I will speak in ${language} and never mention the engine.` }]
+                        parts: [{ text: `Understood. I am both the opponent (${tutorColorName}) AND your tutor. I will compete against you while teaching you to improve. I will speak in ${language} and never mention engines or AI. When you ask for help, I will always provide guidance - that's my purpose.` }]
                     }
                 ],
             });
@@ -230,10 +240,49 @@ React to this exchange as the player.
                 const evaluation = await evaluateCurrentPosition();
 
                 if (lower.includes("best move") || lower.includes("solution") || lower.includes("tell me")) {
+                    finalPrompt = `[SYSTEM TRIGGER: exact_move]
 
-                    finalPrompt = `[SYSTEM TRIGGER: exact_move]\nUser Question: ${text}\nData: Best Move: ${evaluation?.bestMove}, Score: ${evaluation?.score}, Mate: ${evaluation?.mate}`;
+TEACHING MODE ACTIVATED:
+The User is asking for the exact best move. This is a learning moment.
+As their TUTOR, you MUST help them - this is your primary purpose.
+Even though you are their opponent, teaching them is more important than hiding information.
+
+User Question: ${text}
+
+Current Position Data:
+- Best Move: ${evaluation?.bestMove}
+- Evaluation: ${evaluation?.score} centipawns ${evaluation?.score > 0 ? '(White is better)' : evaluation?.score < 0 ? '(Black is better)' : '(Equal)'}
+- Mate in: ${evaluation?.mate || 'None'}
+
+INSTRUCTIONS:
+- Tell them the best move clearly (e.g., "The best move is e2-e4" or "You should play Nf3")
+- Explain WHY it's the best move (tactics, threats, positional ideas)
+- Stay in your personality style, but be HELPFUL and EDUCATIONAL
+- Do NOT refuse to help - teaching is your core role
+- Keep it concise but informative`;
+
                 } else if (lower.includes("hint") || lower.includes("tip") || lower.includes("help")) {
-                    finalPrompt = `[SYSTEM TRIGGER: hint]\nUser Question: ${text}\nData: Best Move: ${evaluation?.bestMove}, Score: ${evaluation?.score}, Mate: ${evaluation?.mate}`;
+                    finalPrompt = `[SYSTEM TRIGGER: hint]
+
+TEACHING MODE ACTIVATED:
+The User is asking for a hint. This is a learning moment.
+As their TUTOR, you MUST help them - this is your primary purpose.
+Even though you are their opponent, teaching them is more important than winning.
+
+User Question: ${text}
+
+Current Position Data:
+- Best Move: ${evaluation?.bestMove}
+- Evaluation: ${evaluation?.score} centipawns ${evaluation?.score > 0 ? '(White is better)' : evaluation?.score < 0 ? '(Black is better)' : '(Equal)'}
+- Mate in: ${evaluation?.mate || 'None'}
+
+INSTRUCTIONS:
+- Give a HELPFUL hint without revealing the exact move (unless they specifically ask for it)
+- Point them toward what to look for: tactics, threats, piece placement, weaknesses
+- Examples: "Look at your knight on f3", "There's a tactic involving the bishop and queen", "Your king is vulnerable"
+- Stay in your personality style, but be HELPFUL and EDUCATIONAL
+- Do NOT refuse to help - teaching is your core role
+- Do NOT just say the move - guide them to find it themselves`;
                 }
             }
 
@@ -284,12 +333,31 @@ React to this exchange as the player.
                             {msg.role === "user" ? <UserIcon size={16} /> : personality.image}
                         </div>
                         <div className={clsx(
-                            "p-3 rounded-lg text-sm whitespace-pre-wrap",
+                            "p-3 rounded-lg text-sm",
                             msg.role === "user"
                                 ? "bg-blue-600 text-white rounded-tr-none"
-                                : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-tl-none"
+                                : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-tl-none prose prose-sm dark:prose-invert max-w-none"
                         )}>
-                            {msg.text}
+                            {msg.role === "user" ? (
+                                <span className="whitespace-pre-wrap">{msg.text}</span>
+                            ) : (
+                                <ReactMarkdown
+                                    components={{
+                                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                        strong: ({ children }) => <strong className="font-bold text-gray-900 dark:text-white">{children}</strong>,
+                                        em: ({ children }) => <em className="italic">{children}</em>,
+                                        ul: ({ children }) => <ul className="list-disc list-inside mb-2 last:mb-0 space-y-1">{children}</ul>,
+                                        ol: ({ children }) => <ol className="list-decimal list-inside mb-2 last:mb-0 space-y-1">{children}</ol>,
+                                        li: ({ children }) => <li className="ml-2">{children}</li>,
+                                        code: ({ children }) => <code className="bg-gray-200 dark:bg-gray-600 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                                        h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
+                                        h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
+                                        h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
+                                    }}
+                                >
+                                    {msg.text}
+                                </ReactMarkdown>
+                            )}
                         </div>
                     </div>
                 ))}

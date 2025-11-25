@@ -19,6 +19,7 @@
     "react": "19.2.0",
     "react-chessboard": "^5.8.4",
     "react-dom": "19.2.0",
+    "react-markdown": "^10.1.0",
     "stockfish.js": "^10.0.2",
     "tailwind-merge": "^3.4.0"
   },

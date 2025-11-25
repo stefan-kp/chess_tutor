@@ -1,17 +1,43 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getGenAIModel } from "@/lib/gemini";
 import { Loader2, X, Trophy, AlertTriangle, RefreshCw } from "lucide-react";
+import { StockfishEvaluation } from "@/lib/stockfish";
+import ReactMarkdown from "react-markdown";
 
 export interface MoveHistoryItem {
     moveNumber: number;
-    move: string;
-    evalBefore: number; // cp
-    evalAfter: number; // cp
-    bestMove?: string;
+
+    // Player's move data
+    playerMove: string;
+    playerColor: 'white' | 'black';
+    fenBeforePlayerMove: string;
+    evalBeforePlayerMove: StockfishEvaluation;  // P0 - evaluation before player's move
+    fenAfterPlayerMove: string;
+    evalAfterPlayerMove: StockfishEvaluation;   // P1 - evaluation after player's move
+
+    // Computer's move data
+    computerMove: string;
+    fenAfterComputerMove: string;
+    evalAfterComputerMove: StockfishEvaluation; // P2 - evaluation after computer's move
+
+    // Opening info (optional)
+    opening?: string;
+
+    // Analysis metadata (computed during game-over analysis)
     category?: 'inaccuracy' | 'mistake' | 'blunder';
     cpLoss?: number;
+
+    // Legacy fields for backward compatibility (deprecated)
+    /** @deprecated Use playerMove instead */
+    move?: string;
+    /** @deprecated Use evalBeforePlayerMove.score instead */
+    evalBefore?: number;
+    /** @deprecated Use evalAfterPlayerMove.score instead */
+    evalAfter?: number;
+    /** @deprecated Use evalBeforePlayerMove.bestMove instead */
+    bestMove?: string;
 }
 
 interface GameOverModalProps {
@@ -28,8 +54,15 @@ export function GameOverModal({ result, winner, history, apiKey, language, onClo
     const [analysis, setAnalysis] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
     const [mistakes, setMistakes] = useState<MoveHistoryItem[]>([]);
+    const hasAnalyzedRef = useRef(false);
 
     useEffect(() => {
+        // Prevent duplicate analysis runs
+        if (hasAnalyzedRef.current) {
+            return;
+        }
+        hasAnalyzedRef.current = true;
+
         const analyzeGame = async () => {
             setIsLoading(true);
             try {
@@ -39,14 +72,52 @@ export function GameOverModal({ result, winner, history, apiKey, language, onClo
                 // - Mistake: 100-300 centipawns loss
                 // - Blunder: 300+ centipawns loss
                 const detectedMistakes = history.map(item => {
-                    const delta = item.evalBefore - item.evalAfter; // Positive = eval got worse for player
+                    // Use new enhanced data if available, fall back to legacy fields
+                    let evalBefore: number;
+                    let evalAfter: number;
+                    let playerMove: string;
+                    let bestMove: string | undefined;
+
+                    if (item.evalBeforePlayerMove && item.evalAfterPlayerMove) {
+                        // New enhanced format
+                        // Convert evaluations to player's perspective
+                        const isWhite = item.playerColor === 'white';
+
+                        // P0: Before player's move (from player's perspective)
+                        evalBefore = isWhite ? item.evalBeforePlayerMove.score : -item.evalBeforePlayerMove.score;
+
+                        // P1: After player's move (from opponent's perspective, so negate it)
+                        evalAfter = isWhite ? -item.evalAfterPlayerMove.score : item.evalAfterPlayerMove.score;
+
+                        playerMove = item.playerMove;
+                        bestMove = item.evalBeforePlayerMove.bestMove;
+                    } else {
+                        // Legacy format (backward compatibility)
+                        evalBefore = item.evalBefore || 0;
+                        evalAfter = item.evalAfter || 0;
+                        playerMove = item.move || '';
+                        bestMove = item.bestMove;
+                    }
+
+                    // Calculate centipawn loss
+                    // Positive delta = position got worse for player
+                    const delta = evalBefore - evalAfter;
                     let category: 'inaccuracy' | 'mistake' | 'blunder' | null = null;
 
                     if (delta >= 300) category = 'blunder';
                     else if (delta >= 100) category = 'mistake';
                     else if (delta >= 50) category = 'inaccuracy';
 
-                    return { ...item, category, cpLoss: delta };
+                    return {
+                        ...item,
+                        category,
+                        cpLoss: delta,
+                        // Ensure legacy fields are populated for display
+                        move: playerMove,
+                        evalBefore: evalBefore,
+                        evalAfter: evalAfter,
+                        bestMove: bestMove,
+                    };
                 }).filter(item => item.category !== null) as MoveHistoryItem[];
 
                 setMistakes(detectedMistakes);
@@ -60,26 +131,58 @@ export function GameOverModal({ result, winner, history, apiKey, language, onClo
                     const inaccuracies = detectedMistakes.filter(m => m.category === 'inaccuracy');
 
                     const mistakesText = detectedMistakes.map(m =>
-                        `Move ${m.moveNumber}: ${m.move} (${m.category?.toUpperCase()}: -${m.cpLoss}cp, eval ${m.evalBefore} → ${m.evalAfter}). Best: ${m.bestMove}`
+                        `Move ${m.moveNumber}: ${m.move} (${m.category?.toUpperCase()}: -${Math.round(m.cpLoss || 0)}cp loss, eval ${Math.round(m.evalBefore || 0)} → ${Math.round(m.evalAfter || 0)}). Best was: ${m.bestMove}`
                     ).join("\n");
 
-                    const prompt = `
-You are a Chess Coach. The game is over.
-Result: ${result} (${winner === "Draw" ? "Draw" : winner + " Won"}).
+                    // Build a complete game narrative for better LLM analysis
+                    const gameNarrative = history.map((item, idx) => {
+                        const moveNum = item.moveNumber || idx + 1;
+                        const playerMv = item.playerMove || item.move || '?';
+                        const computerMv = item.computerMove || '?';
+                        const opening = item.opening ? ` [${item.opening}]` : '';
 
-Player's Performance Summary:
+                        // Evaluation swing
+                        let evalInfo = '';
+                        if (item.evalBeforePlayerMove && item.evalAfterPlayerMove && item.evalAfterComputerMove) {
+                            const isWhite = item.playerColor === 'white';
+                            const p0 = isWhite ? item.evalBeforePlayerMove.score : -item.evalBeforePlayerMove.score;
+                            const p1 = isWhite ? -item.evalAfterPlayerMove.score : item.evalAfterPlayerMove.score;
+                            const p2 = isWhite ? item.evalAfterComputerMove.score : -item.evalAfterComputerMove.score;
+                            evalInfo = ` (eval: ${Math.round(p0)} → ${Math.round(p1)} → ${Math.round(p2)})`;
+                        }
+
+                        return `${moveNum}. ${playerMv} - ${computerMv}${opening}${evalInfo}`;
+                    }).join("\n");
+
+                    const prompt = `
+You are a Chess Coach analyzing a completed game.
+
+GAME RESULT: ${result} (${winner === "Draw" ? "Draw" : winner + " Won"})
+
+PLAYER'S PERFORMANCE SUMMARY:
 - Blunders (300+ cp loss): ${blunders.length}
 - Mistakes (100-300 cp loss): ${mistakes.length}
 - Inaccuracies (50-100 cp loss): ${inaccuracies.length}
+- Total moves played: ${history.length}
 
-${mistakesText ? `Detailed Mistakes:\n${mistakesText}` : "No significant mistakes detected - excellent play!"}
+${mistakesText ? `CRITICAL MISTAKES:\n${mistakesText}` : "No significant mistakes detected - excellent play!"}
+
+COMPLETE GAME MOVES:
+${gameNarrative}
 
 INSTRUCTIONS:
-1. Briefly comment on the game result.
-2. If there were mistakes, explain WHY the worst ones were bad and what the player should have looked for (tactics, hanging pieces, positional errors, etc.).
-3. If no mistakes, praise the solid play and suggest areas for improvement.
-4. Be encouraging but educational. Focus on learning.
-5. Respond in ${language.toUpperCase()}.
+1. Briefly comment on the game result and overall performance.
+2. If there were mistakes, explain WHY the worst ones were bad:
+   - What tactical or positional themes were missed?
+   - What should the player have looked for? (hanging pieces, forks, pins, back rank threats, etc.)
+   - Were there patterns in the mistakes? (time pressure, opening knowledge, endgame technique?)
+3. Identify any TURNING POINTS where the evaluation swung significantly.
+4. If no mistakes, praise the solid play and suggest specific areas for improvement.
+5. Be encouraging but educational. Focus on actionable learning points.
+6. Keep your response concise (3-5 paragraphs maximum).
+7. Respond in ${language.toUpperCase()}.
+
+Remember: Your goal is to help the player LEARN and IMPROVE, not just list mistakes.
 
 OUTPUT FORMAT:
 Plain text paragraph (2-3 sentences).
@@ -168,8 +271,23 @@ Plain text paragraph (2-3 sentences).
                                     <Trophy size={20} className="text-yellow-500" />
                                     Coach's Feedback
                                 </h3>
-                                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-gray-800 dark:text-gray-200 leading-relaxed">
-                                    {analysis}
+                                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-gray-800 dark:text-gray-200 leading-relaxed prose prose-sm dark:prose-invert max-w-none">
+                                    <ReactMarkdown
+                                        components={{
+                                            // Customize markdown rendering for better styling
+                                            p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
+                                            strong: ({ children }) => <strong className="font-bold text-gray-900 dark:text-white">{children}</strong>,
+                                            em: ({ children }) => <em className="italic">{children}</em>,
+                                            ul: ({ children }) => <ul className="list-disc list-inside mb-3 space-y-1">{children}</ul>,
+                                            ol: ({ children }) => <ol className="list-decimal list-inside mb-3 space-y-1">{children}</ol>,
+                                            li: ({ children }) => <li className="ml-2">{children}</li>,
+                                            h1: ({ children }) => <h1 className="text-xl font-bold mb-2 mt-4 first:mt-0">{children}</h1>,
+                                            h2: ({ children }) => <h2 className="text-lg font-bold mb-2 mt-3 first:mt-0">{children}</h2>,
+                                            h3: ({ children }) => <h3 className="text-base font-bold mb-2 mt-2 first:mt-0">{children}</h3>,
+                                        }}
+                                    >
+                                        {analysis}
+                                    </ReactMarkdown>
                                 </div>
                             </div>
                         </>
