@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, ChevronDown, ChevronUp } from "lucide-react";
+import { Settings, ChevronDown, ChevronUp, Brain } from "lucide-react";
 import { Personality, PERSONALITIES } from "@/lib/personalities";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { SupportedLanguage } from "@/lib/i18n/translations";
@@ -231,6 +231,19 @@ export default function StartScreen({ onStartGame, onResumeGame, hasSavedGame }:
                                             {t.common.cancel}
                                         </button>
                                     )}
+                                </div>
+
+                                <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                                    <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
+                                        {t.start.analyzeGame}
+                                    </p>
+                                    <button
+                                        onClick={() => router.push("/analysis")}
+                                        className="w-full py-4 px-4 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-semibold shadow-lg transition-transform transform hover:scale-[1.02] flex items-center justify-center gap-2"
+                                    >
+                                        <Brain size={18} />
+                                        {t.start.analyzeGame}
+                                    </button>
                                 </div>
                             )}
                         </div>

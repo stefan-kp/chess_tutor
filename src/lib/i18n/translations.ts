@@ -41,6 +41,7 @@ export interface Translations {
         playAsWhite: string;
         playAsBlack: string;
         randomColor: string;
+        analyzeGame: string;
     };
 
     // Game
@@ -90,6 +91,23 @@ export interface Translations {
         evaluation: string;
         bestMove: string;
         aiAnalysis: string;
+        modeTitle: string;
+        modeDescription: string;
+        pasteLabel: string;
+        pastePlaceholder: string;
+        chooseCoach: string;
+        orientation: string;
+        startButton: string;
+        next: string;
+        previous: string;
+        step: string;
+        missedTactics: string;
+        cpLoss: string;
+        none: string;
+        opening: string;
+        enginePending: string;
+        coachPending: string;
+        importError: string;
     };
 
     // API Key Input
@@ -138,6 +156,7 @@ const en: Translations = {
         playAsWhite: 'Play as White',
         playAsBlack: 'Play as Black',
         randomColor: 'Random',
+        analyzeGame: 'Analyze a Game',
     },
     game: {
         playingAs: 'Playing as',
@@ -179,6 +198,23 @@ const en: Translations = {
         evaluation: 'Evaluation',
         bestMove: 'Best Move',
         aiAnalysis: 'AI Analysis',
+        modeTitle: 'Analyze an Existing Game',
+        modeDescription: 'Upload a PGN or FEN and let your coach walk you through every move with engine-backed insights.',
+        pasteLabel: 'PGN or FEN Input',
+        pastePlaceholder: 'Paste PGN or FEN here to review the game move by move...',
+        chooseCoach: 'Choose Coach Personality',
+        orientation: 'Board Orientation',
+        startButton: 'Start Analysis',
+        next: 'Next Move',
+        previous: 'Previous Move',
+        step: 'Move',
+        missedTactics: 'Missed Tactics',
+        cpLoss: 'Evaluation Change',
+        none: 'None detected',
+        opening: 'Opening',
+        enginePending: 'Running engine evaluation...',
+        coachPending: 'Coach is preparing feedback...',
+        importError: 'Could not load that PGN or FEN. Please check the notation.',
     },
     apiKeyInput: {
         title: 'API Key Required',
@@ -225,6 +261,7 @@ const de: Translations = {
         playAsWhite: 'Als Weiß spielen',
         playAsBlack: 'Als Schwarz spielen',
         randomColor: 'Zufällig',
+        analyzeGame: 'Partie analysieren',
     },
     game: {
         playingAs: 'Spielst als',
@@ -266,6 +303,23 @@ const de: Translations = {
         evaluation: 'Bewertung',
         bestMove: 'Bester Zug',
         aiAnalysis: 'KI-Analyse',
+        modeTitle: 'Bestehende Partie analysieren',
+        modeDescription: 'PGN oder FEN hochladen und vom Coach mit Engine-Unterstützung durch die Partie führen lassen.',
+        pasteLabel: 'PGN- oder FEN-Eingabe',
+        pastePlaceholder: 'PGN oder FEN hier einfügen, um die Partie Zug für Zug anzusehen...',
+        chooseCoach: 'Coach-Persönlichkeit wählen',
+        orientation: 'Brettausrichtung',
+        startButton: 'Analyse starten',
+        next: 'Nächster Zug',
+        previous: 'Vorheriger Zug',
+        step: 'Zug',
+        missedTactics: 'Verpasste Taktiken',
+        cpLoss: 'Bewertungsänderung',
+        none: 'Keine erkannt',
+        opening: 'Eröffnung',
+        enginePending: 'Engine-Bewertung läuft...',
+        coachPending: 'Coach bereitet Feedback vor...',
+        importError: 'PGN oder FEN konnte nicht geladen werden. Bitte Notation prüfen.',
     },
     apiKeyInput: {
         title: 'API-Schlüssel erforderlich',
@@ -312,6 +366,7 @@ const fr: Translations = {
         playAsWhite: 'Jouer Blancs',
         playAsBlack: 'Jouer Noirs',
         randomColor: 'Aléatoire',
+        analyzeGame: 'Analyser une partie',
     },
     game: {
         playingAs: 'Jouant',
@@ -353,6 +408,23 @@ const fr: Translations = {
         evaluation: 'Évaluation',
         bestMove: 'Meilleur coup',
         aiAnalysis: 'Analyse IA',
+        modeTitle: 'Analyser une partie existante',
+        modeDescription: 'Importez un PGN ou un FEN et laissez le coach commenter chaque coup avec l’aide du moteur.',
+        pasteLabel: 'Saisie PGN ou FEN',
+        pastePlaceholder: 'Collez ici un PGN ou un FEN pour revoir la partie coup par coup...',
+        chooseCoach: 'Choisir la personnalité du coach',
+        orientation: 'Orientation de l’échiquier',
+        startButton: 'Lancer l’analyse',
+        next: 'Coup suivant',
+        previous: 'Coup précédent',
+        step: 'Coup',
+        missedTactics: 'Tactiques manquées',
+        cpLoss: 'Changement d’évaluation',
+        none: 'Aucune détectée',
+        opening: 'Ouverture',
+        enginePending: 'Évaluation du moteur en cours...',
+        coachPending: 'Le coach prépare son retour...',
+        importError: 'Impossible de charger ce PGN ou FEN. Merci de vérifier la notation.',
     },
     apiKeyInput: {
         title: 'Clé API requise',
@@ -399,6 +471,7 @@ const it: Translations = {
         playAsWhite: 'Gioca Bianco',
         playAsBlack: 'Gioca Nero',
         randomColor: 'Casuale',
+        analyzeGame: 'Analizza una partita',
     },
     game: {
         playingAs: 'Giocando',
@@ -440,6 +513,23 @@ const it: Translations = {
         evaluation: 'Valutazione',
         bestMove: 'Mossa migliore',
         aiAnalysis: 'Analisi IA',
+        modeTitle: 'Analizza una partita esistente',
+        modeDescription: 'Carica un PGN o un FEN e lascia che il coach commenti ogni mossa con il supporto del motore.',
+        pasteLabel: 'Input PGN o FEN',
+        pastePlaceholder: 'Incolla qui PGN o FEN per rivedere la partita mossa per mossa...',
+        chooseCoach: 'Scegli la personalità del coach',
+        orientation: 'Orientamento della scacchiera',
+        startButton: 'Avvia analisi',
+        next: 'Mossa successiva',
+        previous: 'Mossa precedente',
+        step: 'Mossa',
+        missedTactics: 'Tattiche mancate',
+        cpLoss: 'Variazione di valutazione',
+        none: 'Nessuna rilevata',
+        opening: 'Apertura',
+        enginePending: 'Valutazione del motore in corso...',
+        coachPending: 'Il coach sta preparando il feedback...',
+        importError: 'Impossibile caricare questo PGN o FEN. Controlla la notazione.',
     },
     apiKeyInput: {
         title: 'Chiave API richiesta',
