@@ -13,6 +13,7 @@ import ReactMarkdown from "react-markdown";
 
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { SupportedLanguage } from '@/lib/i18n/translations';
+import { DetectedTactic } from '@/lib/tacticDetection';
 
 interface TutorProps {
     game: Chess;
@@ -23,6 +24,7 @@ interface TutorProps {
     evalP0: StockfishEvaluation | null;
     evalP2: StockfishEvaluation | null;
     openingData: OpeningMetadata | null;
+    missedTactics: DetectedTactic[] | null;
     onAnalysisComplete: () => void;
     apiKey: string | null;
     personality: Personality;
@@ -37,7 +39,7 @@ interface Message {
     timestamp: number;
 }
 
-export function Tutor({ game, currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, onAnalysisComplete, apiKey, personality, language, playerColor, onCheckComputerMove }: TutorProps) {
+export function Tutor({ game, currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, missedTactics, onAnalysisComplete, apiKey, personality, language, playerColor, onCheckComputerMove }: TutorProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -182,6 +184,43 @@ You can use this metadata to explain the position:
                     openingInstruction = "NO specific opening identified from database. Do NOT invent an opening name. Focus on the position.";
                 }
 
+                // Tactical Analysis Instruction
+                let tacticalInstruction = "";
+                if (missedTactics && missedTactics.length > 0) {
+                    const meaningfulTactics = missedTactics.filter(t => t.tactic_type !== 'none');
+                    if (meaningfulTactics.length > 0) {
+                        const tacticDescriptions = meaningfulTactics.map(t => {
+                            let desc = `- ${t.tactic_type.toUpperCase()}`;
+                            if (t.piece_roles && t.piece_roles.length > 0) {
+                                desc += ` involving ${t.piece_roles.join(' and ')}`;
+                            }
+                            if (t.material_delta) {
+                                desc += ` (worth ~${t.material_delta} centipawns)`;
+                            }
+                            if (t.affected_squares && t.affected_squares.length > 0) {
+                                desc += ` on squares ${t.affected_squares.join(', ')}`;
+                            }
+                            return desc;
+                        }).join('\n');
+
+                        tacticalInstruction = `
+TACTICAL OPPORTUNITY MISSED:
+The User just played ${userMove.san}, but there was a better tactical opportunity available.
+The analysis engine identified the following tactical themes that could have been exploited:
+
+${tacticDescriptions}
+
+IMPORTANT CONTEXT:
+- This tactical data comes from analyzing what WOULD HAVE HAPPENED if the User had played the best move instead.
+- You should explain this missed opportunity in your characteristic style.
+- Point out what the User could have done (e.g., "You missed a fork with Nf3!" or "There was a pin available with Bb5!").
+- Be educational but stay in character - if you're sarcastic, be sarcastic about the miss; if you're encouraging, be supportive.
+- Do NOT mention "the engine" or "the computer" - present this as YOUR analysis as the opponent/tutor.
+- Only mention this if the evaluation change was significant enough to warrant it.
+                        `;
+                    }
+                }
+
                 const prompt = `
 [SYSTEM TRIGGER: move_exchange]
 User (${playerColorName}) Move: ${userMove.san}
@@ -193,10 +232,13 @@ My Internal Thoughts (Data):
 - Delta: ${delta} cp
 (Note: Scores are from White's perspective. Positive = White advantage, Negative = Black advantage.)
 
+${tacticalInstruction}
+
 INSTRUCTIONS:
 1. ${evalInstruction}
 2. ${openingInstruction}
-3. Respond in ${language}.
+3. ${tacticalInstruction ? 'If tactical opportunities were missed (see above), explain them in your style.' : ''}
+4. Respond in ${language}.
 
 React to this exchange as the player.
                 `;
@@ -210,7 +252,7 @@ React to this exchange as the player.
             }
         };
         analyzeExchange();
-    }, [computerMove, chatSession, evalP0, evalP2, userMove, onAnalysisComplete, openingData, language]);
+    }, [computerMove, chatSession, evalP0, evalP2, userMove, onAnalysisComplete, openingData, missedTactics, language]);
 
     const evaluateCurrentPosition = async () => {
         if (!stockfish) {

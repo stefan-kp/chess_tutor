@@ -70,9 +70,13 @@ function uciToMove(uci: string) {
 }
 
 export function uciToSan(fen: string, uci: string): string | null {
-  const chess = new Chess(fen);
-  const move = chess.move(uciToMove(uci));
-  return move ? move.san : null;
+  try {
+    const chess = new Chess(fen);
+    const move = chess.move(uciToMove(uci));
+    return move ? move.san : null;
+  } catch (error) {
+    return null;
+  }
 }
 
 function collectAttacks(chess: Chess, color: "white" | "black") {
@@ -197,7 +201,7 @@ function detectCapture(chessAfter: Chess, moveSan: string, cpThreshold: number):
   if (immediateCounter.length > 0) return [];
 
   const tactic: DetectedTactic = {
-    tactic_type: capturedValue >= 200 ? "win_piece" : "win_pawn",
+    tactic_type: capturedValue > 100 ? "win_piece" : "win_pawn",
     affected_squares: lastMove.to ? [lastMove.to as Square] : undefined,
     piece_roles: [
       describePiece({ color: lastMove.color, type: lastMove.piece } as Piece)!,

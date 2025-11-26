@@ -15,7 +15,7 @@ import { GameAnalysisModal } from "./GameAnalysisModal";
 import { GameOverModal, MoveHistoryItem } from "./GameOverModal";
 import { Brain, ArrowLeft } from "lucide-react";
 import { CapturedPieces } from "./CapturedPieces";
-import { detectMissedTactics, uciToSan } from "@/lib/tacticDetection";
+import { detectMissedTactics, uciToSan, DetectedTactic } from "@/lib/tacticDetection";
 
 interface ChessGameProps {
     initialFen?: string;
@@ -45,6 +45,9 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
 
     // Opening Data
     const [openingData, setOpeningData] = useState<OpeningMetadata | null>(null);
+
+    // Tactical Analysis Data
+    const [latestMissedTactics, setLatestMissedTactics] = useState<DetectedTactic[] | null>(null);
 
     const [userMove, setUserMove] = useState<Move | null>(null);
     const [computerMove, setComputerMove] = useState<Move | null>(null);
@@ -342,6 +345,9 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
                                 cpLoss,
                             });
 
+                            // Store the latest tactics for the Tutor component
+                            setLatestMissedTactics(missedTactics);
+
                             const completeHistoryItem: MoveHistoryItem = {
                                 ...partialHistoryItem,
                                 computerMove: compResult.result.san,
@@ -585,6 +591,7 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
                         evalP0={evalP0}
                         evalP2={evalP2}
                         openingData={openingData}
+                        missedTactics={latestMissedTactics}
                         onAnalysisComplete={() => { }}
                         apiKey={apiKey}
                         personality={selectedPersonality}
