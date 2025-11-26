@@ -45,6 +45,7 @@ describe('Tutor', () => {
         evalP0={null}
         evalP2={null}
         openingData={null}
+        missedTactics={null}
         onAnalysisComplete={() => {}}
         apiKey="test-api-key"
         personality={{
@@ -54,6 +55,7 @@ describe('Tutor', () => {
         }}
         language="en"
         playerColor="white"
+        onCheckComputerMove={() => {}}
       />
     );
 
