@@ -11,15 +11,19 @@ This application was built using **Antigravity by Google**. I like to work with 
 
 ### Typical Game Flow
 
-1. **Choose Your Personality**: Select from three unique AI coaching personalities, each with their own teaching style and character
+1. **Choose Your Personality**: Select from 9 unique AI coaching personalities, each with their own teaching style and character
 2. **Play Chess**: Make your moves on the board while the Stockfish engine plays against you
 3. **Get Real-Time Feedback**: After each move exchange, your AI tutor analyzes the position and provides personalized feedback based on:
    - Move quality and alternatives
    - Position evaluation changes
+   - **Missed tactical opportunities** (pins, forks, skewers, checks, hanging pieces, material captures)
    - Opening theory (when applicable)
-   - Tactical and strategic considerations
+   - Strategic and positional considerations
 4. **Chat with Your Tutor**: Ask questions anytime using the integrated chat feature - your tutor will answer in character
-5. **Post-Game Analysis**: When the game ends, review a comprehensive analysis showing your mistakes and learning opportunities
+5. **Post-Game Analysis**: When the game ends, review a comprehensive analysis showing:
+   - All your mistakes and inaccuracies
+   - Missed tactical opportunities throughout the game
+   - Learning opportunities and improvement suggestions
 
 ![Gameplay Screenshot](screenshots/gameplay.png)
 *Screenshot placeholder: Main game interface with board, evaluation bar, and chat*
@@ -28,46 +32,148 @@ This application was built using **Antigravity by Google**. I like to work with 
 
 ### Core Features
 - **Stockfish Engine**: Powerful chess engine for move analysis and opponent play
+- **Tactical Recognition**: Automatically detects missed tactical opportunities (pins, forks, skewers, checks, hanging pieces, material captures)
 - **Opening Database**: Comprehensive database of chess openings with metadata and theory
 - **Real-Time Evaluation**: Live position evaluation with visual evaluation bar
-- **Move Analysis**: Detailed feedback on every move you make
+- **Move Analysis**: Detailed feedback on every move you make with tactical insights
 - **Interactive Chat**: Ask your AI tutor questions and get personalized answers
 - **Post-Game Analysis**: Review all your mistakes and missed opportunities after each game
 - **Multi-Language Support**: Available in English, German, French, and Italian
+- **FEN/PGN Import**: Import positions or games with automatic format detection
+- **Move History**: Visual move history table with evaluation changes
 
 ### AI Personalities
 
-Choose from three distinct coaching personalities, each offering a unique learning experience:
+Choose from **9 distinct coaching personalities**, each offering a unique learning experience:
 
-#### 🥃 Drunk Russian GM
-*"Ach... life is pain, my boy"*
+#### 📘 Opening Professor
+*"This is a very instructive structure..."*
 
-A bitter, fatalistic, but brilliant Grandmaster who has seen it all. Expect brutally honest feedback delivered with dark humor and existential commentary. This personality combines deep chess knowledge with a Dostoevsky-like atmosphere.
-
-![Drunk Russian GM Screenshot](screenshots/personality-russian-gm.png)
-*Screenshot placeholder: Game with Drunk Russian GM personality*
-
-#### 🎧 Hype Streamer
-*"BRO! THAT MOVE WAS INSANE!"*
-
-An energetic, loud, and entertaining chess streamer who makes every game exciting. Expect dramatic reactions, Gen-Z slang, and over-the-top commentary that keeps you engaged and motivated.
-
-![Hype Streamer Screenshot](screenshots/personality-hype-streamer.png)
-*Screenshot placeholder: Game with Hype Streamer personality*
+A calm, deeply knowledgeable educator who loves turning openings into understandable stories with history, plans, and model structures. Perfect for learning opening theory and understanding positional concepts.
 
 #### 👨‍🏫 Professional Coach
 *"Let's analyze the structure of this position"*
 
 A strict, analytical, and straightforward chess coach focused on your improvement. Expect objective analysis, clear explanations based on chess principles, and professional teaching methods.
 
-![Professional Coach Screenshot](screenshots/personality-professional-coach.png)
-*Screenshot placeholder: Game with Professional Coach personality*
+#### 🥃 Drunk Russian GM
+*"Ach... life is pain, my boy"*
 
-## Setup
+A bitter, fatalistic, but brilliant Grandmaster who has seen it all. Expect brutally honest feedback delivered with dark humor and existential commentary. This personality combines deep chess knowledge with a Dostoevsky-like atmosphere.
 
-### Prerequisites
+#### 🎧 Hype Streamer
+*"BRO! THAT MOVE WAS INSANE!"*
+
+An energetic, loud, and entertaining chess streamer who makes every game exciting. Expect dramatic reactions, Gen-Z slang, and over-the-top commentary that keeps you engaged and motivated.
+
+#### 🧙‍♂️ Gandalf the Chess Wizard
+*"A move is never late, nor is it early..."*
+
+A wise and mystical chess wizard who speaks in riddles and metaphors. Combines chess wisdom with magical references and philosophical insights.
+
+#### 🤖 Stockfish (Literal)
+*"Evaluation: +0.7. Best continuation: Nf3, d5, c4..."*
+
+The engine itself, speaking in pure chess notation and evaluations. No personality, just raw analysis and computer-like precision.
+
+#### 😤 Toxic Gamer
+*"Are you even trying? That's the worst move I've seen all day!"*
+
+An abrasive, confrontational personality that roasts your mistakes mercilessly. Not for the faint of heart, but some players find the challenge motivating.
+
+#### 🎭 Shakespearean Bard
+*"To castle or not to castle, that is the question..."*
+
+A theatrical personality that delivers chess analysis in Shakespearean verse and dramatic monologues. Makes every game feel like a stage performance.
+
+#### 🧘 Zen Master
+*"The board is empty, yet full of possibilities..."*
+
+A calm, meditative personality that approaches chess as a spiritual practice. Focuses on mindfulness, patience, and finding harmony in the position.
+
+### Tactical Recognition System
+
+One of the standout features is the **automatic tactical pattern detection** that runs after every move:
+
+**What it detects:**
+- **Material Captures**: Safe captures of pieces and pawns (with recapture analysis)
+- **Pins**: Pieces pinned to the king or more valuable pieces
+- **Forks**: Pieces attacking multiple valuable targets simultaneously
+- **Skewers**: Attacks forcing a valuable piece to move, exposing another
+- **Checks**: Moves that give check to the opponent's king
+- **Hanging Pieces**: Undefended pieces that could be captured
+
+**How it works:**
+1. After each move, the system compares your move to the engine's best move
+2. If there's a significant evaluation difference, it analyzes what tactical opportunities were missed
+3. The AI tutor receives this information and explains it in real-time in their characteristic style
+4. All missed tactics are also shown in the post-game analysis
+
+**Conservative approach:**
+- The system uses multiple filters to avoid false positives
+- Only reports tactics when there's a clear advantage
+- Checks for piece safety (e.g., won't report a "capture" if the piece can be immediately recaptured)
+
+This feature helps you learn tactical patterns naturally during gameplay, rather than just through puzzle training.
+
+## Quick Start
+
+### Option 1: Docker Compose (Recommended - Easiest!)
+
+The fastest way to get started is using our pre-built Docker image from GitHub Container Registry:
+
+```bash
+# Clone the repository
+git clone https://github.com/stefan-kp/chess_tutor.git
+cd chess_tutor
+
+# (Optional) Create .env file with your API key
+echo "NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here" > .env
+
+# Start the application
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+```
+
+The application will be available at `http://localhost:3050`
+
+**What happens:**
+- Docker Compose automatically pulls the latest pre-built image from `ghcr.io/stefan-kp/chess-tutor:latest`
+- No build step required - the image is built automatically on every push to main via GitHub Actions
+- The container starts with health checks and auto-restart enabled
+
+### Option 2: Local Development
+
+If you want to run the application locally for development:
+
+#### Prerequisites
 - Node.js 18+ installed
 - A free Google Gemini API key
+
+#### Steps
+
+```bash
+# Clone the repository
+git clone https://github.com/stefan-kp/chess_tutor.git
+cd chess_tutor
+
+# Install dependencies
+npm install
+
+# Create .env file (optional)
+echo "NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here" > .env
+
+# Run development server
+npm run dev
+
+# Or build and run production
+npm run build
+npm start
+```
+
+The application will be available at `http://localhost:3050`
 
 ### Getting Your Gemini API Key
 
@@ -80,15 +186,7 @@ A strict, analytical, and straightforward chess coach focused on your improvemen
 
 You have two options for providing your Gemini API key:
 
-#### Option 1: Browser Storage (Recommended for trying it out)
-1. Run the application
-2. When prompted, enter your API key in the modal dialog
-3. The key will be stored in your browser's localStorage
-
-![API Key Input Screenshot](screenshots/api-key-input.png)
-*Screenshot placeholder: API key input modal*
-
-#### Option 2: Environment Variable (Recommended for local development)
+#### Option 1: Environment Variable (Recommended for Docker/Server)
 1. Create a `.env` file in the project root
 2. Add your API key:
    ```
@@ -96,47 +194,58 @@ You have two options for providing your Gemini API key:
    ```
 3. The application will automatically use this key
 
+#### Option 2: Browser Storage (Fallback)
+1. Run the application without an API key
+2. When prompted, enter your API key in the modal dialog
+3. The key will be stored in your browser's localStorage
+
 > [!NOTE]
 > You can update your API key anytime by clicking the key icon in the bottom-right corner of the application.
 
-## Docker Deployment
+## Advanced Deployment
 
-### Quick Start with Docker
+### Automated Docker Builds
 
-The easiest way to deploy Chess Tutor is using Docker Compose:
+This project uses GitHub Actions to automatically build and publish Docker images to GitHub Container Registry (GHCR) on every push to the `main` branch.
 
-```bash
-# Clone the repository
-git clone https://github.com/your-username/chess_tutor.git
-cd chess_tutor
+**What this means:**
+- Every commit to `main` triggers an automatic Docker build
+- The latest image is always available at `ghcr.io/stefan-kp/chess-tutor:latest`
+- Each build is also tagged with the commit SHA for version tracking
+- No need to build locally - just pull and run!
 
-# (Optional) Create .env file with your API key
-echo "NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here" > .env
+### Using Pre-Built Images
 
-# Build and start the container
-docker-compose up -d
+The `docker-compose.yml` file is already configured to use the pre-built image:
 
-# View logs
-docker-compose logs -f
+```yaml
+services:
+  chess-tutor:
+    image: ghcr.io/stefan-kp/chess-tutor:latest
+    # ... rest of configuration
 ```
 
-The application will be available at `http://localhost:3050`
+This means you can deploy anywhere with just:
+```bash
+docker-compose up -d
+```
 
-### Environment Variables
+### Manual Docker Build (Optional)
 
-You have two options for providing the Gemini API key:
+If you prefer to build the image yourself:
 
-1. **Environment Variable** (recommended for server deployment):
-   - Create a `.env` file in the project root
-   - Add: `NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here`
-   - The application will automatically use this key
+```bash
+# Build the image
+docker build -t chess-tutor:latest .
 
-2. **Browser Storage** (fallback):
-   - If no environment variable is set, users will be prompted to enter their API key
-   - The key is stored in browser localStorage
-
-> [!NOTE]
-> The API key is never logged or exposed in application logs. It's only used for API calls to Google Gemini.
+# Run the container
+docker run -d \
+  --name chess-tutor \
+  -p 3050:3050 \
+  -e NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here \
+  --restart unless-stopped \
+  chess-tutor:latest
+```
 
 ### Nginx Reverse Proxy
 
@@ -158,26 +267,6 @@ sudo nginx -t
 
 # Reload nginx
 sudo systemctl reload nginx
-```
-
-### Manual Docker Build
-
-If you prefer to build manually:
-
-```bash
-# Build the image
-docker build -t chess-tutor:latest .
-
-# Run the container
-docker run -d \
-  --name chess-tutor \
-  -p 3050:3050 \
-  -e NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here \
-  --restart unless-stopped \
-  chess-tutor:latest
-```
-
-  chess-tutor:latest
 ```
 
 ## Configuration
