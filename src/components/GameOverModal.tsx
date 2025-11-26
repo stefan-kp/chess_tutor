@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { getGenAIModel } from "@/lib/gemini";
 import { Loader2, X, Trophy, AlertTriangle, RefreshCw } from "lucide-react";
 import { StockfishEvaluation } from "@/lib/stockfish";
+import { DetectedTactic } from "@/lib/tacticDetection";
 import ReactMarkdown from "react-markdown";
 
 export interface MoveHistoryItem {
@@ -28,6 +29,10 @@ export interface MoveHistoryItem {
     // Analysis metadata (computed during game-over analysis)
     category?: 'inaccuracy' | 'mistake' | 'blunder';
     cpLoss?: number;
+
+    // Missed tactical opportunities on the engine's best move
+    missedTactics?: DetectedTactic[];
+    bestMoveSan?: string | null;
 
     // Legacy fields for backward compatibility (deprecated)
     /** @deprecated Use playerMove instead */
@@ -77,6 +82,9 @@ export function GameOverModal({ result, winner, history, apiKey, language, onClo
                     let evalAfter: number;
                     let playerMove: string;
                     let bestMove: string | undefined;
+                    let bestMoveSan: string | null | undefined;
+                    let missedTactics = item.missedTactics;
+                    let cpLoss: number | undefined = item.cpLoss;
 
                     if (item.evalBeforePlayerMove && item.evalAfterPlayerMove) {
                         // New enhanced format
@@ -91,6 +99,7 @@ export function GameOverModal({ result, winner, history, apiKey, language, onClo
 
                         playerMove = item.playerMove;
                         bestMove = item.evalBeforePlayerMove.bestMove;
+                        bestMoveSan = item.bestMoveSan;
                     } else {
                         // Legacy format (backward compatibility)
                         evalBefore = item.evalBefore || 0;
@@ -102,21 +111,24 @@ export function GameOverModal({ result, winner, history, apiKey, language, onClo
                     // Calculate centipawn loss
                     // Positive delta = position got worse for player
                     const delta = evalBefore - evalAfter;
+                    const cpLossValue = cpLoss ?? delta;
                     let category: 'inaccuracy' | 'mistake' | 'blunder' | null = null;
 
-                    if (delta >= 300) category = 'blunder';
-                    else if (delta >= 100) category = 'mistake';
-                    else if (delta >= 50) category = 'inaccuracy';
+                    if (cpLossValue >= 300) category = 'blunder';
+                    else if (cpLossValue >= 100) category = 'mistake';
+                    else if (cpLossValue >= 50) category = 'inaccuracy';
 
                     return {
                         ...item,
                         category,
-                        cpLoss: delta,
+                        cpLoss: cpLossValue,
                         // Ensure legacy fields are populated for display
                         move: playerMove,
                         evalBefore: evalBefore,
                         evalAfter: evalAfter,
                         bestMove: bestMove,
+                        bestMoveSan,
+                        missedTactics,
                     };
                 }).filter(item => item.category !== null) as MoveHistoryItem[];
 
@@ -130,9 +142,23 @@ export function GameOverModal({ result, winner, history, apiKey, language, onClo
                     const mistakes = detectedMistakes.filter(m => m.category === 'mistake');
                     const inaccuracies = detectedMistakes.filter(m => m.category === 'inaccuracy');
 
-                    const mistakesText = detectedMistakes.map(m =>
-                        `Move ${m.moveNumber}: ${m.move} (${m.category?.toUpperCase()}: -${Math.round(m.cpLoss || 0)}cp loss, eval ${Math.round(m.evalBefore || 0)} → ${Math.round(m.evalAfter || 0)}). Best was: ${m.bestMove}`
-                    ).join("\n");
+                    const describeTactics = (tactics?: DetectedTactic[]) => {
+                        if (!tactics || tactics.length === 0) return "";
+                        const meaningful = tactics.filter(t => t.tactic_type !== 'none');
+                        if (meaningful.length === 0) return "";
+                        return meaningful.map(t => {
+                            const material = t.material_delta ? ` (~${t.material_delta}cp)` : '';
+                            const pieces = t.piece_roles ? ` [${t.piece_roles.join(', ')}]` : '';
+                            return `${t.tactic_type}${material}${pieces}`;
+                        }).join('; ');
+                    };
+
+                    const mistakesText = detectedMistakes.map(m => {
+                        const tacticSummary = describeTactics(m.missedTactics);
+                        const bestMoveDisplay = m.bestMoveSan || m.bestMove || 'N/A';
+                        const tacticNote = tacticSummary ? ` Tactics missed: ${tacticSummary}.` : '';
+                        return `Move ${m.moveNumber}: ${m.move} (${m.category?.toUpperCase()}: -${Math.round(m.cpLoss || 0)}cp loss, eval ${Math.round(m.evalBefore || 0)} → ${Math.round(m.evalAfter || 0)}). Best was: ${bestMoveDisplay}.${tacticNote}`;
+                    }).join("\n");
 
                     // Build a complete game narrative for better LLM analysis
                     const gameNarrative = history.map((item, idx) => {

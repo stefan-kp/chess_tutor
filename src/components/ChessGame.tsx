@@ -15,6 +15,7 @@ import { GameAnalysisModal } from "./GameAnalysisModal";
 import { GameOverModal, MoveHistoryItem } from "./GameOverModal";
 import { Brain, ArrowLeft } from "lucide-react";
 import { CapturedPieces } from "./CapturedPieces";
+import { detectMissedTactics, uciToSan } from "@/lib/tacticDetection";
 
 interface ChessGameProps {
     initialFen?: string;
@@ -328,6 +329,19 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
 
                         // 5. Complete the history item with computer's move data (only if we have evalP0)
                         if (partialHistoryItem && evalP0) {
+                            const isWhite = playerColor === 'white';
+                            const evalBefore = isWhite ? evalP0.score : -evalP0.score;
+                            const evalAfterPlayerMove = isWhite ? -p1Eval.score : p1Eval.score;
+                            const cpLoss = evalBefore - evalAfterPlayerMove;
+                            const bestMoveSan = uciToSan(fenP0, evalP0.bestMove);
+                            const missedTactics = detectMissedTactics({
+                                fen: fenP0,
+                                playerColor,
+                                playerMoveSan: moveResult.result.san,
+                                bestMoveUci: evalP0.bestMove,
+                                cpLoss,
+                            });
+
                             const completeHistoryItem: MoveHistoryItem = {
                                 ...partialHistoryItem,
                                 computerMove: compResult.result.san,
@@ -339,6 +353,9 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
                                 evalBefore: evalP0.score,
                                 evalAfter: p1Eval.score,
                                 bestMove: evalP0.bestMove,
+                                bestMoveSan,
+                                cpLoss,
+                                missedTactics,
                             };
                             setMoveHistory(prev => [...prev, completeHistoryItem]);
                         } else {
