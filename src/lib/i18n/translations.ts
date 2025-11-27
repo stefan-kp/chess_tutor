@@ -42,6 +42,12 @@ export interface Translations {
         playAsBlack: string;
         randomColor: string;
         analyzeGame: string;
+        savedGamesTitle: string;
+        savedGamesEmpty: string;
+        opponentLabel: string;
+        evaluationLabel: string;
+        noEvaluation: string;
+        deleteGame: string;
     };
 
     // Game
@@ -157,6 +163,12 @@ const en: Translations = {
         playAsBlack: 'Play as Black',
         randomColor: 'Random',
         analyzeGame: 'Analyze a Game',
+        savedGamesTitle: 'Unfinished games',
+        savedGamesEmpty: 'No unfinished games yet.',
+        opponentLabel: 'Opponent',
+        evaluationLabel: 'Evaluation',
+        noEvaluation: 'No evaluation yet',
+        deleteGame: 'Delete game',
     },
     game: {
         playingAs: 'Playing as',
@@ -262,6 +274,12 @@ const de: Translations = {
         playAsBlack: 'Als Schwarz spielen',
         randomColor: 'Zufällig',
         analyzeGame: 'Partie analysieren',
+        savedGamesTitle: 'Unfertige Partien',
+        savedGamesEmpty: 'Keine unfertigen Partien vorhanden.',
+        opponentLabel: 'Gegner',
+        evaluationLabel: 'Bewertung',
+        noEvaluation: 'Keine Bewertung',
+        deleteGame: 'Partie löschen',
     },
     game: {
         playingAs: 'Spielst als',
@@ -367,6 +385,12 @@ const fr: Translations = {
         playAsBlack: 'Jouer Noirs',
         randomColor: 'Aléatoire',
         analyzeGame: 'Analyser une partie',
+        savedGamesTitle: 'Parties inachevées',
+        savedGamesEmpty: 'Aucune partie en cours.',
+        opponentLabel: 'Adversaire',
+        evaluationLabel: 'Évaluation',
+        noEvaluation: 'Pas d\'évaluation',
+        deleteGame: 'Supprimer la partie',
     },
     game: {
         playingAs: 'Jouant',
@@ -472,6 +496,12 @@ const it: Translations = {
         playAsBlack: 'Gioca Nero',
         randomColor: 'Casuale',
         analyzeGame: 'Analizza una partita',
+        savedGamesTitle: 'Partite non finite',
+        savedGamesEmpty: 'Nessuna partita in corso.',
+        opponentLabel: 'Avversario',
+        evaluationLabel: 'Valutazione',
+        noEvaluation: 'Nessuna valutazione',
+        deleteGame: 'Elimina partita',
     },
     game: {
         playingAs: 'Giocando',

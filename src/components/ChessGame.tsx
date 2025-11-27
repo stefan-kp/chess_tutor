@@ -16,8 +16,10 @@ import { GameOverModal, MoveHistoryItem } from "./GameOverModal";
 import { Brain, ArrowLeft } from "lucide-react";
 import { CapturedPieces } from "./CapturedPieces";
 import { detectMissedTactics, uciToSan, DetectedTactic } from "@/lib/tacticDetection";
+import { upsertSavedGame } from "@/lib/savedGames";
 
 interface ChessGameProps {
+    gameId: string;
     initialFen?: string;
     initialPgn?: string;
     initialPersonality: Personality;
@@ -34,7 +36,7 @@ const PIECE_VALUES: Record<string, number> = {
     'k': 0
 };
 
-export default function ChessGame({ initialFen, initialPgn, initialPersonality, initialColor, onBack }: ChessGameProps) {
+export default function ChessGame({ gameId, initialFen, initialPgn, initialPersonality, initialColor, onBack }: ChessGameProps) {
     const gameRef = useRef(new Chess(initialFen || "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"));
     const [fen, setFen] = useState(gameRef.current.fen());
     const [stockfish, setStockfish] = useState<Stockfish | null>(null);
@@ -156,15 +158,24 @@ export default function ChessGame({ initialFen, initialPgn, initialPersonality, 
     // Save Game State on Change
     useEffect(() => {
         const saveData = {
+            id: gameId,
             fen,
             language,
             selectedPersonality,
             apiKey,
             playerColor, // Save player color too
-            pgn: gameRef.current.pgn()
+            pgn: gameRef.current.pgn(),
+            updatedAt: Date.now(),
+            evaluation: evalP0 ? {
+                score: evalP0.score,
+                mate: evalP0.mate,
+                depth: evalP0.depth
+            } : null
         };
+
+        upsertSavedGame(saveData);
         localStorage.setItem("chess_tutor_save", JSON.stringify(saveData));
-    }, [fen, language, selectedPersonality, apiKey, playerColor]);
+    }, [fen, language, selectedPersonality, apiKey, playerColor, gameId, evalP0]);
 
     // Game Over Detection
     useEffect(() => {
