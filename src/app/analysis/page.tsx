@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { Brain, ChevronLeft, ChevronRight, Loader2, ArrowLeft } from "lucide-react";
+import { Brain, ChevronLeft, ChevronRight, Loader2, ArrowLeft, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import Header from "@/components/Header";
@@ -18,6 +18,7 @@ import { getGenAIModel } from "@/lib/gemini";
 import { ChatSession } from "@google/generative-ai";
 import ReactMarkdown from "react-markdown";
 import { useDebug } from "@/contexts/DebugContext";
+import { GameImportModal } from "@/components/GameImportModal";
 
 interface MoveStep {
     san: string;
@@ -62,6 +63,7 @@ export default function AnalysisPage() {
     const [isCommenting, setIsCommenting] = useState(false);
     const [comments, setComments] = useState<Record<number, string>>({});
     const [chatSession, setChatSession] = useState<ChatSession | null>(null);
+    const [showImportModal, setShowImportModal] = useState(false);
 
     useEffect(() => {
         const storedKey = localStorage.getItem("gemini_api_key");
@@ -144,6 +146,18 @@ IMPORTANT:
             return;
         }
 
+        loadGameFromPgnOrFen(trimmed);
+    };
+
+    const loadGameFromPgnOrFen = (notation: string) => {
+        const trimmed = notation.trim();
+        const format = detectChessFormat(trimmed);
+
+        if (!trimmed || format === "invalid") {
+            setError(t.analysis.importError);
+            return;
+        }
+
         try {
             const parsedGame = new Chess();
             const nextSteps: MoveStep[] = [];
@@ -196,6 +210,12 @@ IMPORTANT:
             console.error("Failed to load game", e);
             setError(t.analysis.importError);
         }
+    };
+
+    const handleImportGame = (pgn: string) => {
+        setInput(pgn);
+        setDetectedFormat(detectChessFormat(pgn));
+        loadGameFromPgnOrFen(pgn);
     };
 
     useEffect(() => {
@@ -417,20 +437,45 @@ INSTRUCTIONS:
                                 >
                                     {t.analysis.startButton}
                                 </button>
+
+                                {/* Import from Online Platforms */}
+                                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">
+                                        Or import from online platforms
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            onClick={() => setShowImportModal(true)}
+                                            className="py-2 px-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm flex items-center justify-center gap-2 shadow"
+                                        >
+                                            <Download size={16} />
+                                            Chess.com
+                                        </button>
+                                        <button
+                                            onClick={() => setShowImportModal(true)}
+                                            className="py-2 px-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm flex items-center justify-center gap-2 shadow"
+                                        >
+                                            <Download size={16} />
+                                            Lichess
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 flex flex-col items-center gap-3 border border-gray-200 dark:border-gray-700">
-                                <Chessboard
-                                    options={{
-                                        position: currentFen,
-                                        boardOrientation: orientation,
-                                        allowDragging: false,
-                                        darkSquareStyle: { backgroundColor: '#779954' },
-                                        lightSquareStyle: { backgroundColor: '#e9edcc' },
-                                        animationDurationInMs: 200,
-                                        boardStyle: { borderRadius: "12px", boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }
-                                    }}
-                                />
+                                <div className="w-full max-w-md">
+                                    <Chessboard
+                                        options={{
+                                            position: currentFen,
+                                            boardOrientation: orientation,
+                                            allowDragging: false,
+                                            darkSquareStyle: { backgroundColor: '#779954' },
+                                            lightSquareStyle: { backgroundColor: '#e9edcc' },
+                                            animationDurationInMs: 200,
+                                            boardStyle: { borderRadius: "12px", boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }
+                                        }}
+                                    />
+                                </div>
                                 <div className="flex items-center gap-4">
                                     <button
                                         onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
@@ -543,6 +588,15 @@ INSTRUCTIONS:
                     </div>
                 </div>
             </main>
+
+            {/* Game Import Modal */}
+            {showImportModal && (
+                <GameImportModal
+                    onClose={() => setShowImportModal(false)}
+                    onSelectGame={handleImportGame}
+                    language={language}
+                />
+            )}
         </div>
     );
 }
