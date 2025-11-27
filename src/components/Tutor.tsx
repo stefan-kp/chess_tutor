@@ -238,10 +238,22 @@ IMPORTANT CONTEXT:
                     }
                 }
 
+                // Get FEN before user's move (need to undo both moves)
+                const tempGame = new Chess(currentFen);
+                tempGame.undo(); // Undo computer move
+                const fenAfterUserMove = tempGame.fen();
+                tempGame.undo(); // Undo user move
+                const fenBeforeUserMove = tempGame.fen();
+
                 const prompt = `
 [SYSTEM TRIGGER: move_exchange]
 User (${playerColorName}) Move: ${userMove.san}
 My (${tutorColorName}) Reply: ${computerMove.san}
+
+Position Context:
+- FEN before user's move: ${fenBeforeUserMove}
+- FEN after user's move: ${fenAfterUserMove}
+- FEN after my reply (current position): ${currentFen}
 
 My Internal Thoughts (Data):
 - Pre-Eval (Before User Move): ${preScore} cp
@@ -255,7 +267,8 @@ INSTRUCTIONS:
 1. ${evalInstruction}
 2. ${openingInstruction}
 3. ${tacticalInstruction ? 'If tactical opportunities were missed (see above), explain them in your style.' : ''}
-4. Respond in ${language}.
+4. Use the FEN data above to understand exactly where all pieces are located on the board.
+5. Respond in ${language}.
 
 React to this exchange as the player.
                 `;
