@@ -152,6 +152,22 @@ CRITICAL RULES:
 
                 const delta = postScore - preScore;
 
+                // Format evaluation strings for display
+                let preEvalStr = "";
+                let postEvalStr = "";
+
+                if (preMate !== null) {
+                    preEvalStr = `Mate in ${preMate}`;
+                } else {
+                    preEvalStr = `${preScore} cp`;
+                }
+
+                if (postMate !== null) {
+                    postEvalStr = `Mate in ${postMate}`;
+                } else {
+                    postEvalStr = `${postScore} cp`;
+                }
+
                 // Check for significant change
                 let isSignificant = false;
 
@@ -163,7 +179,13 @@ CRITICAL RULES:
 
                 let evalInstruction = "";
                 if (isSignificant) {
-                    evalInstruction = `The evaluation changed SIGNIFICANTLY (Delta: ${delta} cp). You MUST comment on this shift in power and what caused it.`;
+                    if (preMate !== null || postMate !== null) {
+                        // Mate situation - explain the mate threat
+                        evalInstruction = `The evaluation involves MATE. You MUST comment on this critical situation and what caused it.`;
+                    } else {
+                        // Regular significant change
+                        evalInstruction = `The evaluation changed SIGNIFICANTLY (Delta: ${delta} cp). You MUST comment on this shift in power and what caused it.`;
+                    }
                 } else {
                     evalInstruction = "The evaluation change is MINOR/INSIGNIFICANT. Do NOT mention the score, 'advantage', or who is winning. Focus ONLY on the strategic purpose of the moves.";
                 }
@@ -267,10 +289,10 @@ Position Context:
 - FEN after my reply (current position): ${currentFen}
 
 My Internal Thoughts (Data):
-- Pre-Eval (Before User Move): ${preScore} cp
-- Post-Eval (After My Reply): ${postScore} cp
-- Delta: ${delta} cp
-(Note: Scores are from White's perspective. Positive = White advantage, Negative = Black advantage.)
+- Pre-Eval (Before User Move): ${preEvalStr}
+- Post-Eval (After My Reply): ${postEvalStr}
+${preMate === null && postMate === null ? `- Delta: ${delta} cp` : ''}
+(Note: Scores are from White's perspective. Positive = White advantage, Negative = Black advantage. "Mate in X" means forced mate in X moves.)
 
 ${tacticalInstruction}
 
