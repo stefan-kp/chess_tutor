@@ -100,6 +100,40 @@ export interface Translations {
         submit: string;
         getKey: string;
     };
+
+    // Onboarding
+    onboarding: {
+        welcome: {
+            title: string;
+            subtitle: string;
+            claim: string;
+        };
+        language: {
+            title: string;
+            description: string;
+        };
+        value: {
+            title: string;
+            bullets: string[];
+        };
+        api: {
+            title: string;
+            description: string;
+            inputLabel: string;
+            placeholder: string;
+            storage: string;
+            serverUse: string;
+            costNote: string;
+            privacy: string;
+            getKey: string;
+        };
+        actions: {
+            next: string;
+            back: string;
+            finish: string;
+        };
+        stepIndicator: (step: number, total: number) => string;
+    };
 }
 
 const en: Translations = {
@@ -186,6 +220,43 @@ const en: Translations = {
         placeholder: 'Enter your API key...',
         submit: 'Submit',
         getKey: 'Get a free API key',
+    },
+    onboarding: {
+        welcome: {
+            title: 'Chess Tutor AI',
+            subtitle: 'Your personal coach to level up your chess.',
+            claim: 'Play, learn, and analyze with AI guidance powered by Gemini & Stockfish.',
+        },
+        language: {
+            title: 'Choose your language',
+            description: 'We will personalize your experience and future messages in the language you choose.',
+        },
+        value: {
+            title: 'What you get',
+            bullets: [
+                'Practice with personalities that match your style.',
+                'Import FEN or PGN to analyze games with live advice.',
+                'Blend Google Gemini creativity with Stockfish precision.',
+                'Keep your progress locally—resume anytime.',
+            ],
+        },
+        api: {
+            title: 'Add your LLM API key',
+            description: 'We need your Gemini API key to generate coaching moves and explanations.',
+            inputLabel: 'Google Gemini API Key',
+            placeholder: 'AIzaSy...',
+            storage: 'Your key is stored in your browser and never shared.',
+            serverUse: 'We only send it to our server when making requests and never log it.',
+            costNote: 'LLM tokens are billed by Google, so you control the usage.',
+            privacy: 'We never use your key for anything outside this tutor.',
+            getKey: 'Get a free Gemini API key',
+        },
+        actions: {
+            next: 'Next',
+            back: 'Back',
+            finish: 'Save & start playing',
+        },
+        stepIndicator: (step: number, total: number) => `Step ${step} of ${total}`,
     },
 };
 
@@ -274,6 +345,43 @@ const de: Translations = {
         submit: 'Absenden',
         getKey: 'Kostenlosen API-Schlüssel erhalten',
     },
+    onboarding: {
+        welcome: {
+            title: 'Chess Tutor AI',
+            subtitle: 'Dein persönlicher Coach für den nächsten Spielzug.',
+            claim: 'Spiele, lerne und analysiere mit KI-Unterstützung von Gemini & Stockfish.',
+        },
+        language: {
+            title: 'Wähle deine Sprache',
+            description: 'Wir passen das Erlebnis und zukünftige Nachrichten an deine Sprache an.',
+        },
+        value: {
+            title: 'Deine Vorteile',
+            bullets: [
+                'Trainiere mit Persönlichkeiten, die zu deinem Stil passen.',
+                'Importiere FEN oder PGN und erhalte Live-Hinweise zur Analyse.',
+                'Kombiniere die Kreativität von Google Gemini mit der Präzision von Stockfish.',
+                'Speichere deinen Fortschritt lokal – spiele jederzeit weiter.',
+            ],
+        },
+        api: {
+            title: 'Füge deinen LLM-API-Schlüssel hinzu',
+            description: 'Wir benötigen deinen Gemini-API-Schlüssel, um Züge und Erklärungen zu generieren.',
+            inputLabel: 'Google Gemini API-Schlüssel',
+            placeholder: 'AIzaSy...',
+            storage: 'Dein Schlüssel bleibt im Browser gespeichert und wird nicht geteilt.',
+            serverUse: 'Wir senden ihn nur für Anfragen an unseren Server und protokollieren ihn nicht.',
+            costNote: 'LLM-Tokens werden von Google abgerechnet – du behältst die Kontrolle.',
+            privacy: 'Wir nutzen deinen Schlüssel ausschließlich für diesen Tutor.',
+            getKey: 'Kostenlosen Gemini-Schlüssel holen',
+        },
+        actions: {
+            next: 'Weiter',
+            back: 'Zurück',
+            finish: 'Speichern & starten',
+        },
+        stepIndicator: (step: number, total: number) => `Schritt ${step} von ${total}`,
+    },
 };
 
 const fr: Translations = {
@@ -361,6 +469,43 @@ const fr: Translations = {
         submit: 'Soumettre',
         getKey: 'Obtenir une clé API gratuite',
     },
+    onboarding: {
+        welcome: {
+            title: 'Chess Tutor AI',
+            subtitle: 'Votre coach personnel pour progresser aux échecs.',
+            claim: 'Jouez, apprenez et analysez avec l’aide de Gemini et Stockfish.',
+        },
+        language: {
+            title: 'Choisissez votre langue',
+            description: 'Nous personnaliserons votre expérience et les messages dans la langue choisie.',
+        },
+        value: {
+            title: 'Ce que vous obtenez',
+            bullets: [
+                'Entraînez-vous avec des personnalités adaptées à votre style.',
+                'Importez du FEN ou du PGN et analysez vos parties avec des conseils en direct.',
+                'Combinez la créativité de Google Gemini avec la précision de Stockfish.',
+                'Gardez vos progrès en local et reprenez votre partie à tout moment.',
+            ],
+        },
+        api: {
+            title: 'Ajoutez votre clé API LLM',
+            description: 'Nous avons besoin de votre clé Gemini pour générer des coups et des explications.',
+            inputLabel: 'Clé API Google Gemini',
+            placeholder: 'AIzaSy...',
+            storage: 'Votre clé est stockée dans votre navigateur et n’est jamais partagée.',
+            serverUse: 'Elle n’est envoyée au serveur que pour les requêtes et n’est jamais journalisée.',
+            costNote: 'Les jetons LLM sont facturés par Google, vous gardez le contrôle.',
+            privacy: 'Nous n’utilisons votre clé que pour ce tuteur.',
+            getKey: 'Obtenir une clé Gemini gratuite',
+        },
+        actions: {
+            next: 'Suivant',
+            back: 'Retour',
+            finish: 'Enregistrer et commencer',
+        },
+        stepIndicator: (step: number, total: number) => `Étape ${step} sur ${total}`,
+    },
 };
 
 const it: Translations = {
@@ -447,6 +592,43 @@ const it: Translations = {
         placeholder: 'Inserisci la tua chiave API...',
         submit: 'Invia',
         getKey: 'Ottieni chiave API gratuita',
+    },
+    onboarding: {
+        welcome: {
+            title: 'Chess Tutor AI',
+            subtitle: 'Il tuo coach personale per migliorare negli scacchi.',
+            claim: 'Gioca, impara e analizza con il supporto di Gemini e Stockfish.',
+        },
+        language: {
+            title: 'Scegli la tua lingua',
+            description: "Personalizzeremo l'esperienza e i messaggi nella lingua selezionata.",
+        },
+        value: {
+            title: 'Cosa ottieni',
+            bullets: [
+                'Allenati con personalità che si adattano al tuo stile.',
+                'Importa FEN o PGN e analizza le partite con suggerimenti in tempo reale.',
+                'Unisci la creatività di Google Gemini con la precisione di Stockfish.',
+                'Conserva i tuoi progressi in locale e riprendi quando vuoi.',
+            ],
+        },
+        api: {
+            title: 'Aggiungi la tua chiave API LLM',
+            description: 'Abbiamo bisogno della tua chiave Gemini per generare mosse e spiegazioni.',
+            inputLabel: 'Chiave API Google Gemini',
+            placeholder: 'AIzaSy...',
+            storage: 'La chiave viene salvata nel tuo browser e non viene condivisa.',
+            serverUse: 'La inviamo solo per le richieste e non la registriamo mai.',
+            costNote: 'I token LLM sono fatturati da Google, quindi hai tu il controllo.',
+            privacy: 'Usiamo la tua chiave solo per questo tutor.',
+            getKey: 'Ottieni una chiave Gemini gratuita',
+        },
+        actions: {
+            next: 'Avanti',
+            back: 'Indietro',
+            finish: 'Salva e inizia',
+        },
+        stepIndicator: (step: number, total: number) => `Passo ${step} di ${total}`,
     },
 };
 
