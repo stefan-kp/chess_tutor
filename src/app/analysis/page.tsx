@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { Brain, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Brain, ChevronLeft, ChevronRight, Loader2, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import Header from "@/components/Header";
 import { SupportedLanguage } from "@/lib/i18n/translations";
@@ -37,6 +38,7 @@ interface StepDetails {
 const DEFAULT_START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 export default function AnalysisPage() {
+    const router = useRouter();
     const [language, setLanguage] = useState<SupportedLanguage>("en");
     const [apiKey, setApiKey] = useState<string | null>(null);
     const t = useTranslation(language);
@@ -319,6 +321,21 @@ INSTRUCTIONS:
     return (
         <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
             <Header language={language} />
+
+            {/* Back Button */}
+            <div className="w-full px-4 pt-4">
+                <div className="max-w-6xl mx-auto">
+                    <button
+                        onClick={() => router.push('/')}
+                        className="p-2 md:px-4 md:py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-sm font-medium transition-colors"
+                        aria-label={t.game.backToMenu}
+                    >
+                        <span className="hidden md:inline">{t.game.backToMenu}</span>
+                        <ArrowLeft className="md:hidden" size={20} />
+                    </button>
+                </div>
+            </div>
+
             <main className="flex-grow w-full flex justify-center px-4 py-8">
                 <div className="w-full max-w-6xl space-y-8">
                     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200 dark:border-gray-700">
@@ -395,20 +412,22 @@ INSTRUCTIONS:
                                 <div className="flex items-center gap-4">
                                     <button
                                         onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
-                                        className="px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+                                        className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
                                         disabled={currentIndex === 0}
+                                        aria-label={t.analysis.previous}
                                     >
-                                        <ChevronLeft /> {t.analysis.previous}
+                                        <ChevronLeft size={20} />
                                     </button>
                                     <div className="text-sm text-gray-600 dark:text-gray-300">
                                         {t.analysis.step} {currentIndex} / {steps.length}
                                     </div>
                                     <button
                                         onClick={() => setCurrentIndex(i => Math.min(steps.length, i + 1))}
-                                        className="px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+                                        className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
                                         disabled={currentIndex >= steps.length}
+                                        aria-label={t.analysis.next}
                                     >
-                                        {t.analysis.next} <ChevronRight />
+                                        <ChevronRight size={20} />
                                     </button>
                                 </div>
                             </div>
