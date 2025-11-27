@@ -80,6 +80,7 @@ describe("ChessGame Component", () => {
         await act(async () => {
             render(
                 <ChessGame
+                    gameId="test-game"
                     initialPersonality={mockPersonality}
                     initialColor="white"
                     onBack={() => {}}
@@ -94,6 +95,7 @@ describe("ChessGame Component", () => {
         const Tutor = require('./Tutor').Tutor;
         render(
             <ChessGame
+                gameId="test-game"
                 initialPersonality={mockPersonality}
                 initialColor="white"
                 onBack={() => {}}

@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, ChevronDown, ChevronUp, Brain } from "lucide-react";
+import { Settings, ChevronDown, ChevronUp, Brain, Trash2 } from "lucide-react";
 import { Personality, PERSONALITIES } from "@/lib/personalities";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { SupportedLanguage } from "@/lib/i18n/translations";
 import { detectChessFormat, ChessFormat } from "@/lib/chessFormatDetector";
 import Header from "./Header";
+import { SavedGame } from "@/lib/savedGames";
+import { Chessboard } from "react-chessboard";
 
 interface StartScreenProps {
     onStartGame: (options: {
@@ -16,11 +18,12 @@ interface StartScreenProps {
         fen?: string;
         pgn?: string;
     }) => void;
-    onResumeGame: () => void;
-    hasSavedGame: boolean;
+    onResumeGame: (game: SavedGame) => void;
+    savedGames: SavedGame[];
+    onDeleteSavedGame: (id: string) => void;
 }
 
-export default function StartScreen({ onStartGame, onResumeGame, hasSavedGame }: StartScreenProps) {
+export default function StartScreen({ onStartGame, onResumeGame, savedGames, onDeleteSavedGame }: StartScreenProps) {
     const router = useRouter();
     const [language, setLanguage] = useState<SupportedLanguage>('en');
     const [showNewGameOptions, setShowNewGameOptions] = useState(false);
@@ -29,6 +32,7 @@ export default function StartScreen({ onStartGame, onResumeGame, hasSavedGame }:
     const [colorSelection, setColorSelection] = useState<'white' | 'black' | 'random'>('white');
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const hasSavedGames = savedGames.length > 0;
 
     useEffect(() => {
         const storedLang = localStorage.getItem("chess_tutor_language");
@@ -56,6 +60,37 @@ export default function StartScreen({ onStartGame, onResumeGame, hasSavedGame }:
         });
     };
 
+    const sortedSavedGames = useMemo(
+        () => [...savedGames].sort((a, b) => b.updatedAt - a.updatedAt),
+        [savedGames]
+    );
+
+    const formatEvaluation = (game: SavedGame) => {
+        if (!game.evaluation) return t.start.noEvaluation;
+
+        if (game.evaluation.mate !== null && game.evaluation.mate !== undefined) {
+            const movesToMate = Math.abs(game.evaluation.mate);
+            const side = game.evaluation.mate > 0 ? t.game.white : t.game.black;
+            return `${side} #${movesToMate}`;
+        }
+
+        if (typeof game.evaluation.score === 'number') {
+            const score = game.playerColor === 'black'
+                ? -(game.evaluation.score || 0)
+                : (game.evaluation.score || 0);
+            const display = (score / 100).toFixed(2);
+            return `${score >= 0 ? '+' : ''}${display}`;
+        }
+
+        return t.start.noEvaluation;
+    };
+
+    useEffect(() => {
+        if (!hasSavedGames) {
+            setShowNewGameOptions(true);
+        }
+    }, [hasSavedGames]);
+
     if (!mounted) return null;
 
     return (
@@ -82,32 +117,84 @@ export default function StartScreen({ onStartGame, onResumeGame, hasSavedGame }:
                             {t.start.startGame}
                         </h2>
 
-                        <div className="space-y-4">
-                            {/* Resume Option */}
-                            {hasSavedGame && !showNewGameOptions && (
+                        <div className="space-y-6">
+                            {hasSavedGames && (
                                 <div className="space-y-4">
-                                    <button
-                                        onClick={onResumeGame}
-                                        className="w-full py-5 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold text-xl shadow-lg transition-transform transform hover:scale-[1.02] flex items-center justify-center gap-3"
-                                    >
-                                        <span>▶</span> {t.start.resumeGame}
-                                    </button>
-                                    <div className="relative flex py-2 items-center">
-                                        <div className="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
-                                        <span className="flex-shrink-0 mx-4 text-gray-400 text-sm">OR</span>
-                                        <div className="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                            {t.start.savedGamesTitle}
+                                        </h3>
+                                        <button
+                                            onClick={() => setShowNewGameOptions(true)}
+                                            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                                        >
+                                            {t.start.startNewGame}
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={() => setShowNewGameOptions(true)}
-                                        className="w-full py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 font-semibold transition-colors"
-                                    >
-                                        {t.start.startNewGame}
-                                    </button>
+
+                                    {sortedSavedGames.length === 0 && (
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                            {t.start.savedGamesEmpty}
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {sortedSavedGames.map(game => (
+                                            <div
+                                                key={game.id}
+                                                onClick={() => onResumeGame(game)}
+                                                className="group relative bg-gray-50 dark:bg-gray-700 p-4 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-300 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                                            >
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onDeleteSavedGame(game.id);
+                                                    }}
+                                                    aria-label={t.start.deleteGame}
+                                                    className="absolute top-2 right-2 p-2 rounded-full bg-white dark:bg-gray-800 text-gray-500 hover:text-red-600 shadow opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+
+                                                <div className="bg-[#779954] p-[2px] rounded-sm">
+                                                    <Chessboard
+                                                        options={{
+                                                            position: game.fen,
+                                                            boardOrientation: game.playerColor,
+                                                            allowDragging: false,
+                                                            darkSquareStyle: { backgroundColor: '#779954' },
+                                                            lightSquareStyle: { backgroundColor: '#e9edcc' },
+                                                            animationDurationInMs: 150,
+                                                            boardStyle: { width: '100%', aspectRatio: '1' }
+                                                        }}
+                                                    />
+                                                </div>
+
+                                                <div className="mt-3 flex items-start justify-between gap-2 text-sm">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-lg">{game.selectedPersonality.image}</span>
+                                                            <div>
+                                                                <div className="font-semibold text-gray-900 dark:text-white">{game.selectedPersonality.name}</div>
+                                                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                                    {t.start.opponentLabel}: {game.playerColor === 'white' ? t.game.black : t.game.white}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-xs uppercase text-gray-500 dark:text-gray-400">{t.start.evaluationLabel}</div>
+                                                        <div className="font-semibold text-gray-900 dark:text-white">{formatEvaluation(game)}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
                             {/* New Game Options */}
-                            {(!hasSavedGame || showNewGameOptions) && (
+                            {(!hasSavedGames || showNewGameOptions) && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-300">
                                     {/* Color Selection */}
                                     <div>
@@ -223,7 +310,7 @@ export default function StartScreen({ onStartGame, onResumeGame, hasSavedGame }:
                                         )}
                                     </div>
 
-                                    {hasSavedGame && (
+                                    {hasSavedGames && (
                                         <button
                                             onClick={() => setShowNewGameOptions(false)}
                                             className="w-full py-3 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ChessGame from "@/components/ChessGame";
 import StartScreen from "@/components/StartScreen";
 import { Personality } from "@/lib/personalities";
+import { SavedGame, deleteSavedGame, loadSavedGames } from "@/lib/savedGames";
 
 type ViewState = 'start' | 'game';
 
@@ -15,13 +16,14 @@ export default function Home() {
 
     // Game Initialization State
     const [gameProps, setGameProps] = useState<{
+        gameId: string;
         initialFen?: string;
         initialPgn?: string;
         initialPersonality: Personality;
         initialColor: 'white' | 'black';
     } | null>(null);
 
-    const [hasSavedGame, setHasSavedGame] = useState(false);
+    const [savedGames, setSavedGames] = useState<SavedGame[]>([]);
 
     useEffect(() => {
         // Check for API Key
@@ -31,11 +33,7 @@ export default function Home() {
             return;
         }
 
-        // Check for saved game
-        const savedGame = localStorage.getItem("chess_tutor_save");
-        if (savedGame) {
-            setHasSavedGame(true);
-        }
+        setSavedGames(loadSavedGames());
 
         setMounted(true);
     }, [router]);
@@ -51,6 +49,7 @@ export default function Home() {
             : options.color;
 
         setGameProps({
+            gameId: crypto.randomUUID ? crypto.randomUUID() : `game-${Date.now()}`,
             initialFen: options.fen,
             initialPgn: options.pgn,
             initialPersonality: options.personality,
@@ -59,31 +58,25 @@ export default function Home() {
         setView('game');
     };
 
-    const handleResumeGame = () => {
-        const savedGame = localStorage.getItem("chess_tutor_save");
-        if (savedGame) {
-            try {
-                const data = JSON.parse(savedGame);
-                if (data.fen && data.selectedPersonality) {
-                    setGameProps({
-                        initialFen: data.fen,
-                        initialPgn: data.pgn,
-                        initialPersonality: data.selectedPersonality,
-                        initialColor: data.playerColor || 'white'
-                    });
-                    setView('game');
-                }
-            } catch (e) {
-                console.error("Failed to resume game:", e);
-            }
-        }
+    const handleResumeGame = (game: SavedGame) => {
+        setGameProps({
+            gameId: game.id,
+            initialFen: game.fen,
+            initialPgn: game.pgn,
+            initialPersonality: game.selectedPersonality,
+            initialColor: game.playerColor || 'white'
+        });
+        setView('game');
     };
 
     const handleBackToMenu = () => {
         setView('start');
-        // Re-check saved game status as it might have changed
-        const savedGame = localStorage.getItem("chess_tutor_save");
-        setHasSavedGame(!!savedGame);
+        setSavedGames(loadSavedGames());
+    };
+
+    const handleDeleteSavedGame = (id: string) => {
+        deleteSavedGame(id);
+        setSavedGames(loadSavedGames());
     };
 
     if (!mounted) return null;
@@ -94,11 +87,13 @@ export default function Home() {
                 <StartScreen
                     onStartGame={handleStartGame}
                     onResumeGame={handleResumeGame}
-                    hasSavedGame={hasSavedGame}
+                    savedGames={savedGames}
+                    onDeleteSavedGame={handleDeleteSavedGame}
                 />
             )}
             {view === 'game' && gameProps && (
                 <ChessGame
+                    gameId={gameProps.gameId}
                     initialFen={gameProps.initialFen}
                     initialPgn={gameProps.initialPgn}
                     initialPersonality={gameProps.initialPersonality}
