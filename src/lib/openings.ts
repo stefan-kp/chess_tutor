@@ -10,6 +10,7 @@ export interface OpeningMetadata {
     eco: string;
     moves: string;
     name: string;
+    isEcoRoot?: boolean;
     aliases?: { [key: string]: string };
     meta?: {
         strengths_white?: string[];
@@ -38,7 +39,9 @@ export function lookupOpening(fen: string): OpeningMetadata | null {
 
 /**
  * Lookup possible openings from a move sequence.
- * Returns up to maxResults openings that match the given move sequence.
+ * Returns up to maxResults openings using a hybrid approach:
+ * 1. First, returns exact matches for the given sequence
+ * 2. Then, fills remaining slots with common continuations (one move deeper)
  *
  * @param moveSequence - The move sequence in SAN notation (e.g., "1. e4 c5 2. Nf3")
  * @param maxResults - Maximum number of results to return (default: 5)
@@ -50,17 +53,96 @@ export function lookupOpening(fen: string): OpeningMetadata | null {
  * // Returns: [{ eco: "B00", name: "King's Pawn Game", ... }]
  *
  * @example
- * // After 1.e4 c5
- * const openings = lookupPossibleOpenings("1. e4 c5", 5);
- * // Returns: [{ eco: "B20", name: "Sicilian Defense", ... }, ...]
+ * // After 1.e4 e5
+ * const openings = lookupPossibleOpenings("1. e4 e5", 5);
+ * // Returns: [
+ * //   { eco: "C20", name: "King's Pawn Game", ... },  // exact match
+ * //   { eco: "C60", name: "Ruy Lopez", ... },         // continuation
+ * //   { eco: "C50", name: "Italian Game", ... },      // continuation
+ * //   ...
+ * // ]
  */
 export function lookupPossibleOpenings(
     moveSequence: string,
     maxResults: number = 5
 ): OpeningMetadata[] {
     const normalized = moveSequence.trim();
-    const matches = (moveIndex as Record<string, OpeningMetadata[]>)[normalized] || [];
-    return matches.slice(0, maxResults);
+    const index = moveIndex as Record<string, OpeningMetadata[]>;
+
+    const results: OpeningMetadata[] = [];
+    const seenEcoRoots = new Set<string>(); // Track ECO roots to avoid duplicates
+
+    // Step 1: Add exact matches first
+    const exactMatches = index[normalized] || [];
+    for (const opening of exactMatches) {
+        if (results.length >= maxResults) break;
+        results.push(opening);
+        // Track ECO root to avoid duplicate families
+        const ecoRoot = opening.eco.substring(0, 2); // e.g., "C20" -> "C2"
+        seenEcoRoots.add(ecoRoot);
+    }
+
+    // Step 2: If we haven't reached maxResults, look for common continuations
+    if (results.length < maxResults) {
+        // Find all sequences that start with our sequence
+        const continuations: Array<{
+            sequence: string;
+            openings: OpeningMetadata[];
+            depth: number; // How many moves deeper than our sequence
+        }> = [];
+
+        for (const [seq, openings] of Object.entries(index)) {
+            // Check if this sequence starts with our sequence
+            if (seq.startsWith(normalized + ' ')) {
+                // Count the number of half-moves (ply)
+                const ourPly = normalized.split(/\s+/).filter(s => s && !s.match(/^\d+\.$/)).length;
+                const theirPly = seq.split(/\s+/).filter(s => s && !s.match(/^\d+\.$/)).length;
+                const depth = theirPly - ourPly;
+
+                // We want sequences that are 1-4 moves deeper (to catch important openings)
+                if (depth > 0 && depth <= 4) {
+                    continuations.push({ sequence: seq, openings, depth });
+                }
+            }
+        }
+
+        // Sort continuations by:
+        // 1. Depth (prefer closer continuations)
+        // 2. Whether they have isEcoRoot flag (prioritize root openings)
+        // 3. ECO code (lower codes are generally more common)
+        continuations.sort((a, b) => {
+            // Prefer shallower depth
+            if (a.depth !== b.depth) return a.depth - b.depth;
+
+            const aHasRoot = a.openings.some(o => o.isEcoRoot);
+            const bHasRoot = b.openings.some(o => o.isEcoRoot);
+            if (aHasRoot && !bHasRoot) return -1;
+            if (!aHasRoot && bHasRoot) return 1;
+
+            // Compare by ECO code
+            const aEco = a.openings[0]?.eco || 'ZZZ';
+            const bEco = b.openings[0]?.eco || 'ZZZ';
+            return aEco.localeCompare(bEco);
+        });
+
+        // Add continuations until we reach maxResults
+        for (const { openings } of continuations) {
+            if (results.length >= maxResults) break;
+
+            // Take the first opening from this continuation (usually the most general/important)
+            const opening = openings[0];
+            if (opening) {
+                const ecoRoot = opening.eco.substring(0, 2);
+                // Avoid adding if we already have an opening from this ECO family
+                if (!seenEcoRoots.has(ecoRoot)) {
+                    results.push(opening);
+                    seenEcoRoots.add(ecoRoot);
+                }
+            }
+        }
+    }
+
+    return results.slice(0, maxResults);
 }
 
 /**
