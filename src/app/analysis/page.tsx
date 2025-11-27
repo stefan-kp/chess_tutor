@@ -17,6 +17,7 @@ import { lookupPossibleOpenings, buildMoveSequenceFromSteps, OpeningMetadata } f
 import { getGenAIModel } from "@/lib/gemini";
 import { ChatSession } from "@google/generative-ai";
 import ReactMarkdown from "react-markdown";
+import { useDebug } from "@/contexts/DebugContext";
 
 interface MoveStep {
     san: string;
@@ -42,6 +43,7 @@ export default function AnalysisPage() {
     const [language, setLanguage] = useState<SupportedLanguage>("en");
     const [apiKey, setApiKey] = useState<string | null>(null);
     const t = useTranslation(language);
+    const { addEntry } = useDebug();
 
     const [input, setInput] = useState("");
     const [detectedFormat, setDetectedFormat] = useState<ChessFormat | null>(null);
@@ -286,8 +288,28 @@ INSTRUCTIONS:
 - Keep it educational and stay true to your personality tone.`;
 
                 const result = await chatSession.sendMessage(prompt);
+                const responseText = result.response.text();
+
                 if (!cancelled) {
-                    setComments(prev => ({ ...prev, [currentIndex]: result.response.text() }));
+                    setComments(prev => ({ ...prev, [currentIndex]: responseText }));
+
+                    // Track debug entry
+                    addEntry({
+                        type: 'analysis',
+                        action: `Move ${step.moveNumber} Analysis (${step.color})`,
+                        prompt,
+                        response: responseText,
+                        metadata: {
+                            moveNumber: step.moveNumber,
+                            san: step.san,
+                            color: step.color,
+                            fenBefore: step.fenBefore,
+                            fenAfter: step.fenAfter,
+                            cpLoss: delta,
+                            personality: selectedPersonality.name,
+                            language,
+                        }
+                    });
                 }
             } catch (err) {
                 console.error("Commentary failed", err);

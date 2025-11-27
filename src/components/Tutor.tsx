@@ -14,6 +14,7 @@ import ReactMarkdown from "react-markdown";
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { SupportedLanguage } from '@/lib/i18n/translations';
 import { DetectedTactic } from '@/lib/tacticDetection';
+import { useDebug } from '@/contexts/DebugContext';
 
 interface TutorProps {
     game: Chess;
@@ -45,6 +46,7 @@ export function Tutor({ game, currentFen, userMove, computerMove, stockfish, eva
     const [isLoading, setIsLoading] = useState(false);
     const [chatSession, setChatSession] = useState<ChatSession | null>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const { addEntry } = useDebug();
 
     const t = useTranslation(language);
 
@@ -371,6 +373,24 @@ INSTRUCTIONS:
             const result = await chatSession.sendMessage(finalPrompt);
             const response = await result.response;
             const textResponse = response.text();
+
+            // Track debug entry
+            const actionType = isSystemMessage ? "Move Analysis" :
+                              text.toLowerCase().includes("best move") ? "Best Move Request" :
+                              text.toLowerCase().includes("hint") ? "Hint Request" :
+                              "General Question";
+
+            addEntry({
+                type: 'tutor',
+                action: actionType,
+                prompt: finalPrompt,
+                response: textResponse,
+                metadata: {
+                    fen: currentFen,
+                    personality: personality.name,
+                    language,
+                }
+            });
 
             setMessages(prev => [...prev, { role: "model", text: textResponse, timestamp: Date.now() }]);
         } catch (error) {
