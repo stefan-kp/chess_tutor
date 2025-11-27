@@ -1,5 +1,13 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+jest.mock("next/navigation", () => ({
+    useRouter: jest.fn(() => ({
+        push: jest.fn(),
+        replace: jest.fn(),
+        back: jest.fn(),
+    })),
+}));
+
 jest.mock("react-chessboard", () => ({
     Chessboard: ({ position }: { position: string }) => (
         <div data-testid="chessboard" data-fen={position} />
@@ -84,7 +92,7 @@ describe("AnalysisPage", () => {
     it("replays PGN moves with engine evaluations", async () => {
         loadGame();
 
-        fireEvent.click(screen.getByText(/Next Move/i));
+        fireEvent.click(screen.getByLabelText(/Next Move/i));
 
         await waitFor(() => {
             expect(screen.getByText(/Move 1 \/ 6/)).toBeInTheDocument();
@@ -109,7 +117,7 @@ describe("AnalysisPage", () => {
         ]);
 
         loadGame();
-        fireEvent.click(screen.getByText(/Next Move/i));
+        fireEvent.click(screen.getByLabelText(/Next Move/i));
 
         await waitFor(() => {
             expect(screen.getByText(/fork \(~3.0 pawns\) on e5/)).toBeInTheDocument();
