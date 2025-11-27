@@ -295,9 +295,11 @@ Even though you are their opponent, teaching them is more important than hiding 
 User Question: ${text}
 
 Current Position Data:
+- FEN: ${currentFen}
 - Best Move: ${evaluation?.bestMove}
 - Evaluation: ${evaluation?.score ?? 'N/A'} centipawns ${evaluation?.score !== undefined ? (evaluation.score > 0 ? '(White is better)' : evaluation.score < 0 ? '(Black is better)' : '(Equal)') : ''}
 - Mate in: ${evaluation?.mate || 'None'}
+- Opening: ${openingData ? `${openingData.name} (${openingData.eco})` : 'Unknown/Midgame'}
 
 INSTRUCTIONS:
 - Tell them the best move clearly (e.g., "The best move is e2-e4" or "You should play Nf3")
@@ -317,9 +319,11 @@ Even though you are their opponent, teaching them is more important than winning
 User Question: ${text}
 
 Current Position Data:
+- FEN: ${currentFen}
 - Best Move: ${evaluation?.bestMove}
 - Evaluation: ${evaluation?.score ?? 'N/A'} centipawns ${evaluation?.score !== undefined ? (evaluation.score > 0 ? '(White is better)' : evaluation.score < 0 ? '(Black is better)' : '(Equal)') : ''}
 - Mate in: ${evaluation?.mate || 'None'}
+- Opening: ${openingData ? `${openingData.name} (${openingData.eco})` : 'Unknown/Midgame'}
 
 INSTRUCTIONS:
 - Give a HELPFUL hint without revealing the exact move (unless they specifically ask for it)
@@ -328,6 +332,24 @@ INSTRUCTIONS:
 - Stay in your personality style, but be HELPFUL and EDUCATIONAL
 - Do NOT refuse to help - teaching is your core role
 - Do NOT just say the move - guide them to find it themselves`;
+                } else {
+                    // General question - include full position context
+                    finalPrompt = `
+User Question: ${text}
+
+Current Position Context:
+- FEN: ${currentFen}
+- Evaluation: ${evaluation?.score ?? 'N/A'} centipawns ${evaluation?.score !== undefined ? (evaluation.score > 0 ? '(White is better)' : evaluation.score < 0 ? '(Black is better)' : '(Equal)') : ''}
+- Best Move: ${evaluation?.bestMove ?? 'N/A'}
+- Mate in: ${evaluation?.mate || 'None'}
+- Opening: ${openingData ? `${openingData.name} (${openingData.eco})` : 'Unknown/Midgame'}
+
+INSTRUCTIONS:
+- Answer the user's question based on the CURRENT position data above
+- Use the FEN to understand exactly where all pieces are located
+- Stay in character and maintain your personality
+- Be helpful and educational
+- Respond in ${language}`;
                 }
             }
 
