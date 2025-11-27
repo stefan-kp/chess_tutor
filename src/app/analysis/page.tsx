@@ -212,9 +212,9 @@ export default function AnalysisPage() {
             try {
                 const model = getGenAIModel(apiKey, "gemini-2.5-flash");
                 const delta = details.cpLoss ?? 0;
-                const evalBefore = details.evalBefore.score / 100;
-                const evalAfter = details.evalAfter.score / 100;
-                const mateInfo = details.evalAfter.mate !== null ? `Mate in ${details.evalAfter.mate}` : "No mate detected";
+                const evalBefore = details.evalBefore!.score / 100;
+                const evalAfter = details.evalAfter!.score / 100;
+                const mateInfo = details.evalAfter!.mate !== null ? `Mate in ${details.evalAfter!.mate}` : "No mate detected";
                 const tactics = (details.missedTactics || [])
                     .filter(t => t.tactic_type !== "none")
                     .map(t => `${t.tactic_type}${t.material_delta ? ` (~${(t.material_delta / 100).toFixed(1)} pawns)` : ""}`)
@@ -231,7 +231,7 @@ DATA:
 - Move played (SAN): ${step.san}
 - Evaluation before move: ${evalBefore.toFixed(2)} pawns
 - Evaluation after move: ${evalAfter.toFixed(2)} pawns
-- Best move suggestion: ${details.bestMoveSan ?? details.evalBefore.bestMove}
+- Best move suggestion: ${details.bestMoveSan ?? details.evalBefore!.bestMove}
 - Evaluation shift (centipawns): ${delta}
 - Opening context: ${openingInfo ? `${openingInfo.name} (${openingInfo.eco})` : "Unknown"}
 - Missed tactics: ${tactics}
@@ -342,10 +342,15 @@ INSTRUCTIONS:
 
                             <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 flex flex-col items-center gap-3 border border-gray-200 dark:border-gray-700">
                                 <Chessboard
-                                    position={currentFen}
-                                    boardOrientation={orientation}
-                                    arePiecesDraggable={false}
-                                    customBoardStyle={{ borderRadius: "12px", boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }}
+                                    options={{
+                                        position: currentFen,
+                                        boardOrientation: orientation,
+                                        allowDragging: false,
+                                        darkSquareStyle: { backgroundColor: '#779954' },
+                                        lightSquareStyle: { backgroundColor: '#e9edcc' },
+                                        animationDurationInMs: 200,
+                                        boardStyle: { borderRadius: "12px", boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }
+                                    }}
                                 />
                                 <div className="flex items-center gap-4">
                                     <button
