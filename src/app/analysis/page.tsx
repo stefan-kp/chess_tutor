@@ -14,6 +14,7 @@ import { detectChessFormat, ChessFormat } from "@/lib/chessFormatDetector";
 import { detectMissedTactics, DetectedTactic, uciToSan } from "@/lib/tacticDetection";
 import { lookupOpening } from "@/lib/openings";
 import { getGenAIModel } from "@/lib/gemini";
+import { ChatSession } from "@google/generative-ai";
 import ReactMarkdown from "react-markdown";
 
 interface MoveStep {
@@ -56,6 +57,7 @@ export default function AnalysisPage() {
     const [stepDetails, setStepDetails] = useState<Record<number, StepDetails>>({});
     const [isCommenting, setIsCommenting] = useState(false);
     const [comments, setComments] = useState<Record<number, string>>({});
+    const [chatSession, setChatSession] = useState<ChatSession | null>(null);
 
     useEffect(() => {
         const storedKey = localStorage.getItem("gemini_api_key");
@@ -69,6 +71,40 @@ export default function AnalysisPage() {
         setStockfish(sf);
         return () => sf.terminate();
     }, []);
+
+    // Initialize chat session for conversational analysis
+    useEffect(() => {
+        if (apiKey) {
+            const model = getGenAIModel(apiKey, "gemini-2.5-flash");
+            const session = model.startChat({
+                history: [
+                    {
+                        role: "user",
+                        parts: [{
+                            text: `You are ${selectedPersonality.name}. You will analyze a chess game move by move.
+Stay in character and maintain your personality throughout the analysis.
+Language: ${language.toUpperCase()}.
+
+IMPORTANT:
+- You are analyzing moves sequentially
+- Each move you analyze builds on the previous context
+- If the user navigates backwards or forwards, you will see the move number
+- Provide educational commentary in your characteristic style
+- Be concise (3-4 sentences per move)
+- Focus on what the move accomplishes and what was missed`
+                        }]
+                    },
+                    {
+                        role: "model",
+                        parts: [{
+                            text: `Understood. I am ${selectedPersonality.name}, and I will analyze this game move by move in ${language}, maintaining my personality while providing educational insights. I'll keep track of the game's progression and provide context-aware commentary.`
+                        }]
+                    }
+                ]
+            });
+            setChatSession(session);
+        }
+    }, [apiKey, selectedPersonality, language]);
 
     const currentFen = useMemo(() => {
         if (currentIndex === 0) return initialFen;
@@ -199,7 +235,7 @@ export default function AnalysisPage() {
     }, [currentIndex, steps, evaluationVersion]);
 
     useEffect(() => {
-        if (!apiKey) return;
+        if (!chatSession) return;
         if (currentIndex === 0) return;
         const step = steps[currentIndex - 1];
         const details = stepDetails[currentIndex];
@@ -210,7 +246,6 @@ export default function AnalysisPage() {
         setIsCommenting(true);
         const timeout = setTimeout(async () => {
             try {
-                const model = getGenAIModel(apiKey, "gemini-2.5-flash");
                 const delta = details.cpLoss ?? 0;
                 const evalBefore = details.evalBefore!.score / 100;
                 const evalAfter = details.evalAfter!.score / 100;
@@ -221,14 +256,14 @@ export default function AnalysisPage() {
                     .join("; ") || "None";
 
                 const prompt = `
-You are ${selectedPersonality.name}. Stay in character.
-Language: ${language.toUpperCase()}.
-Explain the move that was just played.
+Analyze this move:
 
 DATA:
 - Move number: ${step.moveNumber}
 - Side to move: ${step.color}
 - Move played (SAN): ${step.san}
+- FEN before move: ${step.fenBefore}
+- FEN after move: ${step.fenAfter}
 - Evaluation before move: ${evalBefore.toFixed(2)} pawns
 - Evaluation after move: ${evalAfter.toFixed(2)} pawns
 - Best move suggestion: ${details.bestMoveSan ?? details.evalBefore!.bestMove}
@@ -244,7 +279,7 @@ INSTRUCTIONS:
 - Refer to the player's side as ${step.color}.
 - Keep it educational and stay true to your personality tone.`;
 
-                const result = await model.generateContent(prompt);
+                const result = await chatSession.sendMessage(prompt);
                 if (!cancelled) {
                     setComments(prev => ({ ...prev, [currentIndex]: result.response.text() }));
                 }
@@ -258,8 +293,9 @@ INSTRUCTIONS:
         return () => {
             cancelled = true;
             clearTimeout(timeout);
+            setIsCommenting(false);
         };
-    }, [apiKey, currentIndex, stepDetails, steps, comments, selectedPersonality, language, openingInfo]);
+    }, [chatSession, currentIndex, stepDetails, steps, comments, openingInfo]);
 
     const formatEval = (evaluation?: StockfishEvaluation) => {
         if (!evaluation) return t.analysis.enginePending;
