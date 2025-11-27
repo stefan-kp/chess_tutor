@@ -10,7 +10,7 @@ import { Personality } from "@/lib/personalities";
 import Header from "./Header";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { SupportedLanguage } from "@/lib/i18n/translations";
-import { lookupOpening, OpeningMetadata } from "@/lib/openings";
+import { lookupOpening, lookupPossibleOpenings, extractMoveSequenceFromPGN, OpeningMetadata } from "@/lib/openings";
 import { GameAnalysisModal } from "./GameAnalysisModal";
 import { GameOverModal, MoveHistoryItem } from "./GameOverModal";
 import { Brain, ArrowLeft } from "lucide-react";
@@ -46,7 +46,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
     const [evalP2, setEvalP2] = useState<StockfishEvaluation | null>(null);
 
     // Opening Data
-    const [openingData, setOpeningData] = useState<OpeningMetadata | null>(null);
+    const [openingData, setOpeningData] = useState<OpeningMetadata[]>([]);
 
     // Tactical Analysis Data
     const [latestMissedTactics, setLatestMissedTactics] = useState<DetectedTactic[] | null>(null);
@@ -302,7 +302,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
         // Reset Computer State
         setComputerMove(null);
         setEvalP2(null);
-        setOpeningData(null);
+        setOpeningData([]);
 
         setIsAnalyzing(true);
         const { newFen: fenP1 } = moveResult;
@@ -337,9 +337,11 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                     stockfish.evaluate(fenP2, stockfishDepth).then(p2Eval => {
                         setEvalP2(p2Eval);
 
-                        // 4. Opening Lookup
-                        const opening = lookupOpening(fenP2);
-                        setOpeningData(opening);
+                        // 4. Opening Lookup - Get multiple possible openings
+                        const currentPgn = gameRef.current.pgn();
+                        const moveSequence = extractMoveSequenceFromPGN(currentPgn);
+                        const possibleOpenings = lookupPossibleOpenings(moveSequence, 5);
+                        setOpeningData(possibleOpenings);
 
                         // 5. Complete the history item with computer's move data (only if we have evalP0)
                         if (partialHistoryItem && evalP0) {
@@ -364,7 +366,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                                 computerMove: compResult.result.san,
                                 fenAfterComputerMove: fenP2,
                                 evalAfterComputerMove: p2Eval,
-                                opening: opening?.name,
+                                opening: possibleOpenings.length > 0 ? possibleOpenings[0].name : undefined,
                                 // Legacy fields for backward compatibility
                                 move: moveResult.result.san,
                                 evalBefore: evalP0.score,
@@ -424,8 +426,10 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                     // Evaluate the position after computer's move
                     stockfish.evaluate(newFen, stockfishDepth).then(p2Eval => {
                         setEvalP2(p2Eval);
-                        const opening = lookupOpening(newFen);
-                        setOpeningData(opening);
+                        const currentPgn = gameRef.current.pgn();
+                        const moveSequence = extractMoveSequenceFromPGN(currentPgn);
+                        const possibleOpenings = lookupPossibleOpenings(moveSequence, 5);
+                        setOpeningData(possibleOpenings);
                         setIsAnalyzing(false);
                     }).catch(err => {
                         console.error("Post-computer-move analysis failed:", err);
@@ -453,7 +457,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
         setComputerMove(null);
         setEvalP0(null);
         setEvalP2(null);
-        setOpeningData(null);
+        setOpeningData([]);
         updateCapturedPieces();
     };
 
@@ -565,7 +569,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                                     setComputerMove(null);
                                     setEvalP0(null);
                                     setEvalP2(null);
-                                    setOpeningData(null);
+                                    setOpeningData([]);
                                     updateCapturedPieces();
                                 }}
                                 className="flex items-center gap-1 hover:text-red-600 dark:hover:text-red-400 transition-colors"

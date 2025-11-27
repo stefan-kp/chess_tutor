@@ -23,7 +23,7 @@ interface TutorProps {
     stockfish: Stockfish | null;
     evalP0: StockfishEvaluation | null;
     evalP2: StockfishEvaluation | null;
-    openingData: OpeningMetadata | null;
+    openingData: OpeningMetadata[];
     missedTactics: DetectedTactic[] | null;
     onAnalysisComplete: () => void;
     apiKey: string | null;
@@ -168,19 +168,34 @@ CRITICAL RULES:
 
                 // Opening Instruction
                 let openingInstruction = "";
-                if (openingData) {
-                    openingInstruction = `
-OPENING IDENTIFIED: ${openingData.name} (${openingData.eco}).
-You MUST mention the opening name.
+                if (openingData && openingData.length > 0) {
+                    if (openingData.length === 1) {
+                        // Single opening identified
+                        const opening = openingData[0];
+                        openingInstruction = `
+OPENING IDENTIFIED: ${opening.name} (${opening.eco}).
+You can confidently reference this opening and its typical plans.
 You can use this metadata to explain the position:
-- Strengths (White): ${openingData.meta?.strengths_white?.join(", ")}
-- Weaknesses (White): ${openingData.meta?.weaknesses_white?.join(", ")}
-- Strengths (Black): ${openingData.meta?.strengths_black?.join(", ")}
-- Weaknesses (Black): ${openingData.meta?.weaknesses_black?.join(", ")}
-                    `;
+- Strengths (White): ${opening.meta?.strengths_white?.join(", ") || 'N/A'}
+- Weaknesses (White): ${opening.meta?.weaknesses_white?.join(", ") || 'N/A'}
+- Strengths (Black): ${opening.meta?.strengths_black?.join(", ") || 'N/A'}
+- Weaknesses (Black): ${opening.meta?.weaknesses_black?.join(", ") || 'N/A'}
+                        `;
+                    } else {
+                        // Multiple possible openings
+                        const openingList = openingData.map(o => `- ${o.name} (${o.eco})`).join('\n');
+                        openingInstruction = `
+OPENING CONTEXT:
+Multiple openings are possible from this position:
+${openingList}
+
+INSTRUCTIONS:
+- Do NOT claim a specific opening is being played yet
+- You may mention "this could lead to..." or "typical of openings like..."
+- Focus on general principles rather than specific opening theory
+                        `;
+                    }
                 } else {
-                    // openingInstruction = "NO opening identified. Do NOT invent an opening name. Do NOT mention openings.";
-                    // Relaxed instruction to allow general commentary if no specific opening is found, but still forbid inventing names.
                     openingInstruction = "NO specific opening identified from database. Do NOT invent an opening name. Focus on the position.";
                 }
 
@@ -299,7 +314,7 @@ Current Position Data:
 - Best Move: ${evaluation?.bestMove}
 - Evaluation: ${evaluation?.score ?? 'N/A'} centipawns ${evaluation?.score !== undefined ? (evaluation.score > 0 ? '(White is better)' : evaluation.score < 0 ? '(Black is better)' : '(Equal)') : ''}
 - Mate in: ${evaluation?.mate || 'None'}
-- Opening: ${openingData ? `${openingData.name} (${openingData.eco})` : 'Unknown/Midgame'}
+- Possible Openings: ${openingData && openingData.length > 0 ? openingData.map(o => `${o.name} (${o.eco})`).join(', ') : 'Unknown/Midgame'}
 
 INSTRUCTIONS:
 - Tell them the best move clearly (e.g., "The best move is e2-e4" or "You should play Nf3")
@@ -323,7 +338,7 @@ Current Position Data:
 - Best Move: ${evaluation?.bestMove}
 - Evaluation: ${evaluation?.score ?? 'N/A'} centipawns ${evaluation?.score !== undefined ? (evaluation.score > 0 ? '(White is better)' : evaluation.score < 0 ? '(Black is better)' : '(Equal)') : ''}
 - Mate in: ${evaluation?.mate || 'None'}
-- Opening: ${openingData ? `${openingData.name} (${openingData.eco})` : 'Unknown/Midgame'}
+- Possible Openings: ${openingData && openingData.length > 0 ? openingData.map(o => `${o.name} (${o.eco})`).join(', ') : 'Unknown/Midgame'}
 
 INSTRUCTIONS:
 - Give a HELPFUL hint without revealing the exact move (unless they specifically ask for it)
@@ -342,7 +357,7 @@ Current Position Context:
 - Evaluation: ${evaluation?.score ?? 'N/A'} centipawns ${evaluation?.score !== undefined ? (evaluation.score > 0 ? '(White is better)' : evaluation.score < 0 ? '(Black is better)' : '(Equal)') : ''}
 - Best Move: ${evaluation?.bestMove ?? 'N/A'}
 - Mate in: ${evaluation?.mate || 'None'}
-- Opening: ${openingData ? `${openingData.name} (${openingData.eco})` : 'Unknown/Midgame'}
+- Possible Openings: ${openingData && openingData.length > 0 ? openingData.map(o => `${o.name} (${o.eco})`).join(', ') : 'Unknown/Midgame'}
 
 INSTRUCTIONS:
 - Answer the user's question based on the CURRENT position data above
