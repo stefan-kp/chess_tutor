@@ -12,7 +12,7 @@ import { Personality, PERSONALITIES } from "@/lib/personalities";
 import { Stockfish, StockfishEvaluation } from "@/lib/stockfish";
 import { detectChessFormat, ChessFormat } from "@/lib/chessFormatDetector";
 import { detectMissedTactics, DetectedTactic, uciToSan } from "@/lib/tacticDetection";
-import { lookupOpening } from "@/lib/openings";
+import { lookupPossibleOpenings, buildMoveSequenceFromSteps, OpeningMetadata } from "@/lib/openings";
 import { getGenAIModel } from "@/lib/gemini";
 import { ChatSession } from "@google/generative-ai";
 import ReactMarkdown from "react-markdown";
@@ -111,7 +111,11 @@ IMPORTANT:
         return steps[currentIndex - 1]?.fenAfter || initialFen;
     }, [currentIndex, steps, initialFen]);
 
-    const openingInfo = useMemo(() => lookupOpening(currentFen), [currentFen]);
+    const possibleOpenings = useMemo(() => {
+        if (currentIndex === 0) return [];
+        const moveSequence = buildMoveSequenceFromSteps(steps, currentIndex);
+        return lookupPossibleOpenings(moveSequence, 5);
+    }, [currentIndex, steps]);
 
     const handleInputChange = (value: string) => {
         setInput(value);
@@ -268,7 +272,7 @@ DATA:
 - Evaluation after move: ${evalAfter.toFixed(2)} pawns
 - Best move suggestion: ${details.bestMoveSan ?? details.evalBefore!.bestMove}
 - Evaluation shift (centipawns): ${delta}
-- Opening context: ${openingInfo ? `${openingInfo.name} (${openingInfo.eco})` : "Unknown"}
+- Possible Openings: ${possibleOpenings.length > 0 ? possibleOpenings.map(o => `${o.name} (${o.eco})`).join(', ') : "Unknown/Midgame"}
 - Missed tactics: ${tactics}
 - Mate hint: ${mateInfo}
 
@@ -295,7 +299,7 @@ INSTRUCTIONS:
             clearTimeout(timeout);
             setIsCommenting(false);
         };
-    }, [chatSession, currentIndex, stepDetails, steps, comments, openingInfo]);
+    }, [chatSession, currentIndex, stepDetails, steps, comments, possibleOpenings]);
 
     const formatEval = (evaluation?: StockfishEvaluation) => {
         if (!evaluation) return t.analysis.enginePending;
@@ -415,9 +419,12 @@ INSTRUCTIONS:
                         <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-200 dark:border-gray-700 p-6 space-y-4">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t.analysis.title}</h2>
-                                {openingInfo && (
+                                {possibleOpenings.length > 0 && (
                                     <span className="text-sm text-blue-700 dark:text-blue-300">
-                                        {t.analysis.opening}: {openingInfo.name} ({openingInfo.eco})
+                                        {t.analysis.opening}: {possibleOpenings.length === 1
+                                            ? `${possibleOpenings[0].name} (${possibleOpenings[0].eco})`
+                                            : `${possibleOpenings.length} possible openings`
+                                        }
                                     </span>
                                 )}
                             </div>
