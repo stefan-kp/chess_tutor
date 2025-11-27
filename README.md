@@ -276,8 +276,53 @@ You can configure the application using environment variables in your `.env` fil
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `NEXT_PUBLIC_GEMINI_API_KEY` | Google Gemini API Key for AI features | (Required for AI) |
+| `NEXT_PUBLIC_DEBUG` | Enable debug mode to see all LLM prompts and responses | `false` |
 | `IMPRINT_URL` | External URL for the Imprint link in the footer. If not set, an internal page is used. | Internal Page |
 | `DATA_PRIVACY_RESPONSIBLE_PERSON` | Name of the person responsible for data privacy (shown on /privacy page). | Placeholder |
+
+### Debug Mode
+
+Debug mode is a powerful feature that helps you understand and troubleshoot how the AI tutor works by showing you all the prompts sent to the LLM and the responses received.
+
+**To enable debug mode:**
+
+1. Add to your `.env` file:
+   ```
+   NEXT_PUBLIC_DEBUG=true
+   ```
+
+2. Restart the application (or rebuild if using Docker)
+
+**What debug mode shows:**
+
+- **All LLM Prompts**: See exactly what context, instructions, and data are sent to the AI
+- **All LLM Responses**: View the raw responses before they're displayed in the chat
+- **Timestamps**: Track when each interaction occurred
+- **Interaction Types**: Distinguish between move analysis, user questions, and other triggers
+
+**How to use it:**
+
+- **Floating Panel**: A debug panel appears in the bottom-right corner showing all interactions
+- **Copy to Clipboard**: Click the copy button to save prompts/responses for analysis
+- **Clear History**: Clear the debug log when needed
+- **Expandable Details**: Click on any entry to see the full prompt and response
+
+**Why it's useful:**
+
+- **Troubleshooting**: Identify issues with AI responses or unexpected behavior
+- **Learning**: Understand how the system constructs prompts and provides context
+- **Bug Reports**: Include debug output when reporting issues
+- **Customization**: See what data is available if you want to modify the prompts
+
+**Example use cases:**
+
+1. **Verify Position Context**: Check that the correct FEN positions are being sent
+2. **Check Evaluation Data**: Ensure mate scores and centipawn values are correct
+3. **Opening Detection**: See which openings are being identified and sent to the AI
+4. **Tactical Analysis**: View the tactical opportunities detected by the system
+
+> [!WARNING]
+> Debug mode is intended for development and troubleshooting. It may impact performance and should not be used in production environments.
 
 ## License
 
