@@ -27,7 +27,7 @@ export default function Home() {
         // Check for API Key
         const apiKey = localStorage.getItem("gemini_api_key");
         if (!apiKey) {
-            router.push("/settings");
+            router.push("/onboarding");
             return;
         }
 
