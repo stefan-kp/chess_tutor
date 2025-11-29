@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { DebugProvider } from "@/contexts/DebugContext";
 
 jest.mock("next/navigation", () => ({
     useRouter: jest.fn(() => ({
@@ -83,7 +84,11 @@ describe("AnalysisPage", () => {
 `;
 
     const loadGame = () => {
-        render(<AnalysisPage />);
+        render(
+            <DebugProvider>
+                <AnalysisPage />
+            </DebugProvider>
+        );
         const textarea = screen.getByPlaceholderText(/Paste PGN or FEN here/i);
         fireEvent.change(textarea, { target: { value: samplePgn } });
         fireEvent.click(screen.getByText(/Start Analysis/i));
@@ -125,7 +130,11 @@ describe("AnalysisPage", () => {
     });
 
     it("shows an error when the notation cannot be parsed", () => {
-        render(<AnalysisPage />);
+        render(
+            <DebugProvider>
+                <AnalysisPage />
+            </DebugProvider>
+        );
         const textarea = screen.getByPlaceholderText(/Paste PGN or FEN here/i);
         fireEvent.change(textarea, { target: { value: "invalid" } });
         fireEvent.click(screen.getByText(/Start Analysis/i));

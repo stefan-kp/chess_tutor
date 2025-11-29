@@ -24,6 +24,7 @@ interface ChessGameProps {
     initialPgn?: string;
     initialPersonality: Personality;
     initialColor: 'white' | 'black';
+    initialStockfishDepth?: number;
     onBack: () => void;
 }
 
@@ -36,7 +37,7 @@ const PIECE_VALUES: Record<string, number> = {
     'k': 0
 };
 
-export default function ChessGame({ gameId, initialFen, initialPgn, initialPersonality, initialColor, onBack }: ChessGameProps) {
+export default function ChessGame({ gameId, initialFen, initialPgn, initialPersonality, initialColor, initialStockfishDepth, onBack }: ChessGameProps) {
     const gameRef = useRef(new Chess(initialFen || "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"));
     const [fen, setFen] = useState(gameRef.current.fen());
     const [stockfish, setStockfish] = useState<Stockfish | null>(null);
@@ -55,7 +56,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
     const [computerMove, setComputerMove] = useState<Move | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [apiKey, setApiKey] = useState<string | null>(null);
-    const [stockfishDepth, setStockfishDepth] = useState(15);
+    const [stockfishDepth, setStockfishDepth] = useState(initialStockfishDepth ?? 15);
 
     // Settings
     const [language, setLanguage] = useState<SupportedLanguage>('en');
@@ -107,6 +108,12 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
         setStockfish(sf);
         return () => sf.terminate();
     }, []);
+
+    useEffect(() => {
+        if (typeof initialStockfishDepth === 'number') {
+            setStockfishDepth(initialStockfishDepth);
+        }
+    }, [initialStockfishDepth]);
 
     // Load Settings & Initial State
     useEffect(() => {
