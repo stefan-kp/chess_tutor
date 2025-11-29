@@ -48,6 +48,7 @@ export interface Translations {
         evaluationLabel: string;
         noEvaluation: string;
         deleteGame: string;
+        analyzeThisGame: string;
     };
 
     // Game
@@ -120,6 +121,12 @@ export interface Translations {
         enginePending: string;
         coachPending: string;
         importError: string;
+        loadNewGame: string;
+        openingsExplorer: string;
+        generatingExplanation: string;
+        noApiKey: string;
+        askFollowUp: string;
+        possibleOpenings: string;
     };
 
     // API Key Input
@@ -209,6 +216,7 @@ const en: Translations = {
         evaluationLabel: 'Evaluation',
         noEvaluation: 'No evaluation yet',
         deleteGame: 'Delete game',
+        analyzeThisGame: 'Analyze this game',
     },
     game: {
         playingAs: 'Playing as',
@@ -273,6 +281,12 @@ const en: Translations = {
         enginePending: 'Running engine evaluation...',
         coachPending: 'Coach is preparing feedback...',
         importError: 'Could not load that PGN or FEN. Please check the notation.',
+        loadNewGame: 'Load New Game',
+        openingsExplorer: 'Opening Explorer',
+        generatingExplanation: 'Generating explanation...',
+        noApiKey: 'Please add an API key in settings to get opening explanations.',
+        askFollowUp: 'Ask a follow-up question about this opening...',
+        possibleOpenings: 'possible openings',
     },
     apiKeyInput: {
         title: 'API Key Required',
@@ -363,6 +377,7 @@ const de: Translations = {
         evaluationLabel: 'Bewertung',
         noEvaluation: 'Keine Bewertung',
         deleteGame: 'Partie löschen',
+        analyzeThisGame: 'Diese Partie analysieren',
     },
     game: {
         playingAs: 'Spielst als',
@@ -427,6 +442,12 @@ const de: Translations = {
         enginePending: 'Engine-Bewertung läuft...',
         coachPending: 'Coach bereitet Feedback vor...',
         importError: 'PGN oder FEN konnte nicht geladen werden. Bitte Notation prüfen.',
+        loadNewGame: 'Neue Partie laden',
+        openingsExplorer: 'Eröffnungs-Explorer',
+        generatingExplanation: 'Erklärung wird generiert...',
+        noApiKey: 'Bitte fügen Sie in den Einstellungen einen API-Schlüssel hinzu.',
+        askFollowUp: 'Stellen Sie eine Folgefrage zu dieser Eröffnung...',
+        possibleOpenings: 'mögliche Eröffnungen',
     },
     apiKeyInput: {
         title: 'API-Schlüssel erforderlich',
@@ -517,6 +538,7 @@ const fr: Translations = {
         evaluationLabel: 'Évaluation',
         noEvaluation: 'Pas d\'évaluation',
         deleteGame: 'Supprimer la partie',
+        analyzeThisGame: 'Analyser cette partie',
     },
     game: {
         playingAs: 'Jouant',
@@ -581,6 +603,12 @@ const fr: Translations = {
         enginePending: 'Évaluation du moteur en cours...',
         coachPending: 'Le coach prépare son retour...',
         importError: 'Impossible de charger ce PGN ou FEN. Merci de vérifier la notation.',
+        loadNewGame: 'Charger nouvelle partie',
+        openingsExplorer: 'Explorateur d\'ouvertures',
+        generatingExplanation: 'Génération de l\'explication...',
+        noApiKey: 'Veuillez ajouter une clé API dans les paramètres.',
+        askFollowUp: 'Posez une question sur cette ouverture...',
+        possibleOpenings: 'ouvertures possibles',
     },
     apiKeyInput: {
         title: 'Clé API requise',
@@ -671,6 +699,7 @@ const it: Translations = {
         evaluationLabel: 'Valutazione',
         noEvaluation: 'Nessuna valutazione',
         deleteGame: 'Elimina partita',
+        analyzeThisGame: 'Analizza questa partita',
     },
     game: {
         playingAs: 'Giocando',
@@ -735,6 +764,12 @@ const it: Translations = {
         enginePending: 'Valutazione del motore in corso...',
         coachPending: 'Il coach sta preparando il feedback...',
         importError: 'Impossibile caricare questo PGN o FEN. Controlla la notazione.',
+        loadNewGame: 'Carica nuova partita',
+        openingsExplorer: 'Esplora aperture',
+        generatingExplanation: 'Generazione spiegazione...',
+        noApiKey: 'Aggiungi una chiave API nelle impostazioni.',
+        askFollowUp: 'Fai una domanda su questa apertura...',
+        possibleOpenings: 'aperture possibili',
     },
     apiKeyInput: {
         title: 'Chiave API richiesta',
