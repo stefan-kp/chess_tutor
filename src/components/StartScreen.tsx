@@ -85,11 +85,7 @@ export default function StartScreen({ onStartGame, onResumeGame, savedGames, onD
         return t.start.noEvaluation;
     };
 
-    useEffect(() => {
-        if (!hasSavedGames) {
-            setShowNewGameOptions(true);
-        }
-    }, [hasSavedGames]);
+
 
     if (!mounted) return null;
 
@@ -118,18 +114,24 @@ export default function StartScreen({ onStartGame, onResumeGame, savedGames, onD
                         </h2>
 
                         <div className="space-y-6">
-                            {hasSavedGames && (
+                            {/* Start New Game Button - Always visible at top */}
+                            <div>
+                                <button
+                                    onClick={() => setShowNewGameOptions(!showNewGameOptions)}
+                                    className="w-full py-4 px-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold shadow-lg transition-transform transform hover:scale-[1.02] flex items-center justify-center gap-2"
+                                >
+                                    <Brain size={18} />
+                                    {t.start.startNewGame}
+                                </button>
+                            </div>
+
+                            {/* Unfinished Games Section */}
+                            {hasSavedGames && !showNewGameOptions && (
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                             {t.start.savedGamesTitle}
                                         </h3>
-                                        <button
-                                            onClick={() => setShowNewGameOptions(true)}
-                                            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                                        >
-                                            {t.start.startNewGame}
-                                        </button>
                                     </div>
 
                                     {sortedSavedGames.length === 0 && (
@@ -210,7 +212,7 @@ export default function StartScreen({ onStartGame, onResumeGame, savedGames, onD
                             )}
 
                             {/* New Game Options */}
-                            {(!hasSavedGames || showNewGameOptions) && (
+                            {showNewGameOptions && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-300">
                                     {/* Color Selection */}
                                     <div>
@@ -326,14 +328,12 @@ export default function StartScreen({ onStartGame, onResumeGame, savedGames, onD
                                         )}
                                     </div>
 
-                                    {hasSavedGames && (
-                                        <button
-                                            onClick={() => setShowNewGameOptions(false)}
-                                            className="w-full py-3 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                                        >
-                                            {t.common.cancel}
-                                        </button>
-                                    )}
+                                    <button
+                                        onClick={() => setShowNewGameOptions(false)}
+                                        className="w-full py-3 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                                    >
+                                        {t.common.cancel}
+                                    </button>
                                 </div>
                             )}
 

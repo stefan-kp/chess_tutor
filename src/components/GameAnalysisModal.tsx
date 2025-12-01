@@ -5,12 +5,13 @@ import { Stockfish, StockfishEvaluation } from "@/lib/stockfish";
 import { OpeningMetadata, lookupOpening } from "@/lib/openings";
 import { getGenAIModel } from "@/lib/gemini";
 import { Loader2, X, Brain, Trophy, AlertTriangle } from "lucide-react";
+import { SupportedLanguage } from "@/lib/i18n/translations";
 
 interface GameAnalysisModalProps {
     fen: string;
     stockfish: Stockfish | null;
     apiKey: string | null;
-    language: 'en' | 'de' | 'fr' | 'it';
+    language: SupportedLanguage;
     onClose: () => void;
 }
 

@@ -6,6 +6,7 @@ import { Loader2, X, Trophy, AlertTriangle, RefreshCw } from "lucide-react";
 import { StockfishEvaluation } from "@/lib/stockfish";
 import { DetectedTactic } from "@/lib/tacticDetection";
 import ReactMarkdown from "react-markdown";
+import { SupportedLanguage } from "@/lib/i18n/translations";
 
 export interface MoveHistoryItem {
     moveNumber: number;
@@ -50,7 +51,7 @@ interface GameOverModalProps {
     winner: "White" | "Black" | "Draw";
     history: MoveHistoryItem[];
     apiKey: string | null;
-    language: 'en' | 'de' | 'fr' | 'it';
+    language: SupportedLanguage;
     onClose: () => void;
     onNewGame: () => void;
 }

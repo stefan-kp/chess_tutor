@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { Chessboard } from "react-chessboard";
 import { X, Loader2, Download, ExternalLink } from "lucide-react";
 import { fetchChessComGames, fetchLichessGames, GameMetadata, Platform } from "@/lib/gameImport";
+import { SupportedLanguage } from "@/lib/i18n/translations";
 
 interface GameImportModalProps {
     onClose: () => void;
     onSelectGame: (pgn: string) => void;
-    language: 'en' | 'de' | 'fr' | 'it';
+    language: SupportedLanguage;
 }
 
 export function GameImportModal({ onClose, onSelectGame, language }: GameImportModalProps) {
