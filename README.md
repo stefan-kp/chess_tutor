@@ -11,16 +11,19 @@ This application was built using **Antigravity by Google**. I like to work with 
 
 ### Typical Game Flow
 
-1. **Choose Your Personality**: Select from 9 unique AI coaching personalities, each with their own teaching style and character
-2. **Play Chess**: Make your moves on the board while the Stockfish engine plays against you
-3. **Get Real-Time Feedback**: After each move exchange, your AI tutor analyzes the position and provides personalized feedback based on:
+1. **Start or Resume**: From the homepage, either start a new game or continue an unfinished game from where you left off
+2. **Choose Your Personality**: Select from 9 unique AI coaching personalities, each with their own teaching style and character
+3. **Select Your Color**: Play as White, Black, or let the app choose randomly
+4. **Play Chess**: Make your moves on the board while the Stockfish engine plays against you
+5. **Get Real-Time Feedback**: After each move exchange, your AI tutor analyzes the position and provides personalized feedback based on:
    - Move quality and alternatives
    - Position evaluation changes
    - **Missed tactical opportunities** (pins, forks, skewers, checks, hanging pieces, material captures)
    - Opening theory (when applicable)
    - Strategic and positional considerations
-4. **Chat with Your Tutor**: Ask questions anytime using the integrated chat feature - your tutor will answer in character
-5. **Post-Game Analysis**: When the game ends, review a comprehensive analysis showing:
+6. **Chat with Your Tutor**: Ask questions anytime using the integrated chat feature - your tutor will answer in character
+7. **Export Your Game**: Download your game as PGN or export the current position as FEN at any time
+8. **Post-Game Analysis**: When the game ends, review a comprehensive analysis showing:
    - All your mistakes and inaccuracies
    - Missed tactical opportunities throughout the game
    - Learning opportunities and improvement suggestions
@@ -38,9 +41,12 @@ This application was built using **Antigravity by Google**. I like to work with 
 - **Move Analysis**: Detailed feedback on every move you make with tactical insights
 - **Interactive Chat**: Ask your AI tutor questions and get personalized answers
 - **Post-Game Analysis**: Review all your mistakes and missed opportunities after each game
-- **Multi-Language Support**: Available in English, German, French, and Italian
+- **Multi-Language Support**: Available in English, German, French, Italian, and Polish
 - **FEN/PGN Import**: Import positions or games with automatic format detection
-- **Move History**: Visual move history table with evaluation changes
+- **Game Export**: Download your games as PGN or export current position as FEN
+- **Move History**: Visual move history table with evaluation changes and tactical annotations
+- **Saved Games**: Continue unfinished games from where you left off
+- **Settings Management**: Customize your experience with language preferences, API key management, and data controls
 
 ### AI Personalities
 
@@ -115,6 +121,33 @@ One of the standout features is the **automatic tactical pattern detection** tha
 - Checks for piece safety (e.g., won't report a "capture" if the piece can be immediately recaptured)
 
 This feature helps you learn tactical patterns naturally during gameplay, rather than just through puzzle training.
+
+### User Experience Features
+
+**Game Management:**
+- **Save & Resume**: Your games are automatically saved to browser storage - continue playing anytime
+- **Game Export**: Download your completed or in-progress games as PGN files for analysis in other tools
+- **Position Export**: Export the current board position as FEN for sharing or further study
+- **Game History**: Visual table showing all moves with evaluation changes and missed tactics
+- **Clear All Data**: Reset your local storage from the settings page when needed
+
+**Customization:**
+- **5 Languages**: Full interface translation in English, German, French, Italian, and Polish
+- **9 AI Personalities**: Choose the coaching style that motivates you best
+- **Flexible Setup**: Play as White, Black, or random color selection
+- **Import Games**: Start from any position using FEN or continue from a PGN game
+
+**Analysis Tools:**
+- **Real-Time Evaluation Bar**: Visual representation of position evaluation during play
+- **Opening Explorer**: Automatic opening detection with theory and explanations
+- **Position Analysis**: Deep-dive into any position with the analysis modal
+- **Post-Game Review**: Comprehensive analysis of all mistakes and missed opportunities
+
+**Modern Interface:**
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Dark Mode Support**: Automatic dark/light theme based on system preferences
+- **Intuitive Controls**: Drag-and-drop piece movement with visual feedback
+- **Clean Layout**: Focused design that keeps the board and feedback front and center
 
 ## Quick Start
 
