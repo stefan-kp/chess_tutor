@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { SupportedLanguage } from "@/lib/i18n/translations";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Trash2 } from "lucide-react";
 
 export default function SettingsPage() {
     const router = useRouter();
@@ -56,6 +56,16 @@ export default function SettingsPage() {
 
         // Go back to home
         router.push("/");
+    };
+
+    const handleClearAllData = () => {
+        if (window.confirm(t.common.clearAllDataConfirm)) {
+            // Clear all localStorage
+            localStorage.clear();
+
+            // Redirect to onboarding
+            router.push("/onboarding");
+        }
     };
 
     if (!mounted) return null;
@@ -157,6 +167,23 @@ export default function SettingsPage() {
                                         />
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Danger Zone - Clear All Data */}
+                            <div className="pt-6 border-t border-red-200 dark:border-red-800">
+                                <h2 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">
+                                    Danger Zone
+                                </h2>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                    {t.common.clearAllDataDescription}
+                                </p>
+                                <button
+                                    onClick={handleClearAllData}
+                                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium shadow-md transition-all"
+                                >
+                                    <Trash2 size={18} />
+                                    {t.common.clearAllData}
+                                </button>
                             </div>
                         </div>
 

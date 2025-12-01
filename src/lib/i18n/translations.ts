@@ -9,6 +9,9 @@ export interface Translations {
         loading: string;
         error: string;
         save: string;
+        clearAllData: string;
+        clearAllDataConfirm: string;
+        clearAllDataDescription: string;
     };
 
     // Header
@@ -181,6 +184,9 @@ const en: Translations = {
         loading: 'Loading...',
         error: 'Error',
         save: 'Save',
+        clearAllData: 'Clear All Data',
+        clearAllDataConfirm: 'Are you sure you want to clear all data? This will delete all saved games, settings, and usernames. This action cannot be undone.',
+        clearAllDataDescription: 'Remove all saved games, settings, and cached data from your browser.',
     },
     header: {
         tagline: 'with Gemini & Stockfish',
@@ -342,6 +348,9 @@ const de: Translations = {
         loading: 'Lädt...',
         error: 'Fehler',
         save: 'Speichern',
+        clearAllData: 'Alle Daten löschen',
+        clearAllDataConfirm: 'Sind Sie sicher, dass Sie alle Daten löschen möchten? Dies löscht alle gespeicherten Spiele, Einstellungen und Benutzernamen. Diese Aktion kann nicht rückgängig gemacht werden.',
+        clearAllDataDescription: 'Alle gespeicherten Spiele, Einstellungen und zwischengespeicherten Daten aus Ihrem Browser entfernen.',
     },
     header: {
         tagline: 'mit Gemini & Stockfish',
@@ -503,6 +512,9 @@ const fr: Translations = {
         loading: 'Chargement...',
         error: 'Erreur',
         save: 'Enregistrer',
+        clearAllData: 'Effacer toutes les données',
+        clearAllDataConfirm: 'Êtes-vous sûr de vouloir effacer toutes les données ? Cela supprimera toutes les parties sauvegardées, les paramètres et les noms d\'utilisateur. Cette action est irréversible.',
+        clearAllDataDescription: 'Supprimer toutes les parties sauvegardées, les paramètres et les données en cache de votre navigateur.',
     },
     header: {
         tagline: 'avec Gemini & Stockfish',
@@ -664,6 +676,9 @@ const it: Translations = {
         loading: 'Caricamento...',
         error: 'Errore',
         save: 'Salva',
+        clearAllData: 'Cancella tutti i dati',
+        clearAllDataConfirm: 'Sei sicuro di voler cancellare tutti i dati? Questo eliminerà tutte le partite salvate, le impostazioni e i nomi utente. Questa azione non può essere annullata.',
+        clearAllDataDescription: 'Rimuovi tutte le partite salvate, le impostazioni e i dati memorizzati dal tuo browser.',
     },
     header: {
         tagline: 'con Gemini & Stockfish',
@@ -825,6 +840,9 @@ const pl: Translations = {
         loading: 'Ładowanie...',
         error: 'Błąd',
         save: 'Zapisz',
+        clearAllData: 'Wyczyść wszystkie dane',
+        clearAllDataConfirm: 'Czy na pewno chcesz wyczyścić wszystkie dane? Spowoduje to usunięcie wszystkich zapisanych gier, ustawień i nazw użytkowników. Ta akcja jest nieodwracalna.',
+        clearAllDataDescription: 'Usuń wszystkie zapisane gry, ustawienia i dane z pamięci podręcznej przeglądarki.',
     },
     header: {
         tagline: 'z Gemini i Stockfish',
