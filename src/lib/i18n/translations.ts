@@ -130,6 +130,10 @@ export interface Translations {
         noApiKey: string;
         askFollowUp: string;
         possibleOpenings: string;
+        downloadGame: string;
+        downloadPGN: string;
+        downloadFEN: string;
+        downloadTitle: string;
     };
 
     // API Key Input
@@ -293,6 +297,10 @@ const en: Translations = {
         noApiKey: 'Please add an API key in settings to get opening explanations.',
         askFollowUp: 'Ask a follow-up question about this opening...',
         possibleOpenings: 'possible openings',
+        downloadGame: 'Download Game',
+        downloadPGN: 'Download as PGN',
+        downloadFEN: 'Download Current Position (FEN)',
+        downloadTitle: 'Export Game',
     },
     apiKeyInput: {
         title: 'API Key Required',
@@ -457,6 +465,10 @@ const de: Translations = {
         noApiKey: 'Bitte fügen Sie in den Einstellungen einen API-Schlüssel hinzu.',
         askFollowUp: 'Stellen Sie eine Folgefrage zu dieser Eröffnung...',
         possibleOpenings: 'mögliche Eröffnungen',
+        downloadGame: 'Partie herunterladen',
+        downloadPGN: 'Als PGN herunterladen',
+        downloadFEN: 'Aktuelle Position herunterladen (FEN)',
+        downloadTitle: 'Partie exportieren',
     },
     apiKeyInput: {
         title: 'API-Schlüssel erforderlich',
@@ -621,6 +633,10 @@ const fr: Translations = {
         noApiKey: 'Veuillez ajouter une clé API dans les paramètres.',
         askFollowUp: 'Posez une question sur cette ouverture...',
         possibleOpenings: 'ouvertures possibles',
+        downloadGame: 'Télécharger la partie',
+        downloadPGN: 'Télécharger en PGN',
+        downloadFEN: 'Télécharger la position actuelle (FEN)',
+        downloadTitle: 'Exporter la partie',
     },
     apiKeyInput: {
         title: 'Clé API requise',
@@ -785,6 +801,10 @@ const it: Translations = {
         noApiKey: 'Aggiungi una chiave API nelle impostazioni.',
         askFollowUp: 'Fai una domanda su questa apertura...',
         possibleOpenings: 'aperture possibili',
+        downloadGame: 'Scarica partita',
+        downloadPGN: 'Scarica come PGN',
+        downloadFEN: 'Scarica posizione attuale (FEN)',
+        downloadTitle: 'Esporta partita',
     },
     apiKeyInput: {
         title: 'Chiave API richiesta',
@@ -949,6 +969,10 @@ const pl: Translations = {
         noApiKey: 'Dodaj klucz API w ustawieniach.',
         askFollowUp: 'Zadaj pytanie uzupełniające o to otwarcie...',
         possibleOpenings: 'możliwe otwarcia',
+        downloadGame: 'Pobierz grę',
+        downloadPGN: 'Pobierz jako PGN',
+        downloadFEN: 'Pobierz aktualną pozycję (FEN)',
+        downloadTitle: 'Eksportuj grę',
     },
     apiKeyInput: {
         title: 'Wymagany klucz API',

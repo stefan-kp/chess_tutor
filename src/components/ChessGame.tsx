@@ -13,7 +13,7 @@ import { SupportedLanguage } from "@/lib/i18n/translations";
 import { lookupOpening, lookupPossibleOpenings, extractMoveSequenceFromPGN, OpeningMetadata } from "@/lib/openings";
 import { GameAnalysisModal } from "./GameAnalysisModal";
 import { GameOverModal, MoveHistoryItem } from "./GameOverModal";
-import { Brain, ArrowLeft } from "lucide-react";
+import { Brain, ArrowLeft, Download } from "lucide-react";
 import { CapturedPieces } from "./CapturedPieces";
 import { detectMissedTactics, uciToSan, DetectedTactic } from "@/lib/tacticDetection";
 import { upsertSavedGame } from "@/lib/savedGames";
@@ -64,6 +64,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
     // Game State
     const [playerColor, setPlayerColor] = useState<'white' | 'black'>(initialColor);
     const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+    const [showDownloadModal, setShowDownloadModal] = useState(false);
     const [gameOverState, setGameOverState] = useState<{ result: string, winner: "White" | "Black" | "Draw" } | null>(null);
     const [moveHistory, setMoveHistory] = useState<MoveHistoryItem[]>([]);
     const [selectedPersonality, setSelectedPersonality] = useState<Personality>(initialPersonality);
@@ -290,6 +291,13 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
             return false;
         }
 
+        // Wait for pre-analysis (evalP0) to be available before allowing moves
+        // This ensures we can properly track move history with evaluations
+        if (!evalP0) {
+            console.log("Waiting for position analysis before move...");
+            return false;
+        }
+
         const move = {
             from: sourceSquare,
             to: targetSquare,
@@ -468,6 +476,34 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
         updateCapturedPieces();
     };
 
+    const handleDownloadPGN = () => {
+        const pgn = gameRef.current.pgn();
+        const blob = new Blob([pgn], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chess-game-${Date.now()}.pgn`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        setShowDownloadModal(false);
+    };
+
+    const handleDownloadFEN = () => {
+        const fen = gameRef.current.fen();
+        const blob = new Blob([fen], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chess-position-${Date.now()}.fen`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        setShowDownloadModal(false);
+    };
+
     // Determine material advantage
     // If Black lost more value, White has advantage
     const whiteAdvantage = materialScore.black - materialScore.white;
@@ -627,12 +663,20 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                 <div className="md:col-span-3 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col">
                     <div className="flex items-center justify-between mb-2">
                         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Game History</h3>
-                        <button
-                            onClick={() => setShowAnalysisModal(true)}
-                            className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200 flex items-center gap-1"
-                        >
-                            <Brain size={12} /> Analyze
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setShowDownloadModal(true)}
+                                className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200 dark:bg-green-900 dark:text-green-200 flex items-center gap-1"
+                            >
+                                <Download size={12} /> Download
+                            </button>
+                            <button
+                                onClick={() => setShowAnalysisModal(true)}
+                                className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200 flex items-center gap-1"
+                            >
+                                <Brain size={12} /> Analyze
+                            </button>
+                        </div>
                     </div>
                     <div className="overflow-y-auto border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900 p-2 max-h-40">
                         <table className="w-full text-sm text-left">
@@ -714,6 +758,40 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                     onClose={() => setGameOverState(null)}
                     onNewGame={handleNewGame}
                 />
+            )}
+
+            {showDownloadModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                                {t.analysis.downloadTitle}
+                            </h2>
+                            <button
+                                onClick={() => setShowDownloadModal(false)}
+                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="space-y-3">
+                            <button
+                                onClick={handleDownloadPGN}
+                                className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-md transition-all flex items-center justify-center gap-2"
+                            >
+                                <Download size={18} />
+                                {t.analysis.downloadPGN}
+                            </button>
+                            <button
+                                onClick={handleDownloadFEN}
+                                className="w-full py-3 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium shadow-md transition-all flex items-center justify-center gap-2"
+                            >
+                                <Download size={18} />
+                                {t.analysis.downloadFEN}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </>
     );
