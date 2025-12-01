@@ -19,6 +19,7 @@ import { ChatSession } from "@google/generative-ai";
 import ReactMarkdown from "react-markdown";
 import { useDebug } from "@/contexts/DebugContext";
 import { GameImportModal } from "@/components/GameImportModal";
+import { EvaluationBar } from "@/components/EvaluationBar";
 
 interface MoveStep {
     san: string;
@@ -535,6 +536,16 @@ INSTRUCTIONS:
                                             <div className="font-semibold">{t.analysis.bestMove}</div>
                                             <div>{currentDetails?.bestMoveSan || t.analysis.enginePending}</div>
                                         </div>
+                                    </div>
+
+                                    {/* Horizontal Evaluation Bar */}
+                                    <div className="w-full">
+                                        <EvaluationBar
+                                            score={currentDetails?.evalAfter?.score}
+                                            mate={currentDetails?.evalAfter?.mate}
+                                            isPlayerWhite={true}
+                                            orientation="horizontal"
+                                        />
                                     </div>
 
                                     <div>
