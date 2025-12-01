@@ -133,7 +133,7 @@ export default function OnboardingPage() {
                             <div className="space-y-6">
                                 <p className="text-gray-700 dark:text-gray-300">{t.onboarding.language.description}</p>
                                 <div className="flex flex-wrap gap-3">
-                                    {["en", "de", "fr", "it"].map((lang) => (
+                                    {["en", "de", "fr", "it", "pl"].map((lang) => (
                                         <button
                                             key={lang}
                                             onClick={() => setLanguage(lang as SupportedLanguage)}

@@ -85,7 +85,7 @@ export default function SettingsPage() {
                                     {t.start.language}
                                 </label>
                                 <div className="flex gap-3">
-                                    {(['en', 'de', 'fr', 'it'] as SupportedLanguage[]).map((lang) => (
+                                    {(['en', 'de', 'fr', 'it', 'pl'] as SupportedLanguage[]).map((lang) => (
                                         <button
                                             key={lang}
                                             onClick={() => setLanguage(lang)}
