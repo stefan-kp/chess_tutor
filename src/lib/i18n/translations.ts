@@ -48,6 +48,7 @@ export interface Translations {
         evaluationLabel: string;
         noEvaluation: string;
         deleteGame: string;
+        analyzeThisGame: string;
     };
 
     // Game
@@ -97,6 +98,12 @@ export interface Translations {
         evaluation: string;
         bestMove: string;
         aiAnalysis: string;
+        playFromHere: string;
+        playDescription: string;
+        chooseOpponent: string;
+        chooseSide: string;
+        chooseStrength: string;
+        startPlay: string;
         modeTitle: string;
         modeDescription: string;
         pasteLabel: string;
@@ -114,6 +121,12 @@ export interface Translations {
         enginePending: string;
         coachPending: string;
         importError: string;
+        loadNewGame: string;
+        openingsExplorer: string;
+        generatingExplanation: string;
+        noApiKey: string;
+        askFollowUp: string;
+        possibleOpenings: string;
     };
 
     // API Key Input
@@ -203,6 +216,7 @@ const en: Translations = {
         evaluationLabel: 'Evaluation',
         noEvaluation: 'No evaluation yet',
         deleteGame: 'Delete game',
+        analyzeThisGame: 'Analyze this game',
     },
     game: {
         playingAs: 'Playing as',
@@ -244,6 +258,12 @@ const en: Translations = {
         evaluation: 'Evaluation',
         bestMove: 'Best Move',
         aiAnalysis: 'AI Analysis',
+        playFromHere: 'Play from this position',
+        playDescription: 'Pick a character, side, and engine strength to continue playing from the current move.',
+        chooseOpponent: 'Choose your opponent',
+        chooseSide: 'Choose your color',
+        chooseStrength: 'Opponent strength',
+        startPlay: 'Start from here',
         modeTitle: 'Analyze an Existing Game',
         modeDescription: 'Upload a PGN or FEN and let your coach walk you through every move with engine-backed insights.',
         pasteLabel: 'PGN or FEN Input',
@@ -261,6 +281,12 @@ const en: Translations = {
         enginePending: 'Running engine evaluation...',
         coachPending: 'Coach is preparing feedback...',
         importError: 'Could not load that PGN or FEN. Please check the notation.',
+        loadNewGame: 'Load New Game',
+        openingsExplorer: 'Opening Explorer',
+        generatingExplanation: 'Generating explanation...',
+        noApiKey: 'Please add an API key in settings to get opening explanations.',
+        askFollowUp: 'Ask a follow-up question about this opening...',
+        possibleOpenings: 'possible openings',
     },
     apiKeyInput: {
         title: 'API Key Required',
@@ -351,6 +377,7 @@ const de: Translations = {
         evaluationLabel: 'Bewertung',
         noEvaluation: 'Keine Bewertung',
         deleteGame: 'Partie löschen',
+        analyzeThisGame: 'Diese Partie analysieren',
     },
     game: {
         playingAs: 'Spielst als',
@@ -392,6 +419,12 @@ const de: Translations = {
         evaluation: 'Bewertung',
         bestMove: 'Bester Zug',
         aiAnalysis: 'KI-Analyse',
+        playFromHere: 'Von dieser Stellung spielen',
+        playDescription: 'Wähle Charakter, Farbe und Engine-Stärke, um ab dem aktuellen Zug weiterzuspielen.',
+        chooseOpponent: 'Gegner auswählen',
+        chooseSide: 'Wähle deine Farbe',
+        chooseStrength: 'Stärke des Gegners',
+        startPlay: 'Hier weiterspielen',
         modeTitle: 'Bestehende Partie analysieren',
         modeDescription: 'PGN oder FEN hochladen und vom Coach mit Engine-Unterstützung durch die Partie führen lassen.',
         pasteLabel: 'PGN- oder FEN-Eingabe',
@@ -409,6 +442,12 @@ const de: Translations = {
         enginePending: 'Engine-Bewertung läuft...',
         coachPending: 'Coach bereitet Feedback vor...',
         importError: 'PGN oder FEN konnte nicht geladen werden. Bitte Notation prüfen.',
+        loadNewGame: 'Neue Partie laden',
+        openingsExplorer: 'Eröffnungs-Explorer',
+        generatingExplanation: 'Erklärung wird generiert...',
+        noApiKey: 'Bitte fügen Sie in den Einstellungen einen API-Schlüssel hinzu.',
+        askFollowUp: 'Stellen Sie eine Folgefrage zu dieser Eröffnung...',
+        possibleOpenings: 'mögliche Eröffnungen',
     },
     apiKeyInput: {
         title: 'API-Schlüssel erforderlich',
@@ -499,6 +538,7 @@ const fr: Translations = {
         evaluationLabel: 'Évaluation',
         noEvaluation: 'Pas d\'évaluation',
         deleteGame: 'Supprimer la partie',
+        analyzeThisGame: 'Analyser cette partie',
     },
     game: {
         playingAs: 'Jouant',
@@ -540,6 +580,12 @@ const fr: Translations = {
         evaluation: 'Évaluation',
         bestMove: 'Meilleur coup',
         aiAnalysis: 'Analyse IA',
+        playFromHere: 'Jouer depuis cette position',
+        playDescription: 'Choisissez un personnage, une couleur et la force du moteur pour continuer depuis ce coup.',
+        chooseOpponent: 'Choisir votre adversaire',
+        chooseSide: 'Choisissez votre couleur',
+        chooseStrength: 'Force de l’adversaire',
+        startPlay: 'Commencer ici',
         modeTitle: 'Analyser une partie existante',
         modeDescription: 'Importez un PGN ou un FEN et laissez le coach commenter chaque coup avec l’aide du moteur.',
         pasteLabel: 'Saisie PGN ou FEN',
@@ -557,6 +603,12 @@ const fr: Translations = {
         enginePending: 'Évaluation du moteur en cours...',
         coachPending: 'Le coach prépare son retour...',
         importError: 'Impossible de charger ce PGN ou FEN. Merci de vérifier la notation.',
+        loadNewGame: 'Charger nouvelle partie',
+        openingsExplorer: 'Explorateur d\'ouvertures',
+        generatingExplanation: 'Génération de l\'explication...',
+        noApiKey: 'Veuillez ajouter une clé API dans les paramètres.',
+        askFollowUp: 'Posez une question sur cette ouverture...',
+        possibleOpenings: 'ouvertures possibles',
     },
     apiKeyInput: {
         title: 'Clé API requise',
@@ -647,6 +699,7 @@ const it: Translations = {
         evaluationLabel: 'Valutazione',
         noEvaluation: 'Nessuna valutazione',
         deleteGame: 'Elimina partita',
+        analyzeThisGame: 'Analizza questa partita',
     },
     game: {
         playingAs: 'Giocando',
@@ -688,6 +741,12 @@ const it: Translations = {
         evaluation: 'Valutazione',
         bestMove: 'Mossa migliore',
         aiAnalysis: 'Analisi IA',
+        playFromHere: 'Gioca da questa posizione',
+        playDescription: 'Scegli personaggio, colore e forza del motore per continuare da questa mossa.',
+        chooseOpponent: 'Scegli l’avversario',
+        chooseSide: 'Scegli il tuo colore',
+        chooseStrength: 'Forza dell’avversario',
+        startPlay: 'Inizia da qui',
         modeTitle: 'Analizza una partita esistente',
         modeDescription: 'Carica un PGN o un FEN e lascia che il coach commenti ogni mossa con il supporto del motore.',
         pasteLabel: 'Input PGN o FEN',
@@ -705,6 +764,12 @@ const it: Translations = {
         enginePending: 'Valutazione del motore in corso...',
         coachPending: 'Il coach sta preparando il feedback...',
         importError: 'Impossibile caricare questo PGN o FEN. Controlla la notazione.',
+        loadNewGame: 'Carica nuova partita',
+        openingsExplorer: 'Esplora aperture',
+        generatingExplanation: 'Generazione spiegazione...',
+        noApiKey: 'Aggiungi una chiave API nelle impostazioni.',
+        askFollowUp: 'Fai una domanda su questa apertura...',
+        possibleOpenings: 'aperture possibili',
     },
     apiKeyInput: {
         title: 'Chiave API richiesta',

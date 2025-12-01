@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, ChevronDown, ChevronUp, Brain, Trash2 } from "lucide-react";
+import { Settings, ChevronDown, ChevronUp, Brain, Trash2, BarChart2 } from "lucide-react";
 import { Personality, PERSONALITIES } from "@/lib/personalities";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { SupportedLanguage } from "@/lib/i18n/translations";
@@ -145,16 +145,32 @@ export default function StartScreen({ onStartGame, onResumeGame, savedGames, onD
                                                 onClick={() => onResumeGame(game)}
                                                 className="group relative bg-gray-50 dark:bg-gray-700 p-4 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-300 shadow-sm hover:shadow-md transition-all cursor-pointer"
                                             >
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onDeleteSavedGame(game.id);
-                                                    }}
-                                                    aria-label={t.start.deleteGame}
-                                                    className="absolute top-2 right-2 p-2 rounded-full bg-white dark:bg-gray-800 text-gray-500 hover:text-red-600 shadow opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+                                                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            // Navigate to analysis with this game's PGN
+                                                            if (game.pgn) {
+                                                                localStorage.setItem('chess_tutor_pending_analysis', game.pgn);
+                                                            }
+                                                            router.push('/analysis');
+                                                        }}
+                                                        aria-label={t.start.analyzeThisGame}
+                                                        className="p-2 rounded-full bg-white dark:bg-gray-800 text-gray-500 hover:text-purple-600 shadow"
+                                                    >
+                                                        <BarChart2 size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            onDeleteSavedGame(game.id);
+                                                        }}
+                                                        aria-label={t.start.deleteGame}
+                                                        className="p-2 rounded-full bg-white dark:bg-gray-800 text-gray-500 hover:text-red-600 shadow"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
 
                                                 <div className="bg-[#779954] p-[2px] rounded-sm">
                                                     <Chessboard

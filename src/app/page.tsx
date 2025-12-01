@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ChessGame from "@/components/ChessGame";
 import StartScreen from "@/components/StartScreen";
-import { Personality } from "@/lib/personalities";
+import { Personality, PERSONALITIES } from "@/lib/personalities";
 import { SavedGame, deleteSavedGame, loadSavedGames } from "@/lib/savedGames";
 
 type ViewState = 'start' | 'game';
@@ -21,6 +21,7 @@ export default function Home() {
         initialPgn?: string;
         initialPersonality: Personality;
         initialColor: 'white' | 'black';
+        initialStockfishDepth?: number;
     } | null>(null);
 
     const [savedGames, setSavedGames] = useState<SavedGame[]>([]);
@@ -34,6 +35,33 @@ export default function Home() {
         }
 
         setSavedGames(loadSavedGames());
+
+        const pendingGameRaw = localStorage.getItem("chess_tutor_pending_game");
+        if (pendingGameRaw) {
+            try {
+                const pendingGame = JSON.parse(pendingGameRaw) as {
+                    fen: string;
+                    personalityId: string;
+                    color: 'white' | 'black';
+                    stockfishDepth?: number;
+                };
+
+                const personality = PERSONALITIES.find(p => p.id === pendingGame.personalityId) || PERSONALITIES[0];
+
+                setGameProps({
+                    gameId: crypto.randomUUID ? crypto.randomUUID() : `game-${Date.now()}`,
+                    initialFen: pendingGame.fen,
+                    initialPersonality: personality,
+                    initialColor: pendingGame.color,
+                    initialStockfishDepth: pendingGame.stockfishDepth,
+                });
+                setView('game');
+            } catch (err) {
+                console.error("Failed to load pending game", err);
+            } finally {
+                localStorage.removeItem("chess_tutor_pending_game");
+            }
+        }
 
         setMounted(true);
     }, [router]);
@@ -98,6 +126,7 @@ export default function Home() {
                     initialPgn={gameProps.initialPgn}
                     initialPersonality={gameProps.initialPersonality}
                     initialColor={gameProps.initialColor}
+                    initialStockfishDepth={gameProps.initialStockfishDepth}
                     onBack={handleBackToMenu}
                 />
             )}

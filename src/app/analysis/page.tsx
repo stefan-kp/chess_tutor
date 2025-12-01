@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { Brain, ChevronLeft, ChevronRight, Loader2, ArrowLeft, Download } from "lucide-react";
+import { Brain, ChevronLeft, ChevronRight, Loader2, ArrowLeft, Download, PlayCircle, Upload, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import Header from "@/components/Header";
@@ -20,6 +20,7 @@ import ReactMarkdown from "react-markdown";
 import { useDebug } from "@/contexts/DebugContext";
 import { GameImportModal } from "@/components/GameImportModal";
 import { EvaluationBar } from "@/components/EvaluationBar";
+import { OpeningsModal } from "@/components/OpeningsModal";
 
 interface MoveStep {
     san: string;
@@ -65,13 +66,34 @@ export default function AnalysisPage() {
     const [comments, setComments] = useState<Record<number, string>>({});
     const [chatSession, setChatSession] = useState<ChatSession | null>(null);
     const [showImportModal, setShowImportModal] = useState(false);
+    const [showPlayModal, setShowPlayModal] = useState(false);
+    const [showOpeningsModal, setShowOpeningsModal] = useState(false);
+    const [playPersonality, setPlayPersonality] = useState<Personality>(PERSONALITIES[0]);
+    const [playColor, setPlayColor] = useState<"white" | "black">("white");
+    const [playStrength, setPlayStrength] = useState(15);
 
     useEffect(() => {
         const storedKey = localStorage.getItem("gemini_api_key");
         const storedLang = localStorage.getItem("chess_tutor_language");
         if (storedKey) setApiKey(storedKey);
         if (storedLang) setLanguage(storedLang as SupportedLanguage);
+
+        // Check for pending analysis from saved game
+        const pendingAnalysis = localStorage.getItem("chess_tutor_pending_analysis");
+        if (pendingAnalysis) {
+            localStorage.removeItem("chess_tutor_pending_analysis");
+            setInput(pendingAnalysis);
+            setDetectedFormat(detectChessFormat(pendingAnalysis));
+            // Load the game after a short delay to ensure stockfish is ready
+            setTimeout(() => {
+                loadGameFromPgnOrFen(pendingAnalysis);
+            }, 100);
+        }
     }, []);
+
+    useEffect(() => {
+        setPlayPersonality(selectedPersonality);
+    }, [selectedPersonality]);
 
     useEffect(() => {
         const sf = new Stockfish();
@@ -217,6 +239,31 @@ IMPORTANT:
         setInput(pgn);
         setDetectedFormat(detectChessFormat(pgn));
         loadGameFromPgnOrFen(pgn);
+    };
+
+    const handleResetAnalysis = () => {
+        setInput("");
+        setDetectedFormat(null);
+        setSteps([]);
+        setCurrentIndex(0);
+        setStepDetails({});
+        setComments({});
+        setInitialFen(DEFAULT_START);
+        evaluationCache.current = {};
+        setEvaluationVersion(v => v + 1);
+        setError(null);
+    };
+
+    const handleStartGameFromPosition = () => {
+        const payload = {
+            fen: currentFen,
+            personalityId: playPersonality.id,
+            color: playColor,
+            stockfishDepth: playStrength,
+        };
+
+        localStorage.setItem("chess_tutor_pending_game", JSON.stringify(payload));
+        router.push("/");
     };
 
     useEffect(() => {
@@ -381,90 +428,137 @@ INSTRUCTIONS:
 
             <main className="flex-grow w-full flex justify-center px-4 py-8">
                 <div className="w-full max-w-6xl space-y-8">
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200 dark:border-gray-700">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <div>
-                                <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                    <Brain className="text-purple-600" /> {t.analysis.modeTitle}
-                                </h1>
-                                <p className="text-gray-600 dark:text-gray-300 mt-2">{t.analysis.modeDescription}</p>
+                    {/* Phase 1: Import View - shown when no game is loaded */}
+                    {steps.length === 0 && (
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200 dark:border-gray-700">
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                        <Brain className="text-purple-600" /> {t.analysis.modeTitle}
+                                    </h1>
+                                    <p className="text-gray-600 dark:text-gray-300 mt-2">{t.analysis.modeDescription}</p>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.analysis.orientation}</label>
-                                <select
-                                    value={orientation}
-                                    onChange={(e) => setOrientation(e.target.value as "white" | "black")}
-                                    className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
-                                >
-                                    <option value="white">White</option>
-                                    <option value="black">Black</option>
-                                </select>
+
+                            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{t.analysis.pasteLabel}</label>
+                                    <textarea
+                                        value={input}
+                                        onChange={(e) => handleInputChange(e.target.value)}
+                                        placeholder={t.analysis.pastePlaceholder}
+                                        className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 font-mono text-sm min-h-[180px]"
+                                    />
+                                    {detectedFormat && (
+                                        <p className="text-xs text-gray-500">Detected: {detectedFormat.toUpperCase()}</p>
+                                    )}
+                                    {error && <p className="text-sm text-red-500">{error}</p>}
+                                    <div className="space-y-2">
+                                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t.analysis.chooseCoach}</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {PERSONALITIES.map(p => (
+                                                <button
+                                                    key={p.id}
+                                                    onClick={() => setSelectedPersonality(p)}
+                                                    className={`p-3 rounded-lg border flex items-center gap-2 ${selectedPersonality.id === p.id
+                                                        ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
+                                                        : "border-gray-200 dark:border-gray-700"}`}
+                                                >
+                                                    <span className="text-xl">{p.image}</span>
+                                                    <span className="text-sm text-left text-gray-800 dark:text-gray-100">{p.name}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleLoadGame}
+                                        className="w-full py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-semibold shadow-lg"
+                                    >
+                                        {t.analysis.startButton}
+                                    </button>
+
+                                    {/* Import from Online Platforms */}
+                                    <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">
+                                            Or import from online platforms
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <button
+                                                onClick={() => setShowImportModal(true)}
+                                                className="py-2 px-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm flex items-center justify-center gap-2 shadow"
+                                            >
+                                                <Download size={16} />
+                                                Chess.com
+                                            </button>
+                                            <button
+                                                onClick={() => setShowImportModal(true)}
+                                                className="py-2 px-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm flex items-center justify-center gap-2 shadow"
+                                            >
+                                                <Download size={16} />
+                                                Lichess
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 flex flex-col items-center justify-center border border-gray-200 dark:border-gray-700">
+                                    <div className="w-full max-w-md">
+                                        <Chessboard
+                                            options={{
+                                                position: currentFen,
+                                                boardOrientation: orientation,
+                                                allowDragging: false,
+                                                darkSquareStyle: { backgroundColor: '#779954' },
+                                                lightSquareStyle: { backgroundColor: '#e9edcc' },
+                                                animationDurationInMs: 200,
+                                                boardStyle: { borderRadius: "12px", boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }
+                                            }}
+                                        />
+                                    </div>
+                                    <p className="mt-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+                                        {t.analysis.currentPosition}
+                                    </p>
+                                </div>
                             </div>
                         </div>
+                    )}
 
-                        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{t.analysis.pasteLabel}</label>
-                                <textarea
-                                    value={input}
-                                    onChange={(e) => handleInputChange(e.target.value)}
-                                    placeholder={t.analysis.pastePlaceholder}
-                                    className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 font-mono text-sm min-h-[180px]"
-                                />
-                                {detectedFormat && (
-                                    <p className="text-xs text-gray-500">Detected: {detectedFormat.toUpperCase()}</p>
-                                )}
-                                {error && <p className="text-sm text-red-500">{error}</p>}
-                                <div className="space-y-2">
-                                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t.analysis.chooseCoach}</p>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {PERSONALITIES.map(p => (
-                                            <button
-                                                key={p.id}
-                                                onClick={() => setSelectedPersonality(p)}
-                                                className={`p-3 rounded-lg border flex items-center gap-2 ${selectedPersonality.id === p.id
-                                                    ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
-                                                    : "border-gray-200 dark:border-gray-700"}`}
-                                            >
-                                                <span className="text-xl">{p.image}</span>
-                                                <span className="text-sm text-left text-gray-800 dark:text-gray-100">{p.name}</span>
-                                            </button>
-                                        ))}
+                    {/* Phase 2: Analysis View - shown when game is loaded */}
+                    {steps.length > 0 && (
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200 dark:border-gray-700">
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">{selectedPersonality.image}</span>
+                                    <div>
+                                        <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                                            {t.analysis.modeTitle}
+                                        </h1>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            Coach: {selectedPersonality.name}
+                                        </p>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={handleLoadGame}
-                                    className="w-full py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-semibold shadow-lg"
-                                >
-                                    {t.analysis.startButton}
-                                </button>
-
-                                {/* Import from Online Platforms */}
-                                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">
-                                        Or import from online platforms
-                                    </p>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <button
-                                            onClick={() => setShowImportModal(true)}
-                                            className="py-2 px-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm flex items-center justify-center gap-2 shadow"
-                                        >
-                                            <Download size={16} />
-                                            Chess.com
-                                        </button>
-                                        <button
-                                            onClick={() => setShowImportModal(true)}
-                                            className="py-2 px-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm flex items-center justify-center gap-2 shadow"
-                                        >
-                                            <Download size={16} />
-                                            Lichess
-                                        </button>
-                                    </div>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={handleResetAnalysis}
+                                        className="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center gap-2"
+                                    >
+                                        <RotateCcw size={16} />
+                                        {t.analysis.loadNewGame}
+                                    </button>
+                                    <select
+                                        value={orientation}
+                                        onChange={(e) => setOrientation(e.target.value as "white" | "black")}
+                                        className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-sm"
+                                    >
+                                        <option value="white">White</option>
+                                        <option value="black">Black</option>
+                                    </select>
                                 </div>
                             </div>
 
-                            <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 flex flex-col items-center gap-3 border border-gray-200 dark:border-gray-700">
-                                <div className="w-full max-w-md">
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="w-full max-w-lg">
                                     <Chessboard
                                         options={{
                                             position: currentFen,
@@ -480,123 +574,141 @@ INSTRUCTIONS:
                                 <div className="flex items-center gap-4">
                                     <button
                                         onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
-                                        className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+                                        className="p-2 rounded-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50"
                                         disabled={currentIndex === 0}
                                         aria-label={t.analysis.previous}
                                     >
                                         <ChevronLeft size={20} />
                                     </button>
-                                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                                    <div className="text-sm text-gray-600 dark:text-gray-300 min-w-[100px] text-center">
                                         {t.analysis.step} {currentIndex} / {steps.length}
                                     </div>
                                     <button
                                         onClick={() => setCurrentIndex(i => Math.min(steps.length, i + 1))}
-                                        className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+                                        className="p-2 rounded-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50"
                                         disabled={currentIndex >= steps.length}
                                         aria-label={t.analysis.next}
                                     >
                                         <ChevronRight size={20} />
                                     </button>
                                 </div>
+                                <button
+                                    onClick={() => {
+                                        setPlayColor(orientation);
+                                        setShowPlayModal(true);
+                                    }}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition-colors"
+                                >
+                                    <PlayCircle size={18} /> {t.analysis.playFromHere}
+                                </button>
                             </div>
                         </div>
-                    </div>
+                    )}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-200 dark:border-gray-700 p-6 space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t.analysis.title}</h2>
-                                {possibleOpenings.length > 0 && (
-                                    <span className="text-sm text-blue-700 dark:text-blue-300">
-                                        {t.analysis.opening}: {possibleOpenings.length === 1
-                                            ? `${possibleOpenings[0].name} (${possibleOpenings[0].eco})`
-                                            : `${possibleOpenings.length} possible openings`
-                                        }
-                                    </span>
-                                )}
-                            </div>
-                            {currentIndex === 0 ? (
-                                <p className="text-gray-600 dark:text-gray-300">{t.analysis.currentPosition}</p>
-                            ) : (
-                                <div className="space-y-3">
-                                    <div className="flex flex-wrap gap-4 text-sm text-gray-700 dark:text-gray-200">
-                                        <div>
-                                            <div className="font-semibold">{t.analysis.step} {currentIndex}</div>
-                                            <div>{steps[currentIndex - 1]?.san}</div>
+                    {/* Analysis Panels - only shown when game is loaded */}
+                    {steps.length > 0 && (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-200 dark:border-gray-700 p-6 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t.analysis.title}</h2>
+                                    {possibleOpenings.length > 0 && (
+                                        <button
+                                            onClick={() => setShowOpeningsModal(true)}
+                                            className="text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 hover:underline cursor-pointer transition-colors"
+                                        >
+                                            {t.analysis.opening}: {possibleOpenings.length === 1
+                                                ? `${possibleOpenings[0].name} (${possibleOpenings[0].eco})`
+                                                : `${possibleOpenings.length} ${t.analysis.possibleOpenings}`
+                                            }
+                                        </button>
+                                    )}
+                                </div>
+                                {currentIndex === 0 ? (
+                                    <p className="text-gray-600 dark:text-gray-300">{t.analysis.currentPosition}</p>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <div className="flex flex-wrap gap-4 text-sm text-gray-700 dark:text-gray-200">
+                                            <div>
+                                                <div className="font-semibold">{t.analysis.step} {currentIndex}</div>
+                                                <div>{steps[currentIndex - 1]?.san}</div>
+                                            </div>
+                                            <div>
+                                                <div className="font-semibold">{t.analysis.evaluation}</div>
+                                                <div>{formatEval(currentDetails?.evalAfter)}</div>
+                                            </div>
+                                            <div>
+                                                <div className="font-semibold">{t.analysis.cpLoss}</div>
+                                                <div>{formatCpLoss(currentDetails?.cpLoss)}</div>
+                                            </div>
+                                            <div>
+                                                <div className="font-semibold">{t.analysis.bestMove}</div>
+                                                <div>{currentDetails?.bestMoveSan || t.analysis.enginePending}</div>
+                                            </div>
                                         </div>
+
                                         <div>
-                                            <div className="font-semibold">{t.analysis.evaluation}</div>
-                                            <div>{formatEval(currentDetails?.evalAfter)}</div>
-                                        </div>
-                                        <div>
-                                            <div className="font-semibold">{t.analysis.cpLoss}</div>
-                                            <div>{formatCpLoss(currentDetails?.cpLoss)}</div>
-                                        </div>
-                                        <div>
-                                            <div className="font-semibold">{t.analysis.bestMove}</div>
-                                            <div>{currentDetails?.bestMoveSan || t.analysis.enginePending}</div>
+                                            <div className="font-semibold text-gray-800 dark:text-gray-100 mb-2">{t.analysis.missedTactics}</div>
+                                            {tacticSummary.length === 0 && (
+                                                <p className="text-sm text-gray-600 dark:text-gray-400">{t.analysis.none}</p>
+                                            )}
+                                            {tacticSummary.length > 0 && (
+                                                <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                                                    {tacticSummary.map((tactic, idx) => (
+                                                        <li key={`${tactic.move}-${idx}`}>
+                                                            {tactic.tactic_type}
+                                                            {tactic.material_delta ? ` (~${(tactic.material_delta / 100).toFixed(1)} pawns)` : ""}
+                                                            {tactic.affected_squares ? ` on ${tactic.affected_squares.join(", ")}` : ""}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
                                         </div>
                                     </div>
+                                )}
+                            </div>
 
-                                    {/* Horizontal Evaluation Bar */}
-                                    <div className="w-full">
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-200 dark:border-gray-700 p-6 space-y-4">
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t.analysis.aiAnalysis}</h2>
+
+                                {/* Horizontal Evaluation Bar */}
+                                {currentIndex > 0 && currentDetails?.evalAfter && (
+                                    <div className="w-full mb-4">
                                         <EvaluationBar
-                                            score={currentDetails?.evalAfter?.score}
-                                            mate={currentDetails?.evalAfter?.mate}
+                                            score={currentDetails.evalAfter.score}
+                                            mate={currentDetails.evalAfter.mate}
                                             isPlayerWhite={true}
                                             orientation="horizontal"
                                         />
                                     </div>
+                                )}
 
-                                    <div>
-                                        <div className="font-semibold text-gray-800 dark:text-gray-100 mb-2">{t.analysis.missedTactics}</div>
-                                        {tacticSummary.length === 0 && (
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">{t.analysis.none}</p>
+                                {!apiKey && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Please add an API key in settings to receive commentary.</p>
+                                )}
+                                {currentIndex === 0 && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{t.analysis.currentPosition}</p>
+                                )}
+                                {currentIndex > 0 && (
+                                    <div className="min-h-[140px]">
+                                        {isCommenting && (
+                                            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                                                <Loader2 className="animate-spin" size={18} />
+                                                <span>{t.analysis.coachPending}</span>
+                                            </div>
                                         )}
-                                        {tacticSummary.length > 0 && (
-                                            <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                                                {tacticSummary.map((tactic, idx) => (
-                                                    <li key={`${tactic.move}-${idx}`}>
-                                                        {tactic.tactic_type}
-                                                        {tactic.material_delta ? ` (~${(tactic.material_delta / 100).toFixed(1)} pawns)` : ""}
-                                                        {tactic.affected_squares ? ` on ${tactic.affected_squares.join(", ")}` : ""}
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                        {!isCommenting && comments[currentIndex] && (
+                                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                <ReactMarkdown>{comments[currentIndex]}</ReactMarkdown>
+                                            </div>
+                                        )}
+                                        {!isCommenting && !comments[currentIndex] && (
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">{t.analysis.coachPending}</p>
                                         )}
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-200 dark:border-gray-700 p-6 space-y-4">
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t.analysis.aiAnalysis}</h2>
-                            {!apiKey && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Please add an API key in settings to receive commentary.</p>
-                            )}
-                            {currentIndex === 0 && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{t.analysis.currentPosition}</p>
-                            )}
-                            {currentIndex > 0 && (
-                                <div className="min-h-[140px]">
-                                    {isCommenting && (
-                                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                                            <Loader2 className="animate-spin" size={18} />
-                                            <span>{t.analysis.coachPending}</span>
-                                        </div>
-                                    )}
-                                    {!isCommenting && comments[currentIndex] && (
-                                        <div className="prose prose-sm dark:prose-invert max-w-none">
-                                            <ReactMarkdown>{comments[currentIndex]}</ReactMarkdown>
-                                        </div>
-                                    )}
-                                    {!isCommenting && !comments[currentIndex] && (
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">{t.analysis.coachPending}</p>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    )}
                 </div>
             </main>
 
@@ -607,6 +719,111 @@ INSTRUCTIONS:
                     onSelectGame={handleImportGame}
                     language={language}
                 />
+            )}
+
+            {/* Openings Explorer Modal */}
+            {showOpeningsModal && possibleOpenings.length > 0 && (
+                <OpeningsModal
+                    openings={possibleOpenings}
+                    currentFen={currentFen}
+                    language={language}
+                    personality={selectedPersonality}
+                    onClose={() => setShowOpeningsModal(false)}
+                />
+            )}
+
+            {/* Play From Position Modal */}
+            {showPlayModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full p-6 space-y-6 border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{t.analysis.playFromHere}</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{t.analysis.playDescription}</p>
+                            </div>
+                            <button
+                                onClick={() => setShowPlayModal(false)}
+                                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
+                                aria-label={t.common.close}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">{t.analysis.chooseOpponent}</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {PERSONALITIES.map(p => (
+                                        <button
+                                            key={p.id}
+                                            onClick={() => setPlayPersonality(p)}
+                                            className={`p-3 rounded-lg border flex items-center gap-2 ${playPersonality.id === p.id
+                                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30"
+                                                : "border-gray-200 dark:border-gray-700"}`}
+                                        >
+                                            <span className="text-xl">{p.image}</span>
+                                            <div className="text-left">
+                                                <div className="text-sm font-semibold text-gray-900 dark:text-white">{p.name}</div>
+                                                <div className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">{p.description}</div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{t.analysis.chooseSide}</p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {(["white", "black"] as const).map(color => (
+                                            <button
+                                                key={color}
+                                                onClick={() => setPlayColor(color)}
+                                                className={`py-2 px-3 rounded-lg border text-sm font-medium ${playColor === color
+                                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30"
+                                                    : "border-gray-200 dark:border-gray-700"}`}
+                                            >
+                                                {color === "white" ? t.game.white : t.game.black}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{t.analysis.chooseStrength}</p>
+                                    <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                                        <div className="text-sm text-gray-700 dark:text-gray-200 mb-1">{t.game.stockfishStrength}: {playStrength}</div>
+                                        <input
+                                            type="range"
+                                            min="1"
+                                            max="20"
+                                            value={playStrength}
+                                            onChange={(e) => setPlayStrength(parseInt(e.target.value))}
+                                            className="w-full"
+                                        />
+                                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">{t.game.depth}: {playStrength}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3">
+                            <button
+                                onClick={() => setShowPlayModal(false)}
+                                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                                {t.common.cancel}
+                            </button>
+                            <button
+                                onClick={handleStartGameFromPosition}
+                                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow"
+                            >
+                                {t.analysis.startPlay}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
