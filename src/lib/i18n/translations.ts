@@ -63,6 +63,7 @@ export interface Translations {
         depth: string;
         undoMove: string;
         resign: string;
+        resignConfirm: string;
         resignation: string;
         gameHistory: string;
         analyze: string;
@@ -238,6 +239,7 @@ const en: Translations = {
         depth: 'Depth',
         undoMove: 'Undo Last Move',
         resign: 'Resign',
+        resignConfirm: 'Are you sure you want to resign? This action cannot be undone.',
         resignation: 'You resigned.',
         gameHistory: 'Game History',
         analyze: 'Analyze',
@@ -408,6 +410,7 @@ const de: Translations = {
         depth: 'Tiefe',
         undoMove: 'Letzten Zug rückgängig',
         resign: 'Aufgeben',
+        resignConfirm: 'Möchtest du wirklich aufgeben? Diese Aktion kann nicht rückgängig gemacht werden.',
         resignation: 'Du hast aufgegeben.',
         gameHistory: 'Spielverlauf',
         analyze: 'Analysieren',
@@ -578,6 +581,7 @@ const fr: Translations = {
         depth: 'Profondeur',
         undoMove: 'Annuler le dernier coup',
         resign: 'Abandonner',
+        resignConfirm: 'Êtes-vous sûr de vouloir abandonner ? Cette action est irréversible.',
         resignation: 'Vous avez abandonné.',
         gameHistory: 'Historique de la partie',
         analyze: 'Analyser',
@@ -748,6 +752,7 @@ const it: Translations = {
         depth: 'Profondità',
         undoMove: 'Annulla ultima mossa',
         resign: 'Abbandona',
+        resignConfirm: 'Sei sicuro di voler abbandonare? Questa azione non può essere annullata.',
         resignation: 'Hai abbandonato.',
         gameHistory: 'Cronologia partita',
         analyze: 'Analizza',
@@ -918,6 +923,7 @@ const pl: Translations = {
         depth: 'Głębokość',
         undoMove: 'Cofnij ruch',
         resign: 'Poddaj partię',
+        resignConfirm: 'Czy na pewno chcesz się poddać? Tej akcji nie można cofnąć.',
         resignation: 'Poddano partię.',
         gameHistory: 'Historia partii',
         analyze: 'Analizuj',

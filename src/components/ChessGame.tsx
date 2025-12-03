@@ -601,6 +601,11 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
 
     const handleResign = useCallback(async () => {
         if (gameOverState) return;
+
+        // Show confirmation dialog
+        const confirmed = window.confirm(t.game.resignConfirm);
+        if (!confirmed) return;
+
         setIsAnalyzing(false);
 
         const currentFen = gameRef.current.fen();
@@ -630,7 +635,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
             result,
             winner,
         });
-    }, [gameOverState, moveHistory, playerColor, stockfish, stockfishDepth, t.game.resignation]);
+    }, [gameOverState, moveHistory, playerColor, stockfish, stockfishDepth, t.game.resignConfirm, t.game.resignation]);
 
     const handleDownloadPGN = () => {
         const pgn = gameRef.current.pgn();
