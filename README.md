@@ -23,7 +23,8 @@ This application was built using **Antigravity by Google**. I like to work with 
    - Strategic and positional considerations
 6. **Chat with Your Tutor**: Ask questions anytime using the integrated chat feature - your tutor will answer in character
 7. **Export Your Game**: Download your game as PGN or export the current position as FEN at any time
-8. **Post-Game Analysis**: When the game ends, review a comprehensive analysis showing:
+8. **Resign When Needed**: Use the resign button to end the game early - your AI tutor will provide a final in-character message acknowledging the resignation
+9. **Post-Game Analysis**: When the game ends (including by resignation), review a comprehensive analysis showing:
    - All your mistakes and inaccuracies
    - Missed tactical opportunities throughout the game
    - Learning opportunities and improvement suggestions
@@ -41,6 +42,8 @@ This application was built using **Antigravity by Google**. I like to work with 
 - **Move Analysis**: Detailed feedback on every move you make with tactical insights
 - **Interactive Chat**: Ask your AI tutor questions and get personalized answers
 - **Post-Game Analysis**: Review all your mistakes and missed opportunities after each game
+- **Resign Option**: End games early with a resign button - your AI tutor responds in character
+- **Direct Analysis Access**: Jump straight to the analysis page from the game over modal
 - **Multi-Language Support**: Available in English, German, French, Italian, and Polish
 - **FEN/PGN Import**: Import positions or games with automatic format detection
 - **Game Export**: Download your games as PGN or export current position as FEN

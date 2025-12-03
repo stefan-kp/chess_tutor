@@ -2,10 +2,13 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import Home from '../page';
 
+const mockPush = jest.fn();
+const mockRouter = {
+    push: mockPush,
+};
+
 jest.mock('next/navigation', () => ({
-    useRouter: () => ({
-        push: jest.fn(),
-    }),
+    useRouter: () => mockRouter,
 }));
 
 jest.mock('@/components/ChessGame', () => ({
@@ -27,6 +30,7 @@ jest.mock('@/components/StartScreen', () => ({
 describe('Home Component', () => {
     beforeEach(() => {
         localStorage.setItem('gemini_api_key', 'test-key');
+        mockPush.mockClear();
     });
 
     it('renders the start screen initially', () => {
