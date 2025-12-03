@@ -13,7 +13,7 @@ import { SupportedLanguage } from "@/lib/i18n/translations";
 import { lookupOpening, lookupPossibleOpenings, extractMoveSequenceFromPGN, OpeningMetadata } from "@/lib/openings";
 import { GameAnalysisModal } from "./GameAnalysisModal";
 import { GameOverModal, MoveHistoryItem } from "./GameOverModal";
-import { Brain, ArrowLeft, Download, Flag } from "lucide-react";
+import { Brain, ArrowLeft, Download, Flag, AlertTriangle, X } from "lucide-react";
 import { CapturedPieces } from "./CapturedPieces";
 import { detectMissedTactics, uciToSan, DetectedTactic } from "@/lib/tacticDetection";
 import { upsertSavedGame } from "@/lib/savedGames";
@@ -65,6 +65,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
     const [playerColor, setPlayerColor] = useState<'white' | 'black'>(initialColor);
     const [showAnalysisModal, setShowAnalysisModal] = useState(false);
     const [showDownloadModal, setShowDownloadModal] = useState(false);
+    const [showResignConfirm, setShowResignConfirm] = useState(false);
     const [gameOverState, setGameOverState] = useState<{ result: string, winner: "White" | "Black" | "Draw" } | null>(null);
     const [moveHistory, setMoveHistory] = useState<MoveHistoryItem[]>([]);
     const [selectedPersonality, setSelectedPersonality] = useState<Personality>(initialPersonality);
@@ -599,13 +600,13 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
         updateCapturedPieces();
     };
 
-    const handleResign = useCallback(async () => {
+    const handleResignClick = useCallback(() => {
         if (gameOverState) return;
+        setShowResignConfirm(true);
+    }, [gameOverState]);
 
-        // Show confirmation dialog
-        const confirmed = window.confirm(t.game.resignConfirm);
-        if (!confirmed) return;
-
+    const handleResignConfirm = useCallback(async () => {
+        setShowResignConfirm(false);
         setIsAnalyzing(false);
 
         const currentFen = gameRef.current.fen();
@@ -635,7 +636,11 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
             result,
             winner,
         });
-    }, [gameOverState, moveHistory, playerColor, stockfish, stockfishDepth, t.game.resignConfirm, t.game.resignation]);
+    }, [moveHistory, playerColor, stockfish, stockfishDepth, t.game.resignation]);
+
+    const handleResignCancel = useCallback(() => {
+        setShowResignConfirm(false);
+    }, []);
 
     const handleDownloadPGN = () => {
         const pgn = gameRef.current.pgn();
@@ -784,7 +789,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                                 </button>
 
                                 <button
-                                    onClick={handleResign}
+                                    onClick={handleResignClick}
                                     className="flex items-center gap-1 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                                     disabled={!!gameOverState}
                                 >
@@ -965,6 +970,60 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                             >
                                 <Download size={18} />
                                 {t.analysis.downloadFEN}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Resign Confirmation Modal */}
+            {showResignConfirm && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
+                        {/* Header */}
+                        <div className="bg-red-50 dark:bg-red-900/20 px-6 py-4 border-b border-red-100 dark:border-red-900/30">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-red-100 dark:bg-red-900/40 rounded-full">
+                                        <Flag className="w-5 h-5 text-red-600 dark:text-red-400" />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                                        {t.game.resign}?
+                                    </h2>
+                                </div>
+                                <button
+                                    onClick={handleResignCancel}
+                                    className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="px-6 py-5">
+                            <div className="flex items-start gap-3">
+                                <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                                <p className="text-gray-600 dark:text-gray-300">
+                                    {t.game.resignConfirm}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 flex justify-end gap-3">
+                            <button
+                                onClick={handleResignCancel}
+                                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors"
+                            >
+                                {t.common.cancel}
+                            </button>
+                            <button
+                                onClick={handleResignConfirm}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium shadow-sm transition-colors flex items-center gap-2"
+                            >
+                                <Flag size={16} />
+                                {t.game.resign}
                             </button>
                         </div>
                     </div>
