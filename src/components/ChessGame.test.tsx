@@ -48,7 +48,9 @@ jest.mock("./GameAnalysisModal", () => ({
 }));
 
 jest.mock("./GameOverModal", () => ({
-    GameOverModal: () => <div data-testid="game-over-modal">Game Over Modal Mock</div>,
+    GameOverModal: ({ onAnalyze }: { onAnalyze: () => void }) => (
+        <div data-testid="game-over-modal" onClick={onAnalyze}>Game Over Modal Mock</div>
+    ),
 }));
 
 jest.mock("./StartScreen", () => ({

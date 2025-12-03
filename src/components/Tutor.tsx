@@ -15,6 +15,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { SupportedLanguage } from '@/lib/i18n/translations';
 import { DetectedTactic } from '@/lib/tacticDetection';
 import { useDebug } from '@/contexts/DebugContext';
+import { MoveHistoryItem } from './GameOverModal';
 
 interface TutorProps {
     game: Chess;
@@ -32,6 +33,14 @@ interface TutorProps {
     language: SupportedLanguage;
     playerColor: 'white' | 'black';
     onCheckComputerMove: () => void;
+    resignationContext?: {
+        trigger: number;
+        fen: string;
+        evaluation: StockfishEvaluation | null;
+        history: MoveHistoryItem[];
+        result: string;
+        winner: 'White' | 'Black' | 'Draw';
+    } | null;
 }
 
 interface Message {
@@ -40,7 +49,7 @@ interface Message {
     timestamp: number;
 }
 
-export function Tutor({ game, currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, missedTactics, onAnalysisComplete, apiKey, personality, language, playerColor, onCheckComputerMove }: TutorProps) {
+export function Tutor({ game, currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, missedTactics, onAnalysisComplete, apiKey, personality, language, playerColor, onCheckComputerMove, resignationContext }: TutorProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -459,6 +468,51 @@ INSTRUCTIONS:
             onCheckComputerMove();
         }, 100);
     };
+
+    useEffect(() => {
+        const handleResignationMessage = async () => {
+            if (!resignationContext || !chatSession) return;
+            setIsLoading(true);
+
+            try {
+                let evaluation = resignationContext.evaluation;
+
+                if (!evaluation && stockfish) {
+                    evaluation = await stockfish.evaluate(resignationContext.fen, 15);
+                }
+
+                const transcript = messages.map(msg => `${msg.role === "user" ? "User" : personality.name}: ${msg.text}`).join("\n");
+                const whiteEval = evaluation ? `${evaluation.score} cp${evaluation.mate ? ` (mate in ${evaluation.mate})` : ''}` : "N/A";
+                const blackEval = evaluation ? `${-evaluation.score} cp${evaluation.mate ? ` (mate in ${-evaluation.mate})` : ''}` : "N/A";
+
+                const prompt = `
+[SYSTEM TRIGGER: resignation]
+The user just resigned. Provide a final, in-character message that acknowledges the resignation and offers a brief next step.
+
+RESULT: ${resignationContext.result} (${resignationContext.winner})
+CURRENT POSITION FEN: ${resignationContext.fen}
+ENGINE EVALUATION: White ${whiteEval}, Black ${blackEval}
+
+RECENT CONVERSATION:
+${transcript || 'No prior conversation.'}
+
+INSTRUCTIONS:
+- Respond in ${language.toUpperCase()} and stay true to your personality (${personality.name}).
+- React naturally to the resignation (sarcastic, encouraging, etc. based on personality).
+- Offer a quick suggestion: either invite a rematch or suggest analyzing the game.
+- Keep it concise (2-3 sentences).
+                `;
+
+                await sendMessageToChat(prompt, true);
+            } catch (error) {
+                console.error("Failed to send resignation message", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        handleResignationMessage();
+    }, [chatSession, language, personality.name, resignationContext?.trigger, resignationContext?.evaluation, resignationContext?.fen, resignationContext?.result, resignationContext?.winner, stockfish]);
 
     if (!apiKey) return null;
 

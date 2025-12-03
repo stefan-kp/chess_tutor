@@ -1,9 +1,10 @@
 
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { Tutor } from '../Tutor';
 import { Stockfish } from '@/lib/stockfish';
 import { Chess } from 'chess.js';
 import * as gemini from '@/lib/gemini';
+import { DebugProvider } from '@/contexts/DebugContext';
 
 jest.mock('@/lib/stockfish');
 jest.mock('@/lib/gemini');
@@ -36,27 +37,30 @@ describe('Tutor', () => {
     });
 
     render(
-      <Tutor
-        game={game}
-        currentFen={game.fen()}
-        userMove={null}
-        computerMove={null}
-        stockfish={stockfish}
-        evalP0={null}
-        evalP2={null}
-        openingData={null}
-        missedTactics={null}
-        onAnalysisComplete={() => {}}
-        apiKey="test-api-key"
-        personality={{
-            name: "Test Personality",
-            systemPrompt: "Test Prompt",
-            image: "🤖"
-        }}
-        language="en"
-        playerColor="white"
-        onCheckComputerMove={() => {}}
-      />
+      <DebugProvider>
+        <Tutor
+          game={game}
+          currentFen={game.fen()}
+          userMove={null}
+          computerMove={null}
+          stockfish={stockfish}
+          evalP0={null}
+          evalP2={null}
+          openingData={null}
+          missedTactics={null}
+          onAnalysisComplete={() => {}}
+          apiKey="test-api-key"
+          personality={{
+              name: "Test Personality",
+              systemPrompt: "Test Prompt",
+              image: "🤖"
+          }}
+          language="en"
+          playerColor="white"
+          onCheckComputerMove={() => {}}
+          resignationContext={null}
+        />
+      </DebugProvider>
     );
 
     const hintButton = screen.getByText(/hint/i);
@@ -66,5 +70,71 @@ describe('Tutor', () => {
 
 
     expect(evaluateSpy).toHaveBeenCalledWith(game.fen(), 15);
+  });
+
+  it('sends a resignation follow-up message when provided context', async () => {
+    const sendMessage = jest.fn().mockResolvedValue({
+        response: {
+            text: () => 'Resignation response',
+        },
+    });
+
+    (gemini.getGenAIModel as jest.Mock).mockReturnValue({
+        startChat: jest.fn().mockReturnValue({
+            sendMessage,
+        }),
+    });
+
+    const evaluation = {
+        bestMove: 'e2e4',
+        ponder: null,
+        score: 50,
+        mate: null,
+        depth: 12,
+    };
+
+    render(
+      <DebugProvider>
+        <Tutor
+          game={game}
+          currentFen={game.fen()}
+          userMove={null}
+          computerMove={null}
+          stockfish={stockfish}
+          evalP0={null}
+          evalP2={null}
+          openingData={null}
+          missedTactics={null}
+          onAnalysisComplete={() => {}}
+          apiKey="test-api-key"
+          personality={{
+              name: "Test Personality",
+              systemPrompt: "Test Prompt",
+              image: "🤖"
+          }}
+          language="en"
+          playerColor="white"
+          onCheckComputerMove={() => {}}
+          resignationContext={{
+              trigger: Date.now(),
+              fen: game.fen(),
+              evaluation,
+              history: [],
+              result: 'Resignation',
+              winner: 'Black',
+          }}
+        />
+      </DebugProvider>
+    );
+
+    await waitFor(() => {
+        expect(sendMessage).toHaveBeenCalled();
+    });
+
+    const callsContainResignation = sendMessage.mock.calls.some((call: any[]) =>
+        String(call[0]).includes('[SYSTEM TRIGGER: resignation]')
+    );
+
+    expect(callsContainResignation).toBe(true);
   });
 });

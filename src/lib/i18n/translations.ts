@@ -62,6 +62,8 @@ export interface Translations {
         stockfishStrength: string;
         depth: string;
         undoMove: string;
+        resign: string;
+        resignation: string;
         gameHistory: string;
         analyze: string;
         noMovesYet: string;
@@ -235,6 +237,8 @@ const en: Translations = {
         stockfishStrength: 'Stockfish Strength',
         depth: 'Depth',
         undoMove: 'Undo Last Move',
+        resign: 'Resign',
+        resignation: 'You resigned.',
         gameHistory: 'Game History',
         analyze: 'Analyze',
         noMovesYet: 'No moves yet.',
@@ -403,6 +407,8 @@ const de: Translations = {
         stockfishStrength: 'Stockfish-Stärke',
         depth: 'Tiefe',
         undoMove: 'Letzten Zug rückgängig',
+        resign: 'Aufgeben',
+        resignation: 'Du hast aufgegeben.',
         gameHistory: 'Spielverlauf',
         analyze: 'Analysieren',
         noMovesYet: 'Noch keine Züge.',
@@ -571,6 +577,8 @@ const fr: Translations = {
         stockfishStrength: 'Force de Stockfish',
         depth: 'Profondeur',
         undoMove: 'Annuler le dernier coup',
+        resign: 'Abandonner',
+        resignation: 'Vous avez abandonné.',
         gameHistory: 'Historique de la partie',
         analyze: 'Analyser',
         noMovesYet: 'Aucun coup pour le moment.',
@@ -739,6 +747,8 @@ const it: Translations = {
         stockfishStrength: 'Forza di Stockfish',
         depth: 'Profondità',
         undoMove: 'Annulla ultima mossa',
+        resign: 'Abbandona',
+        resignation: 'Hai abbandonato.',
         gameHistory: 'Cronologia partita',
         analyze: 'Analizza',
         noMovesYet: 'Nessuna mossa ancora.',
@@ -907,6 +917,8 @@ const pl: Translations = {
         stockfishStrength: 'Siła Stockfish',
         depth: 'Głębokość',
         undoMove: 'Cofnij ruch',
+        resign: 'Poddaj partię',
+        resignation: 'Poddano partię.',
         gameHistory: 'Historia partii',
         analyze: 'Analizuj',
         noMovesYet: 'Brak ruchów.',

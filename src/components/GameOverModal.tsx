@@ -54,9 +54,10 @@ interface GameOverModalProps {
     language: SupportedLanguage;
     onClose: () => void;
     onNewGame: () => void;
+    onAnalyze: () => void;
 }
 
-export function GameOverModal({ result, winner, history, apiKey, language, onClose, onNewGame }: GameOverModalProps) {
+export function GameOverModal({ result, winner, history, apiKey, language, onClose, onNewGame, onAnalyze }: GameOverModalProps) {
     const [analysis, setAnalysis] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
     const [mistakes, setMistakes] = useState<MoveHistoryItem[]>([]);
@@ -328,6 +329,13 @@ Plain text paragraph (2-3 sentences).
                         className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white"
                     >
                         Close
+                    </button>
+                    <button
+                        onClick={onAnalyze}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2 shadow-sm"
+                    >
+                        <Trophy size={16} />
+                        Analyze Game
                     </button>
                     <button
                         onClick={onNewGame}

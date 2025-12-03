@@ -13,7 +13,7 @@ import { SupportedLanguage } from "@/lib/i18n/translations";
 import { lookupOpening, lookupPossibleOpenings, extractMoveSequenceFromPGN, OpeningMetadata } from "@/lib/openings";
 import { GameAnalysisModal } from "./GameAnalysisModal";
 import { GameOverModal, MoveHistoryItem } from "./GameOverModal";
-import { Brain, ArrowLeft, Download } from "lucide-react";
+import { Brain, ArrowLeft, Download, Flag } from "lucide-react";
 import { CapturedPieces } from "./CapturedPieces";
 import { detectMissedTactics, uciToSan, DetectedTactic } from "@/lib/tacticDetection";
 import { upsertSavedGame } from "@/lib/savedGames";
@@ -68,7 +68,16 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
     const [gameOverState, setGameOverState] = useState<{ result: string, winner: "White" | "Black" | "Draw" } | null>(null);
     const [moveHistory, setMoveHistory] = useState<MoveHistoryItem[]>([]);
     const [selectedPersonality, setSelectedPersonality] = useState<Personality>(initialPersonality);
+    const [resignationContext, setResignationContext] = useState<{
+        trigger: number;
+        fen: string;
+        evaluation: StockfishEvaluation | null;
+        history: MoveHistoryItem[];
+        result: string;
+        winner: "White" | "Black" | "Draw";
+    } | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const hasRebuiltHistoryRef = useRef(false);
 
     // Sound Refs
     const moveSound = useRef<HTMLAudioElement | null>(null);
@@ -111,10 +120,123 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
     }, []);
 
     useEffect(() => {
+        hasRebuiltHistoryRef.current = false;
+    }, [initialPgn]);
+
+    useEffect(() => {
         if (typeof initialStockfishDepth === 'number') {
             setStockfishDepth(initialStockfishDepth);
         }
     }, [initialStockfishDepth]);
+
+    useEffect(() => {
+        if (!initialPgn || !stockfish) return;
+        if (moveHistory.length > 0 || hasRebuiltHistoryRef.current) return;
+
+        let isCancelled = false;
+        hasRebuiltHistoryRef.current = true;
+
+        const rebuildHistoryFromPgn = async () => {
+            try {
+                const setupFen = initialFen || undefined;
+                const parsingGame = new Chess(setupFen);
+                parsingGame.loadPgn(initialPgn);
+                const verboseMoves = parsingGame.history({ verbose: true });
+
+                const replayGame = new Chess(setupFen);
+                const playerTurnColor = playerColor === 'white' ? 'w' : 'b';
+                const rebuiltHistory: MoveHistoryItem[] = [];
+
+                for (let i = 0; i < verboseMoves.length; i++) {
+                    const move = verboseMoves[i];
+
+                    // Play through opponent moves until it's the player's turn
+                    if (move.color !== playerTurnColor) {
+                        replayGame.move(move);
+                        continue;
+                    }
+
+                    const moveNumber = Math.floor(i / 2) + 1;
+                    const fenBeforePlayerMove = replayGame.fen();
+                    const evalBeforePlayerMove = await stockfish.evaluate(fenBeforePlayerMove, stockfishDepth);
+
+                    const playerMoveResult = replayGame.move(move);
+                    if (!playerMoveResult) break;
+
+                    const fenAfterPlayerMove = replayGame.fen();
+                    const evalAfterPlayerMove = await stockfish.evaluate(fenAfterPlayerMove, stockfishDepth);
+
+                    let computerMoveSan = '';
+                    let fenAfterComputerMove = fenAfterPlayerMove;
+                    let evalAfterComputerMove = evalAfterPlayerMove;
+
+                    if (i + 1 < verboseMoves.length && verboseMoves[i + 1].color !== move.color) {
+                        const computerMove = verboseMoves[i + 1];
+                        const computerMoveResult = replayGame.move(computerMove);
+                        if (computerMoveResult) {
+                            computerMoveSan = computerMoveResult.san;
+                            fenAfterComputerMove = replayGame.fen();
+                            evalAfterComputerMove = await stockfish.evaluate(fenAfterComputerMove, stockfishDepth);
+                            i++; // Skip the computer move we just processed
+                        }
+                    }
+
+                    const isWhite = playerColor === 'white';
+                    const evalBeforePerspective = isWhite ? evalBeforePlayerMove.score : -evalBeforePlayerMove.score;
+                    const evalAfterPerspective = isWhite ? -evalAfterPlayerMove.score : evalAfterPlayerMove.score;
+                    const cpLoss = evalBeforePerspective - evalAfterPerspective;
+
+                    const bestMoveUci = evalBeforePlayerMove.bestMove;
+                    const bestMoveSan = bestMoveUci ? uciToSan(fenBeforePlayerMove, bestMoveUci) : null;
+                    const missedTactics = bestMoveUci ? detectMissedTactics({
+                        fen: fenBeforePlayerMove,
+                        playerColor,
+                        playerMoveSan: playerMoveResult.san,
+                        bestMoveUci,
+                        cpLoss,
+                    }) : undefined;
+
+                    const currentPgn = replayGame.pgn();
+                    const moveSequence = extractMoveSequenceFromPGN(currentPgn);
+                    const possibleOpenings = lookupPossibleOpenings(moveSequence, 5);
+
+                    rebuiltHistory.push({
+                        moveNumber,
+                        playerMove: playerMoveResult.san,
+                        playerColor,
+                        fenBeforePlayerMove,
+                        evalBeforePlayerMove,
+                        fenAfterPlayerMove,
+                        evalAfterPlayerMove,
+                        computerMove: computerMoveSan || '...',
+                        fenAfterComputerMove,
+                        evalAfterComputerMove,
+                        opening: possibleOpenings.length > 0 ? possibleOpenings[0].name : undefined,
+                        move: playerMoveResult.san,
+                        evalBefore: evalBeforePlayerMove.score,
+                        evalAfter: evalAfterPlayerMove.score,
+                        bestMove: evalBeforePlayerMove.bestMove,
+                        bestMoveSan,
+                        cpLoss,
+                        missedTactics,
+                    });
+                }
+
+                if (!isCancelled) {
+                    setMoveHistory(rebuiltHistory);
+                }
+            } catch (error) {
+                console.error('Failed to rebuild move history from PGN', error);
+                hasRebuiltHistoryRef.current = false;
+            }
+        };
+
+        rebuildHistoryFromPgn();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [initialPgn, stockfish, playerColor, stockfishDepth, initialFen, moveHistory.length]);
 
     // Load Settings & Initial State
     useEffect(() => {
@@ -473,8 +595,42 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
         setEvalP0(null);
         setEvalP2(null);
         setOpeningData([]);
+        setResignationContext(null);
         updateCapturedPieces();
     };
+
+    const handleResign = useCallback(async () => {
+        if (gameOverState) return;
+        setIsAnalyzing(false);
+
+        const currentFen = gameRef.current.fen();
+        let evaluation: StockfishEvaluation | null = null;
+
+        if (stockfish) {
+            try {
+                evaluation = await stockfish.evaluate(currentFen, stockfishDepth);
+            } catch (error) {
+                console.error("Failed to evaluate resignation position", error);
+            }
+        }
+
+        const result = t.game.resignation;
+        const winner = playerColor === 'white' ? 'Black' : 'White' as const;
+
+        setGameOverState({
+            result,
+            winner,
+        });
+
+        setResignationContext({
+            trigger: Date.now(),
+            fen: currentFen,
+            evaluation,
+            history: moveHistory,
+            result,
+            winner,
+        });
+    }, [gameOverState, moveHistory, playerColor, stockfish, stockfishDepth, t.game.resignation]);
 
     const handleDownloadPGN = () => {
         const pgn = gameRef.current.pgn();
@@ -602,23 +758,34 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                                 )}
                             </div>
 
-                            <button
-                                onClick={() => {
-                                    const game = gameRef.current;
-                                    game.undo();
-                                    game.undo();
-                                    setFen(game.fen());
-                                    setUserMove(null);
-                                    setComputerMove(null);
-                                    setEvalP0(null);
-                                    setEvalP2(null);
-                                    setOpeningData([]);
-                                    updateCapturedPieces();
-                                }}
-                                className="flex items-center gap-1 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                            >
-                                <ArrowLeft size={12} /> Undo
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => {
+                                        const game = gameRef.current;
+                                        game.undo();
+                                        game.undo();
+                                        setFen(game.fen());
+                                        setUserMove(null);
+                                        setComputerMove(null);
+                                        setEvalP0(null);
+                                        setEvalP2(null);
+                                        setOpeningData([]);
+                                        updateCapturedPieces();
+                                    }}
+                                    className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                    disabled={!!gameOverState}
+                                >
+                                    <ArrowLeft size={12} /> {t.game.undoMove}
+                                </button>
+
+                                <button
+                                    onClick={handleResign}
+                                    className="flex items-center gap-1 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+                                    disabled={!!gameOverState}
+                                >
+                                    <Flag size={12} /> {t.game.resign}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -656,13 +823,14 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                         language={language}
                         playerColor={playerColor}
                         onCheckComputerMove={checkAndMakeComputerMove}
+                        resignationContext={resignationContext}
                     />
                 </div>
 
                 {/* 4. History (Col 1-3) - Full width at bottom */}
                 <div className="md:col-span-3 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col">
                     <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Game History</h3>
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.game.gameHistory}</h3>
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setShowDownloadModal(true)}
@@ -674,7 +842,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                                 onClick={() => setShowAnalysisModal(true)}
                                 className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200 flex items-center gap-1"
                             >
-                                <Brain size={12} /> Analyze
+                                <Brain size={12} /> {t.game.analyze}
                             </button>
                         </div>
                     </div>
@@ -683,8 +851,8 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                             <thead>
                                 <tr className="text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
                                     <th className="py-1 px-2 w-12">#</th>
-                                    <th className="py-1 px-2">White</th>
-                                    <th className="py-1 px-2">Black</th>
+                                    <th className="py-1 px-2">{t.game.white}</th>
+                                    <th className="py-1 px-2">{t.game.black}</th>
                                     <th className="py-1 px-2 text-center w-20">Eval Δ</th>
                                 </tr>
                             </thead>
@@ -692,7 +860,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                                 {moveHistory.length === 0 ? (
                                     <tr>
                                         <td colSpan={4} className="py-4 text-center text-gray-500 italic">
-                                            No moves yet.
+                                            {t.game.noMovesYet}
                                         </td>
                                     </tr>
                                 ) : (
@@ -757,6 +925,10 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                     language={language}
                     onClose={() => setGameOverState(null)}
                     onNewGame={handleNewGame}
+                    onAnalyze={() => {
+                        setGameOverState(null);
+                        setShowAnalysisModal(true);
+                    }}
                 />
             )}
 
