@@ -1,8 +1,10 @@
 import '@testing-library/jest-dom'
 
-// Mock scrollIntoView for JSDOM
-window.HTMLElement.prototype.scrollIntoView = jest.fn();
-window.HTMLMediaElement.prototype.play = () => Promise.resolve();
+if (typeof window !== 'undefined') {
+  // Mock scrollIntoView for JSDOM
+  window.HTMLElement.prototype.scrollIntoView = jest.fn();
+  window.HTMLMediaElement.prototype.play = () => Promise.resolve();
+}
 
 // Mock react-markdown to avoid ESM issues in Jest
 jest.mock('react-markdown', () => ({
