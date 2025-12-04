@@ -305,6 +305,157 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
+## API Endpoints
+
+The application provides HTTP API endpoints that allow external applications to access chess engine evaluation and AI tutor functionality. This enables integration with other tools, mobile apps, or custom interfaces.
+
+### Available Endpoints
+
+#### 1. Stockfish Evaluation API
+
+**Endpoint:** `POST /api/v1/stockfish`
+
+Evaluates a chess position using the Stockfish engine running server-side.
+
+**Request Body:**
+```json
+{
+  "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  "depth": 15,
+  "multiPV": 1
+}
+```
+
+**Response:**
+```json
+{
+  "evaluation": {
+    "bestMove": "e2e4",
+    "ponder": "e7e5",
+    "score": 20,
+    "mate": null,
+    "depth": 15
+  }
+}
+```
+
+**Parameters:**
+- `fen` (required): FEN string of the position to evaluate
+- `depth` (optional): Search depth (default: 15)
+- `multiPV` (optional): Number of principal variations (default: 1)
+
+**Notes:**
+- Scores are normalized from White's perspective (positive = White advantage)
+- Mate values indicate moves to mate (positive = White mates, negative = Black mates)
+
+#### 2. AI Tutor Chat API
+
+**Endpoint:** `POST /api/v1/llm/chat`
+
+Generates AI tutor responses with enforced personality and chess context.
+
+**Request Body:**
+```json
+{
+  "apiKey": "your-gemini-api-key",
+  "personalityId": "bobby_fischer",
+  "language": "en",
+  "playerColor": "white",
+  "message": "How should I continue?",
+  "context": {
+    "currentFen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
+    "evaluation": {
+      "score": 20,
+      "mate": null,
+      "bestMove": "e7e5"
+    }
+  },
+  "history": [
+    { "role": "user", "text": "Previous question" },
+    { "role": "model", "text": "Previous answer" }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "reply": "Ah, the classic e4 opening! You're following in the footsteps of champions..."
+}
+```
+
+**Parameters:**
+- `apiKey` (required): Your Google Gemini API key
+- `personalityId` (required): ID of the tutor personality (see `/api/v1/personalities`)
+- `language` (required): Language code (`en`, `de`, `fr`, `it`, `pl`)
+- `playerColor` (required): Player's color (`white` or `black`)
+- `message` (required): User's message/question
+- `context` (optional): Chess position context (FEN, evaluation, openings, tactics)
+- `history` (optional): Previous conversation history
+- `modelName` (optional): Gemini model name (default: `gemini-2.5-flash`)
+
+**Notes:**
+- The API key is provided by the client (bring your own key)
+- Server-side prompt generation ensures consistent tutor behavior
+- System prompts enforce the dual role (opponent + tutor)
+
+#### 3. Personalities API
+
+**Endpoint:** `GET /api/v1/personalities`
+
+Returns the list of available AI tutor personalities.
+
+**Response:**
+```json
+{
+  "personalities": [
+    {
+      "id": "bobby_fischer",
+      "name": "Bobby Fischer",
+      "description": "Aggressive, confident, and brutally honest...",
+      "image": "/personalities/bobby_fischer.png"
+    }
+  ]
+}
+```
+
+**Notes:**
+- System prompts are excluded from the response for security
+- Use the `id` field when calling the chat API
+
+### API Usage Example
+
+```bash
+# Evaluate a position
+curl -X POST http://localhost:3050/api/v1/stockfish \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
+    "depth": 15
+  }'
+
+# Get available personalities
+curl http://localhost:3050/api/v1/personalities
+
+# Chat with AI tutor
+curl -X POST http://localhost:3050/api/v1/llm/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "apiKey": "your-gemini-api-key",
+    "personalityId": "bobby_fischer",
+    "language": "en",
+    "playerColor": "white",
+    "message": "What should I play here?",
+    "context": {
+      "currentFen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+    }
+  }'
+```
+
+For detailed API documentation, see:
+- [Stockfish API Documentation](docs/stockfish_api.md)
+- [LLM API Documentation](docs/llm_api.md)
+
 ## Configuration
 
 You can configure the application using environment variables in your `.env` file or Docker Compose configuration:
