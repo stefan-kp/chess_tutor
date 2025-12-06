@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+playwright/.cache/
 
 # next.js
 /.next/
@@ -40,3 +43,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# downloads and large data files
+/downloads/
+*.csv
+*.csv.zst
+*.pgn
+*.pgn.zst
