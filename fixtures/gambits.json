@@ -1,0 +1,32 @@
+{
+  "gambits": [
+    {
+      "id": "kings_gambit",
+      "name": "King's Gambit",
+      "ecoCodes": ["C30", "C31", "C32", "C33"],
+      "side": "white",
+      "moveSequenceSan": ["e4", "e5", "f4"]
+    },
+    {
+      "id": "evans_gambit",
+      "name": "Evans Gambit",
+      "ecoCodes": ["C51"],
+      "side": "white",
+      "moveSequenceSan": ["e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5", "b4"]
+    },
+    {
+      "id": "smith_morra_gambit",
+      "name": "Smith-Morra Gambit",
+      "ecoCodes": ["B21"],
+      "side": "white",
+      "moveSequenceSan": ["e4", "c5", "d4", "cxd4", "c3"]
+    },
+    {
+      "id": "benko_gambit",
+      "name": "Benko Gambit",
+      "ecoCodes": ["A57", "A58", "A59"],
+      "side": "black",
+      "moveSequenceSan": ["d4", "Nf6", "c4", "c5", "d5", "b5"]
+    }
+  ]
+}

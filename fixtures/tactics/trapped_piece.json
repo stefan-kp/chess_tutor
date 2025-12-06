@@ -1,0 +1,22 @@
+{
+  "patternType": "TRAPPED_PIECE",
+  "description": "Illustrates a bishop trapped in the corner with no safe squares.",
+  "cases": [
+    {
+      "id": "trapped_corner_bishop",
+      "initialFen": "6kb/6P1/5K2/8/8/8/8/8 w - - 0 1",
+      "sideToMove": "white",
+      "bestMove": { "san": "gxh8=Q+", "uci": "g7h8q" },
+      "resultingFen": "6kQ/8/5K2/8/8/8/8/8 b - - 0 1",
+      "expectedPattern": {
+        "type": "TRAPPED_PIECE",
+        "side": "white",
+        "attackerSquares": ["g7"],
+        "targetSquares": ["h8"],
+        "explanationKey": "corner_trap"
+      },
+      "context": "The black bishop on h8 cannot escape because of the pawn on g7 and the king on f6.",
+      "tags": ["endgame", "conversion"]
+    }
+  ]
+}

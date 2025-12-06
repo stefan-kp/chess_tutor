@@ -1,0 +1,22 @@
+{
+  "patternType": "FORK",
+  "description": "Knight fork hitting king and queen simultaneously.",
+  "cases": [
+    {
+      "id": "fork_knight_checks_king_and_queen",
+      "initialFen": "4k3/5q2/8/5N2/8/8/8/6K1 w - - 0 1",
+      "sideToMove": "white",
+      "bestMove": { "san": "Nd6+", "uci": "f5d6" },
+      "resultingFen": "4k3/5q2/3N4/8/8/8/8/6K1 b - - 1 1",
+      "expectedPattern": {
+        "type": "FORK",
+        "side": "white",
+        "attackerSquares": ["d6"],
+        "targetSquares": ["e8", "f7"],
+        "explanationKey": "knight_fork"
+      },
+      "context": "The knight hop gives check on e8 while simultaneously attacking the queen on f7.",
+      "tags": ["tactics", "knight"]
+    }
+  ]
+}

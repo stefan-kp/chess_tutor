@@ -1,0 +1,23 @@
+{
+  "patternType": "PIN",
+  "description": "Classical bishop pin on the Ruy Lopez diagonal, tying the c6-knight to the e8-king.",
+  "cases": [
+    {
+      "id": "pin_ruy_lopez_knight_to_king",
+      "initialFen": "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+      "sideToMove": "white",
+      "bestMove": { "san": "Bb5", "uci": "f1b5" },
+      "resultingFen": "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3",
+      "expectedPattern": {
+        "type": "PIN",
+        "side": "white",
+        "attackerSquares": ["b5"],
+        "targetSquares": ["c6"],
+        "keySquares": ["e8"],
+        "explanationKey": "pin_to_king"
+      },
+      "context": "1.e4 e5 2.Nf3 Nc6 3.Bb5 with the knight pinned to the king.",
+      "tags": ["opening", "ruy_lopez"]
+    }
+  ]
+}

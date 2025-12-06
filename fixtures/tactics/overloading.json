@@ -1,0 +1,22 @@
+{
+  "patternType": "OVERLOADING",
+  "description": "The defending rook on f8 is overloaded, forced to choose between guarding the back rank and protecting f7.",
+  "cases": [
+    {
+      "id": "overloading_rook_on_f8",
+      "initialFen": "5rk1/5p2/8/3Q4/8/8/8/4R1K1 w - - 0 1",
+      "sideToMove": "white",
+      "bestMove": { "san": "Qxf7+", "uci": "d5f7" },
+      "resultingFen": "5rk1/5Q2/8/8/8/8/8/4R1K1 b - - 0 1",
+      "expectedPattern": {
+        "type": "OVERLOADING",
+        "side": "white",
+        "attackerSquares": ["f7"],
+        "targetSquares": ["f8", "f7"],
+        "explanationKey": "back_rank_vs_defense"
+      },
+      "context": "Capturing on f7 lures the only defender; after ...Rxf7 the back rank collapses to Re8#.",
+      "tags": ["overloading", "back_rank_setup"]
+    }
+  ]
+}

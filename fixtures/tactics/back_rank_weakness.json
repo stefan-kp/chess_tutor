@@ -1,0 +1,22 @@
+{
+  "patternType": "BACK_RANK_WEAKNESS",
+  "description": "Classic back-rank mate with no escape squares for the king.",
+  "cases": [
+    {
+      "id": "back_rank_rook_mate",
+      "initialFen": "6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1",
+      "sideToMove": "white",
+      "bestMove": { "san": "Ra8#", "uci": "a1a8" },
+      "resultingFen": "R5k1/5ppp/8/8/8/8/5PPP/6K1 b - - 1 1",
+      "expectedPattern": {
+        "type": "BACK_RANK_WEAKNESS",
+        "side": "white",
+        "attackerSquares": ["a8"],
+        "targetSquares": ["g8"],
+        "explanationKey": "back_rank_mate"
+      },
+      "context": "No luft and the king is boxed in; the rook delivers mate on the back rank.",
+      "tags": ["mate", "fundamental"]
+    }
+  ]
+}

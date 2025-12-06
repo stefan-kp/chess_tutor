@@ -1,0 +1,23 @@
+{
+  "patternType": "SKEWER",
+  "description": "Bishop skewer forcing the king off the diagonal so the trailing queen can be captured.",
+  "cases": [
+    {
+      "id": "skewer_bishop_on_long_diagonal",
+      "initialFen": "7q/6k1/8/8/8/8/1B6/6K1 w - - 0 1",
+      "sideToMove": "white",
+      "bestMove": { "san": "Bc3+", "uci": "b2c3" },
+      "resultingFen": "7q/6k1/8/8/8/2B5/8/6K1 b - - 1 1",
+      "expectedPattern": {
+        "type": "SKEWER",
+        "side": "white",
+        "attackerSquares": ["c3"],
+        "targetSquares": ["g7", "h8"],
+        "keySquares": ["g7"],
+        "explanationKey": "king_in_front_of_queen"
+      },
+      "context": "Minimal material: the move Bc3+ attacks the king on g7; after the king moves the queen on h8 is lost.",
+      "tags": ["endgame", "long_diagonal"]
+    }
+  ]
+}
