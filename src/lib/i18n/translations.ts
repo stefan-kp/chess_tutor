@@ -45,6 +45,7 @@ export interface Translations {
         playAsBlack: string;
         randomColor: string;
         analyzeGame: string;
+        learningArea: string;
         savedGamesTitle: string;
         savedGamesEmpty: string;
         opponentLabel: string;
@@ -181,6 +182,37 @@ export interface Translations {
         };
         stepIndicator: (step: number, total: number) => string;
     };
+
+    // Learning Area
+    learning: {
+        title: string;
+        subtitle: string;
+        tacticalPatterns: string;
+        openings: string;
+        comingSoon: string;
+        backToMenu: string;
+        patterns: {
+            pin: string;
+            skewer: string;
+            fork: string;
+            discoveredCheck: string;
+            doubleAttack: string;
+            overloading: string;
+            backRankWeakness: string;
+            trappedPiece: string;
+        };
+        practice: {
+            title: string;
+            hint: string;
+            makeYourMove: string;
+            correct: string;
+            incorrect: string;
+            tryAgain: string;
+            nextExercise: string;
+            backToLearning: string;
+            findTheMove: string;
+        };
+    };
 }
 
 const en: Translations = {
@@ -223,6 +255,7 @@ const en: Translations = {
         playAsBlack: 'Play as Black',
         randomColor: 'Random',
         analyzeGame: 'Analyze a Game',
+        learningArea: 'Learning Area',
         savedGamesTitle: 'Unfinished games',
         savedGamesEmpty: 'No unfinished games yet.',
         opponentLabel: 'Opponent',
@@ -352,6 +385,35 @@ const en: Translations = {
         },
         stepIndicator: (step: number, total: number) => `Step ${step} of ${total}`,
     },
+    learning: {
+        title: 'Learning Area',
+        subtitle: 'Practice tactical patterns and openings',
+        tacticalPatterns: 'Tactical Patterns',
+        openings: 'Openings',
+        comingSoon: 'Coming Soon',
+        backToMenu: 'Back to Menu',
+        patterns: {
+            pin: 'Pin',
+            skewer: 'Skewer',
+            fork: 'Fork',
+            discoveredCheck: 'Discovered Check',
+            doubleAttack: 'Double Attack',
+            overloading: 'Overloading',
+            backRankWeakness: 'Back Rank Weakness',
+            trappedPiece: 'Trapped Piece',
+        },
+        practice: {
+            title: 'Tactical Practice',
+            hint: 'Hint',
+            makeYourMove: 'Make your move on the board',
+            correct: 'Correct! Well done!',
+            incorrect: 'Not quite. Try again!',
+            tryAgain: 'Try Again',
+            nextExercise: 'Next Exercise',
+            backToLearning: 'Back to Learning Area',
+            findTheMove: 'Find the move that creates a',
+        },
+    },
 };
 
 const de: Translations = {
@@ -394,6 +456,7 @@ const de: Translations = {
         playAsBlack: 'Als Schwarz spielen',
         randomColor: 'Zufällig',
         analyzeGame: 'Partie analysieren',
+        learningArea: 'Lernbereich',
         savedGamesTitle: 'Unfertige Partien',
         savedGamesEmpty: 'Keine unfertigen Partien vorhanden.',
         opponentLabel: 'Gegner',
@@ -523,6 +586,35 @@ const de: Translations = {
         },
         stepIndicator: (step: number, total: number) => `Schritt ${step} von ${total}`,
     },
+    learning: {
+        title: 'Lernbereich',
+        subtitle: 'Übe taktische Muster und Eröffnungen',
+        tacticalPatterns: 'Taktische Muster',
+        openings: 'Eröffnungen',
+        comingSoon: 'Demnächst',
+        backToMenu: 'Zurück zum Menü',
+        patterns: {
+            pin: 'Fesselung',
+            skewer: 'Spieß',
+            fork: 'Gabel',
+            discoveredCheck: 'Abzugsschach',
+            doubleAttack: 'Doppelangriff',
+            overloading: 'Überlastung',
+            backRankWeakness: 'Grundreihenschwäche',
+            trappedPiece: 'Gefangene Figur',
+        },
+        practice: {
+            title: 'Taktiktraining',
+            hint: 'Hinweis',
+            makeYourMove: 'Mache deinen Zug auf dem Brett',
+            correct: 'Richtig! Gut gemacht!',
+            incorrect: 'Nicht ganz. Versuch es nochmal!',
+            tryAgain: 'Nochmal versuchen',
+            nextExercise: 'Nächste Übung',
+            backToLearning: 'Zurück zum Lernbereich',
+            findTheMove: 'Finde den Zug, der eine',
+        },
+    },
 };
 
 const fr: Translations = {
@@ -565,6 +657,7 @@ const fr: Translations = {
         playAsBlack: 'Jouer Noirs',
         randomColor: 'Aléatoire',
         analyzeGame: 'Analyser une partie',
+        learningArea: 'Zone d\'apprentissage',
         savedGamesTitle: 'Parties inachevées',
         savedGamesEmpty: 'Aucune partie en cours.',
         opponentLabel: 'Adversaire',
@@ -694,6 +787,35 @@ const fr: Translations = {
         },
         stepIndicator: (step: number, total: number) => `Étape ${step} sur ${total}`,
     },
+    learning: {
+        title: 'Zone d\'apprentissage',
+        subtitle: 'Pratiquez les motifs tactiques et les ouvertures',
+        tacticalPatterns: 'Motifs tactiques',
+        openings: 'Ouvertures',
+        comingSoon: 'Bientôt disponible',
+        backToMenu: 'Retour au menu',
+        patterns: {
+            pin: 'Clouage',
+            skewer: 'Enfilade',
+            fork: 'Fourchette',
+            discoveredCheck: 'Échec à la découverte',
+            doubleAttack: 'Double attaque',
+            overloading: 'Surcharge',
+            backRankWeakness: 'Faiblesse de la dernière rangée',
+            trappedPiece: 'Pièce piégée',
+        },
+        practice: {
+            title: 'Pratique tactique',
+            hint: 'Indice',
+            makeYourMove: 'Faites votre coup sur l\'échiquier',
+            correct: 'Correct ! Bien joué !',
+            incorrect: 'Pas tout à fait. Réessayez !',
+            tryAgain: 'Réessayer',
+            nextExercise: 'Exercice suivant',
+            backToLearning: 'Retour à la zone d\'apprentissage',
+            findTheMove: 'Trouvez le coup qui crée un',
+        },
+    },
 };
 
 const it: Translations = {
@@ -736,6 +858,7 @@ const it: Translations = {
         playAsBlack: 'Gioca Nero',
         randomColor: 'Casuale',
         analyzeGame: 'Analizza una partita',
+        learningArea: 'Area di apprendimento',
         savedGamesTitle: 'Partite non finite',
         savedGamesEmpty: 'Nessuna partita in corso.',
         opponentLabel: 'Avversario',
@@ -865,6 +988,35 @@ const it: Translations = {
         },
         stepIndicator: (step: number, total: number) => `Passo ${step} di ${total}`,
     },
+    learning: {
+        title: 'Area di apprendimento',
+        subtitle: 'Pratica schemi tattici e aperture',
+        tacticalPatterns: 'Schemi tattici',
+        openings: 'Aperture',
+        comingSoon: 'Prossimamente',
+        backToMenu: 'Torna al menu',
+        patterns: {
+            pin: 'Inchiodatura',
+            skewer: 'Infilata',
+            fork: 'Forchetta',
+            discoveredCheck: 'Scacco di scoperta',
+            doubleAttack: 'Doppio attacco',
+            overloading: 'Sovraccarico',
+            backRankWeakness: 'Debolezza dell\'ultima traversa',
+            trappedPiece: 'Pezzo intrappolato',
+        },
+        practice: {
+            title: 'Pratica tattica',
+            hint: 'Suggerimento',
+            makeYourMove: 'Fai la tua mossa sulla scacchiera',
+            correct: 'Corretto! Ben fatto!',
+            incorrect: 'Non proprio. Riprova!',
+            tryAgain: 'Riprova',
+            nextExercise: 'Prossimo esercizio',
+            backToLearning: 'Torna all\'area di apprendimento',
+            findTheMove: 'Trova la mossa che crea un',
+        },
+    },
 };
 
 const pl: Translations = {
@@ -907,6 +1059,7 @@ const pl: Translations = {
         playAsBlack: 'Graj czarnymi',
         randomColor: 'Losowo',
         analyzeGame: 'Analizuj partię',
+        learningArea: 'Strefa nauki',
         savedGamesTitle: 'Niedokończone partie',
         savedGamesEmpty: 'Brak niedokończonych partii.',
         opponentLabel: 'Przeciwnik',
@@ -1035,6 +1188,35 @@ const pl: Translations = {
             finish: 'Zapisz i zacznij grać',
         },
         stepIndicator: (step: number, total: number) => `Krok ${step} z ${total}`,
+    },
+    learning: {
+        title: 'Strefa nauki',
+        subtitle: 'Ćwicz wzorce taktyczne i otwarcia',
+        tacticalPatterns: 'Wzorce taktyczne',
+        openings: 'Otwarcia',
+        comingSoon: 'Wkrótce',
+        backToMenu: 'Powrót do menu',
+        patterns: {
+            pin: 'Związanie',
+            skewer: 'Szpikulec',
+            fork: 'Widły',
+            discoveredCheck: 'Szach z odkrycia',
+            doubleAttack: 'Podwójny atak',
+            overloading: 'Przeciążenie',
+            backRankWeakness: 'Słabość ostatniej linii',
+            trappedPiece: 'Uwięziona figura',
+        },
+        practice: {
+            title: 'Trening taktyczny',
+            hint: 'Podpowiedź',
+            makeYourMove: 'Wykonaj ruch na szachownicy',
+            correct: 'Poprawnie! Dobra robota!',
+            incorrect: 'Nie do końca. Spróbuj ponownie!',
+            tryAgain: 'Spróbuj ponownie',
+            nextExercise: 'Następne ćwiczenie',
+            backToLearning: 'Powrót do strefy nauki',
+            findTheMove: 'Znajdź ruch, który tworzy',
+        },
     },
 };
 
