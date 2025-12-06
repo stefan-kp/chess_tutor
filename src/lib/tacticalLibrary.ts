@@ -71,13 +71,22 @@ export interface TacticExerciseParams {
   patternType: TacticalPatternType;
   side: Color;
   maxDepthFromInitial?: number;
+  difficulty?: 'easy' | 'medium' | 'hard';  // Difficulty filter
+}
+
+export interface PuzzleMove {
+  uci: string;
+  san: string;
+  player: boolean;  // true if player move, false if opponent move
 }
 
 export interface TacticExercise {
   startPosition: Position;
-  solutionMove: Move;
+  solutionMove: Move;  // First player move (for backward compatibility)
   resultPosition: Position;
   pattern: TacticalPattern;
+  moves?: PuzzleMove[];  // Full move sequence (optional for backward compatibility)
+  rating?: number;  // Puzzle difficulty rating
 }
 
 export interface GeneratedTacticPosition {
@@ -121,9 +130,8 @@ type PieceInfo = { square: Square; piece: Piece };
 function attackMap(chess: Chess, side: Color): Map<Square, Square[]> {
   const attacks = new Map<Square, Square[]>();
   for (const { square } of collectPieces(chess, side)) {
-    const moves = chess.moves({ square, verbose: true }) as ChessMove[];
-    for (const move of moves) {
-      const target = move.to as Square;
+    const targets = squaresAttackedBy(chess, square);
+    for (const target of targets) {
       if (!attacks.has(target)) attacks.set(target, []);
       attacks.get(target)!.push(square);
     }
@@ -146,6 +154,24 @@ function collectPieces(chess: Chess, side: Color): PieceInfo[] {
     });
   });
   return result;
+}
+
+function findKing(chess: Chess, side: Color): Square | null {
+  const pieces = collectPieces(chess, side);
+  const king = pieces.find(p => p.piece.type === "k");
+  return king ? king.square : null;
+}
+
+function findAttackersOfSquare(chess: Chess, target: Square, attackingSide: Color): Square[] {
+  const attackers: Square[] = [];
+  const pieces = collectPieces(chess, attackingSide);
+  for (const { square } of pieces) {
+    const attacks = squaresAttackedBy(chess, square);
+    if (attacks.includes(target)) {
+      attackers.push(square);
+    }
+  }
+  return attackers;
 }
 
 function raySquares(from: Square, df: number, dr: number): Square[] {
@@ -204,24 +230,65 @@ function detectPinsAndSkewers(chess: Chess, side: Color): TacticalPattern[] {
     for (const [df, dr] of directions[slider.piece.type]) {
       const ray = raySquares(slider.square, df, dr);
       const seen: Array<PieceInfo & { color: Color }> = [];
+
+      // Collect all pieces on the ray (not just first 2)
       for (const square of ray) {
         const occupier = chess.get(square);
         if (occupier) {
           seen.push({ square, piece: occupier, color: occupier.color === "w" ? "white" : "black" });
-          if (seen.length === 2) break;
         }
       }
+
+      // Need at least 2 pieces for a pin or skewer
       if (seen.length < 2) continue;
-      const [first, second] = seen;
-      if (first.color !== opponent || second.color !== opponent) continue;
-      const firstValue = pieceValues[first.piece.type];
-      const secondValue = pieceValues[second.piece.type];
-      const isPin = second.piece.type === "k" || secondValue > firstValue;
-      const isSkewer = firstValue > secondValue && firstValue >= 300;
-      if (isPin) {
-        results.push({ type: "PIN", side, attackerSquares: [slider.square], targetSquares: [first.square], keySquares: [second.square] });
-      } else if (isSkewer) {
-        results.push({ type: "SKEWER", side, attackerSquares: [slider.square], targetSquares: [first.square, second.square] });
+
+      // Check all pairs of opponent pieces on the ray
+      for (let i = 0; i < seen.length - 1; i++) {
+        const first = seen[i];
+
+        // First piece must be opponent's
+        if (first.color !== opponent) continue;
+
+        // Find the next opponent piece after 'first'
+        let second: (PieceInfo & { color: Color }) | null = null;
+        for (let j = i + 1; j < seen.length; j++) {
+          if (seen[j].color === opponent) {
+            second = seen[j];
+            break;
+          }
+        }
+
+        if (!second) continue;
+
+        const firstValue = pieceValues[first.piece.type];
+        const secondValue = pieceValues[second.piece.type];
+
+        // PIN: The second piece is the king OR more valuable than the first
+        // This pins the first piece because moving it would expose the more valuable second piece
+        const isPin = second.piece.type === "k" || secondValue > firstValue;
+
+        // SKEWER: The first piece is more valuable than the second
+        // This forces the first piece to move, exposing the second piece
+        const isSkewer = firstValue > secondValue && firstValue >= 300;
+
+        if (isPin) {
+          results.push({
+            type: "PIN",
+            side,
+            attackerSquares: [slider.square],
+            targetSquares: [first.square],
+            keySquares: [second.square]
+          });
+          // If we found a pin to the king, that's the most important one for this ray
+          if (second.piece.type === "k") break;
+        } else if (isSkewer) {
+          results.push({
+            type: "SKEWER",
+            side,
+            attackerSquares: [slider.square],
+            targetSquares: [first.square, second.square]
+          });
+        }
       }
     }
   }
@@ -229,8 +296,96 @@ function detectPinsAndSkewers(chess: Chess, side: Color): TacticalPattern[] {
 }
 
 function squaresAttackedBy(chess: Chess, from: Square): Square[] {
+  const piece = chess.get(from);
+  if (!piece) return [];
+
+  // For pieces that aren't the current side to move, we need to calculate attacks manually
+  // because chess.moves() only returns moves for the side to move
+  const currentTurn = chess.turn();
+  if (piece.color !== currentTurn) {
+    return squaresAttackedByPiece(chess, from, piece);
+  }
+
   const moves = chess.moves({ square: from, verbose: true }) as ChessMove[];
   return moves.map(m => m.to as Square);
+}
+
+function squaresAttackedByPiece(chess: Chess, from: Square, piece: Piece): Square[] {
+  const attacks: Square[] = [];
+  const fileIndex = FILES.indexOf(from[0] as (typeof FILES)[number]);
+  const rankIndex = parseInt(from[1], 10) - 1;
+
+  const trySquare = (file: number, rank: number): Square | null => {
+    if (file < 0 || file > 7 || rank < 0 || rank > 7) return null;
+    return `${FILES[file]}${rank + 1}` as Square;
+  };
+
+  switch (piece.type) {
+    case "p": {
+      // Pawns attack diagonally
+      const direction = piece.color === "w" ? 1 : -1;
+      const left = trySquare(fileIndex - 1, rankIndex + direction);
+      const right = trySquare(fileIndex + 1, rankIndex + direction);
+      if (left) attacks.push(left);
+      if (right) attacks.push(right);
+      break;
+    }
+    case "n": {
+      // Knight moves
+      const offsets = [
+        [-2, -1], [-2, 1], [-1, -2], [-1, 2],
+        [1, -2], [1, 2], [2, -1], [2, 1]
+      ];
+      for (const [df, dr] of offsets) {
+        const sq = trySquare(fileIndex + df, rankIndex + dr);
+        if (sq) attacks.push(sq);
+      }
+      break;
+    }
+    case "b": {
+      // Bishop moves (diagonals)
+      for (const [df, dr] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+        const ray = raySquares(from, df, dr);
+        for (const sq of ray) {
+          attacks.push(sq);
+          if (chess.get(sq)) break; // Stop at first piece
+        }
+      }
+      break;
+    }
+    case "r": {
+      // Rook moves (straight lines)
+      for (const [df, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const ray = raySquares(from, df, dr);
+        for (const sq of ray) {
+          attacks.push(sq);
+          if (chess.get(sq)) break; // Stop at first piece
+        }
+      }
+      break;
+    }
+    case "q": {
+      // Queen moves (diagonals + straight lines)
+      for (const [df, dr] of [[1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const ray = raySquares(from, df, dr);
+        for (const sq of ray) {
+          attacks.push(sq);
+          if (chess.get(sq)) break; // Stop at first piece
+        }
+      }
+      break;
+    }
+    case "k": {
+      // King moves (one square in any direction)
+      for (const [df, dr] of [[1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const sq = trySquare(fileIndex + df, rankIndex + dr);
+        if (sq) attacks.push(sq);
+      }
+      break;
+    }
+  }
+
+  return attacks;
 }
 
 function detectFork(chess: Chess, side: Color): TacticalPattern[] {
@@ -297,7 +452,22 @@ function detectDoubleAttack(chess: Chess, side: Color): TacticalPattern[] {
     .filter(op => valuable(op.piece) && attacks.has(op.square))
     .map(op => op.square);
   if (threatenedTargets.length >= 2) {
-    return [{ type: "DOUBLE_ATTACK", side, attackerSquares: [], targetSquares: threatenedTargets }];
+    // Find all pieces that attack at least 2 of the threatened targets
+    const attackerSquares = new Set<Square>();
+    for (const target of threatenedTargets) {
+      const attackers = attacks.get(target) || [];
+      for (const attacker of attackers) {
+        // Check if this attacker attacks at least 2 targets
+        const targetsAttackedByThis = threatenedTargets.filter(t => {
+          const attackersOfT = attacks.get(t) || [];
+          return attackersOfT.includes(attacker);
+        });
+        if (targetsAttackedByThis.length >= 2) {
+          attackerSquares.add(attacker);
+        }
+      }
+    }
+    return [{ type: "DOUBLE_ATTACK", side, attackerSquares: Array.from(attackerSquares), targetSquares: threatenedTargets }];
   }
   return [];
 }
@@ -393,10 +563,116 @@ export function findTacticalOpportunitiesForSide(position: Position, side: Color
   const moves = chess.moves({ verbose: true }) as ChessMove[];
   for (const move of moves) {
     if (move.color !== toChessColor(side)) continue;
+
+    // Skip moves that capture the king (they create invalid positions)
+    if (move.captured === "k") continue;
+
     const clone = new Chess(position.fen);
     clone.move(move);
+
+    // Check for trapped piece capture
+    // If the move captures a piece that had no legal moves in the initial position, it's capturing a trapped piece
+    if (move.captured) {
+      const capturedSquare = move.to;
+      const initialChess = new Chess(position.fen);
+      const capturedPieceMoves = initialChess.moves({ square: capturedSquare, verbose: true }) as ChessMove[];
+      if (capturedPieceMoves.length === 0) {
+        // The captured piece was trapped
+        opportunities.push({
+          move: { from: move.from, to: move.to, promotion: move.promotion as Move["promotion"] | undefined },
+          pattern: {
+            type: "TRAPPED_PIECE",
+            side,
+            attackerSquares: [move.from],
+            targetSquares: [capturedSquare],
+          },
+        });
+      }
+    }
+
+    // Check for discovered check/attack
+    // A discovered check occurs when moving a piece reveals an attack from another piece
+    if (clone.inCheck()) {
+      // Find which piece is giving check
+      const opponent = side === "white" ? "black" : "white";
+      const opponentKingSquare = findKing(clone, opponent);
+      if (opponentKingSquare) {
+        const attackers = findAttackersOfSquare(clone, opponentKingSquare, side);
+        // If the checking piece is not the piece that moved, it's a discovered check
+        for (const attacker of attackers) {
+          if (attacker !== move.to) {
+            const targetPiece = clone.get(opponentKingSquare);
+            const type: TacticalPatternType = targetPiece?.type === "k" ? "DISCOVERED_CHECK" : "DISCOVERED_ATTACK";
+            opportunities.push({
+              move: { from: move.from, to: move.to, promotion: move.promotion as Move["promotion"] | undefined },
+              pattern: {
+                type,
+                side,
+                attackerSquares: [attacker],
+                targetSquares: [opponentKingSquare],
+                keySquares: [move.to], // The piece that moved away
+              },
+            });
+          }
+        }
+      }
+    }
+
+    // Check for overloading
+    // Overloading occurs when a defender must choose between two defensive duties
+    // Common pattern: a piece defends both a square and the back rank
+    if (clone.inCheck()) {
+      const opponent = side === "white" ? "black" : "white";
+      const opponentKingSquare = findKing(clone, opponent);
+      if (opponentKingSquare) {
+        // Find pieces that can capture the checking piece
+        const opponentMoves = clone.moves({ verbose: true }) as ChessMove[];
+        const capturingMoves = opponentMoves.filter(m => m.to === move.to && m.from !== opponentKingSquare);
+
+        // For each capturing move, check if the capturing piece was defending something important
+        for (const captureMove of capturingMoves) {
+          const defenderSquare = captureMove.from;
+
+          // Check what the defender was defending before it captures
+          const beforeCapture = new Chess(position.fen);
+          const defenderAttacks = squaresAttackedBy(beforeCapture, defenderSquare);
+
+          // Count how many valuable pieces/squares the defender was protecting
+          let defendedCount = 0;
+          const defendedSquares: Square[] = [];
+
+          for (const sq of defenderAttacks) {
+            const piece = beforeCapture.get(sq);
+            if (piece && piece.color === toChessColor(opponent) && valuable(piece)) {
+              defendedCount++;
+              defendedSquares.push(sq);
+            }
+          }
+
+          // If the defender was protecting 2+ things (including the square it's on), it's overloaded
+          if (defendedCount >= 1 || defenderAttacks.length >= 3) {
+            opportunities.push({
+              move: { from: move.from, to: move.to, promotion: move.promotion as Move["promotion"] | undefined },
+              pattern: {
+                type: "OVERLOADING",
+                side,
+                attackerSquares: [move.to],
+                targetSquares: [defenderSquare, move.to],
+              },
+            });
+            break; // Found overloading
+          }
+        }
+      }
+    }
+
     const patterns = detectTacticsForSide({ fen: clone.fen() }, side);
     for (const pattern of patterns) {
+      // Skip patterns we handle specially above
+      if (pattern.type === "DISCOVERED_CHECK" || pattern.type === "DISCOVERED_ATTACK") continue;
+      if (pattern.type === "TRAPPED_PIECE") continue; // We detect this specially above
+      if (pattern.type === "OVERLOADING") continue; // We detect this specially above
+
       opportunities.push({
         move: { from: move.from, to: move.to, promotion: move.promotion as Move["promotion"] | undefined },
         pattern,
@@ -413,6 +689,10 @@ export function findRiskyMoves(position: Position, side: Color): TacticalRisk[] 
   const opponent: Color = side === "white" ? "black" : "white";
   for (const move of moves) {
     if (move.color !== toChessColor(side)) continue;
+
+    // Skip moves that capture the king (they create invalid positions)
+    if (move.captured === "k") continue;
+
     const clone = new Chess(position.fen);
     clone.move(move);
     const opponentPatterns = findTacticalOpportunitiesForSide({ fen: clone.fen() }, opponent).map(o => o.pattern);
@@ -432,7 +712,7 @@ export function identifyGambit(movesSan: string[]): GambitMatch | null {
 }
 
 export function listPossibleGambits(movesSan: string[]): GambitMatch[] {
-  const definitions = gambitDefinitions as GambleDefinition[];
+  const definitions = (gambitDefinitions as any).gambits as GambleDefinition[];
   const matches: GambitMatch[] = [];
   for (const gambit of definitions) {
     let matched = 0;
@@ -455,20 +735,44 @@ export function listPossibleGambits(movesSan: string[]): GambitMatch[] {
 
 export function generateTacticExercise(params: TacticExerciseParams): TacticExercise {
   const dataset = tacticalFixtures[params.patternType];
-  const cases = dataset.cases.filter((c: any) => c.sideToMove === params.side);
-  const chosen = cases[0] || dataset.cases[0];
-  if (!chosen) {
-    throw new Error(`No fixture available for pattern ${params.patternType}`);
+
+  // Filter by side
+  let cases = dataset.cases.filter((c: any) => c.sideToMove === params.side);
+
+  // Filter by difficulty if specified
+  if (params.difficulty) {
+    const difficultyRanges = {
+      easy: { min: 800, max: 1400 },
+      medium: { min: 1400, max: 1800 },
+      hard: { min: 1800, max: 2200 },
+    };
+    const range = difficultyRanges[params.difficulty];
+    cases = cases.filter((c: any) => {
+      const rating = c.rating || 1500; // Default to medium if no rating
+      return rating >= range.min && rating < range.max;
+    });
   }
+
+  const pool = cases.length > 0 ? cases : dataset.cases;
+
+  if (pool.length === 0) {
+    throw new Error(`No fixture available for pattern ${params.patternType} with difficulty ${params.difficulty || 'any'}`);
+  }
+
+  // Pick a random case instead of always the first one
+  const chosen = pool[Math.floor(Math.random() * pool.length)];
+
   return {
     startPosition: { fen: chosen.initialFen },
     solutionMove: {
       from: chosen.bestMove.uci.substring(0, 2),
       to: chosen.bestMove.uci.substring(2, 4),
-      promotion: chosen.bestMove.uci.length > 4 ? chosen.bestMove.uci.substring(4, 5) : undefined,
+      promotion: chosen.bestMove.uci.length > 4 ? (chosen.bestMove.uci.substring(4, 5) as Move["promotion"]) : undefined,
     },
     resultPosition: { fen: chosen.resultingFen },
-    pattern: chosen.expectedPattern,
+    pattern: chosen.expectedPattern as TacticalPattern,
+    moves: chosen.moves,  // Include full move sequence
+    rating: chosen.rating,  // Include puzzle rating
   };
 }
 
@@ -506,7 +810,7 @@ export function generateTacticPosition(
     initialPosition: { fen: chosen.initialFen },
     creatingMove,
     resultingPosition: { fen: chosen.resultingFen },
-    expectedPattern: chosen.expectedPattern,
+    expectedPattern: chosen.expectedPattern as TacticalPattern,
   };
 }
 

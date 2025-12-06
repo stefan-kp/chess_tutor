@@ -41,6 +41,19 @@ interface TutorProps {
         result: string;
         winner: 'White' | 'Black' | 'Draw';
     } | null;
+    tacticalPracticeMode?: {
+        patternName: string;
+        solutionMove: { from: string; to: string; promotion?: string };
+        feedback: 'none' | 'correct' | 'incorrect';
+        moves?: Array<{ uci: string; san: string; player: boolean }>;
+        currentMoveIndex?: number;
+        stats?: {
+            totalCorrect: number;
+            totalIncorrect: number;
+            currentStreak: number;
+            bestStreak: number;
+        };
+    };
 }
 
 interface Message {
@@ -49,7 +62,7 @@ interface Message {
     timestamp: number;
 }
 
-export function Tutor({ game, currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, missedTactics, onAnalysisComplete, apiKey, personality, language, playerColor, onCheckComputerMove, resignationContext }: TutorProps) {
+export function Tutor({ game, currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, missedTactics, onAnalysisComplete, apiKey, personality, language, playerColor, onCheckComputerMove, resignationContext, tacticalPracticeMode }: TutorProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -64,16 +77,51 @@ export function Tutor({ game, currentFen, userMove, computerMove, stockfish, eva
     const playerColorName = playerColor === 'white' ? 'White' : 'Black';
     const tutorColorName = tutorColor === 'white' ? 'White' : 'Black';
 
-    // Initialize chat session with Personality System Prompt
+    // Extract stable values from tacticalPracticeMode to avoid recreating chat on feedback changes
+    const patternName = tacticalPracticeMode?.patternName;
+    const solutionMoveKey = tacticalPracticeMode ? `${tacticalPracticeMode.solutionMove.from}-${tacticalPracticeMode.solutionMove.to}` : null;
+
+    // Track the current puzzle to detect when it changes
+    const currentPuzzleRef = useRef<string | null>(null);
+
+    // Initialize chat session with Personality System Prompt (only once per pattern type)
     useEffect(() => {
         if (apiKey) {
             const model = getGenAIModel(apiKey, "gemini-2.5-flash");
-            const session = model.startChat({
-                history: [
-                    {
-                        role: "user",
-                        parts: [{
-                            text: `
+
+            // Build system prompt based on mode
+            // NOTE: For tactical practice, we don't include the specific puzzle solution in the system prompt
+            // Instead, we'll send it as a message when the puzzle changes
+            const systemPrompt = tacticalPracticeMode ? `
+You are a Chess Coach helping a student practice tactical patterns.
+You must strictly follow the personality defined below.
+
+PERSONALITY:
+${personality.systemPrompt}
+
+YOUR ROLE:
+You are coaching the student to recognize and execute the "${tacticalPracticeMode.patternName}" tactical pattern.
+
+YOUR RESPONSIBILITIES:
+1. WELCOME: Start with a brief, encouraging welcome about practicing ${tacticalPracticeMode.patternName}.
+2. HINTS: When the student asks for a hint, provide helpful guidance WITHOUT giving away the exact move.
+   - Describe what to look for (e.g., "Look for a piece that can attack two targets at once")
+   - Point to the general area (e.g., "Pay attention to your knight's possibilities")
+   - NEVER say the exact move unless explicitly asked
+3. FEEDBACK: React to the student's attempts:
+   - If correct: Celebrate and explain why the move works
+   - If incorrect: Encourage them to try again and give a subtle hint
+4. TEACHING: Explain the tactical pattern in simple terms when appropriate
+5. NEW PUZZLE: When you receive a new puzzle, acknowledge it briefly and encourage the student
+
+CRITICAL RULES:
+- Be encouraging and supportive
+- Keep responses concise (2-3 sentences max)
+- Do NOT be repetitive - vary your language
+- You MUST respond in the following language: ${language.toUpperCase()}
+- Translate your personality style into this language
+- When a new puzzle is presented, you will be told the solution move - use this to provide hints and feedback
+            ` : `
 You are a Chess Tutor with a unique dual role.
 You must strictly follow the personality defined below.
 Do NOT invent moves or evaluations. Use the provided JSON data.
@@ -103,27 +151,87 @@ CRITICAL RULES:
 - Be concise but engaging.
 - You MUST respond in the following language: ${language.toUpperCase()}.
 - Translate your personality style into this language.
-                        ` }]
+            `;
+
+            const session = model.startChat({
+                history: [
+                    {
+                        role: "user",
+                        parts: [{ text: systemPrompt }]
                     },
                     {
                         role: "model",
-                        parts: [{ text: `Understood. I am both the opponent (${tutorColorName}) AND your tutor. I will compete against you while teaching you to improve. I will speak in ${language} and never mention engines or AI. When you ask for help, I will always provide guidance - that's my purpose.` }]
+                        parts: [{ text: tacticalPracticeMode
+                            ? `Understood. I will help you practice ${tacticalPracticeMode.patternName} in ${language}. I'll provide hints and encouragement while maintaining my personality.`
+                            : `Understood. I am both the opponent (${tutorColorName}) AND your tutor. I will compete against you while teaching you to improve. I will speak in ${language} and never mention engines or AI. When you ask for help, I will always provide guidance - that's my purpose.`
+                        }]
                     }
                 ],
             });
             setChatSession(session);
 
             // Get initial greeting in the selected language
-            session.sendMessage(`Introduce yourself briefly to start our game. Keep it short and in ${language}.`).then(result => {
+            const greetingPrompt = tacticalPracticeMode
+                ? `Welcome the student to practice ${tacticalPracticeMode.patternName}. Briefly explain what this tactical pattern is (in 1-2 sentences). Keep it encouraging and in ${language}.`
+                : `Introduce yourself briefly to start our game. Keep it short and in ${language}.`;
+
+            session.sendMessage(greetingPrompt).then(result => {
                 const greetingText = result.response.text();
                 setMessages([{ role: "model", text: greetingText, timestamp: Date.now() }]);
             }).catch(err => {
                 console.error("Failed to get greeting:", err);
-                // Fallback to English if greeting fails
-                setMessages([{ role: "model", text: `Hello! I am ${personality.name}. Let's play!`, timestamp: Date.now() }]);
+                // Fallback greeting
+                const fallbackText = tacticalPracticeMode
+                    ? `Hello! Let's practice ${tacticalPracticeMode.patternName} together!`
+                    : `Hello! I am ${personality.name}. Let's play!`;
+                setMessages([{ role: "model", text: fallbackText, timestamp: Date.now() }]);
             });
         }
-    }, [apiKey, personality, language, playerColor]);
+    }, [apiKey, personality, language, playerColor, patternName]);
+    // NOTE: Removed solutionMoveKey from dependencies - we don't want to reset chat when puzzle changes
+
+    // Notify tutor about new puzzle (without resetting chat)
+    useEffect(() => {
+        if (!chatSession || !tacticalPracticeMode || !solutionMoveKey) return;
+
+        // Check if this is a new puzzle
+        if (currentPuzzleRef.current === solutionMoveKey) return;
+
+        // Skip the very first puzzle (greeting already sent)
+        if (currentPuzzleRef.current === null) {
+            currentPuzzleRef.current = solutionMoveKey;
+            return;
+        }
+
+        // Update the ref
+        currentPuzzleRef.current = solutionMoveKey;
+
+        // Notify the tutor about the new puzzle
+        const stats = tacticalPracticeMode.stats;
+        const statsText = stats ? `
+STUDENT STATISTICS:
+- Total Correct: ${stats.totalCorrect}
+- Total Incorrect: ${stats.totalIncorrect}
+- Current Streak: ${stats.currentStreak}
+- Best Streak: ${stats.bestStreak}
+` : '';
+
+        const newPuzzlePrompt = `
+NEW PUZZLE:
+- Pattern: ${tacticalPracticeMode.patternName}
+- Position FEN: ${currentFen}
+- Solution move: ${tacticalPracticeMode.solutionMove.from} to ${tacticalPracticeMode.solutionMove.to}
+${statsText}
+Acknowledge this new puzzle briefly (1 sentence) and encourage the student to find the ${tacticalPracticeMode.patternName}. ${stats && stats.currentStreak > 0 ? `Mention their current streak of ${stats.currentStreak} if it's impressive.` : ''} Keep it in ${language}.
+        `.trim();
+
+        chatSession.sendMessage(newPuzzlePrompt).then(result => {
+            const responseText = result.response.text();
+            setMessages(prev => [...prev, { role: "model", text: responseText, timestamp: Date.now() }]);
+        }).catch(err => {
+            console.error("Failed to notify about new puzzle:", err);
+        });
+    }, [solutionMoveKey, chatSession, tacticalPracticeMode, currentFen, language]);
 
     // Scroll chat container to bottom (not the whole page)
     useEffect(() => {
@@ -354,7 +462,12 @@ React to this exchange as the player.
             let finalPrompt = text;
             if (!isSystemMessage) {
                 const lower = text.toLowerCase();
-                const evaluation = await evaluateCurrentPosition();
+
+                // In tactical practice mode, use the solution move instead of Stockfish
+                const evaluation = tacticalPracticeMode ? null : await evaluateCurrentPosition();
+                const bestMoveForHint = tacticalPracticeMode
+                    ? `${tacticalPracticeMode.solutionMove.from}${tacticalPracticeMode.solutionMove.to}${tacticalPracticeMode.solutionMove.promotion || ''}`
+                    : evaluation?.bestMove;
 
                 if (lower.includes("best move") || lower.includes("solution") || lower.includes("tell me")) {
                     finalPrompt = `[SYSTEM TRIGGER: exact_move]
@@ -368,19 +481,35 @@ User Question: ${text}
 
 Current Position Data:
 - FEN: ${currentFen}
-- Best Move: ${evaluation?.bestMove}
+- Best Move: ${bestMoveForHint || 'N/A'}
 - Evaluation: ${evaluation?.score ?? 'N/A'} centipawns ${evaluation?.score !== undefined ? (evaluation.score > 0 ? '(White is better)' : evaluation.score < 0 ? '(Black is better)' : '(Equal)') : ''}
 - Mate in: ${evaluation?.mate || 'None'}
 - Possible Openings: ${openingData && openingData.length > 0 ? openingData.map(o => `${o.name} (${o.eco})`).join(', ') : 'Unknown/Midgame'}
+${tacticalPracticeMode ? `- Tactical Pattern: ${tacticalPracticeMode.patternName}` : ''}
 
 INSTRUCTIONS:
 - Tell them the best move clearly (e.g., "The best move is e2-e4" or "You should play Nf3")
 - Explain WHY it's the best move (tactics, threats, positional ideas)
+${tacticalPracticeMode ? `- Explain how this move creates the ${tacticalPracticeMode.patternName} pattern` : ''}
 - Stay in your personality style, but be HELPFUL and EDUCATIONAL
 - Do NOT refuse to help - teaching is your core role
 - Keep it concise but informative`;
 
                 } else if (lower.includes("hint") || lower.includes("tip") || lower.includes("help")) {
+                    // Calculate progress for multi-move puzzles
+                    let progressInfo = '';
+                    if (tacticalPracticeMode?.moves && tacticalPracticeMode.moves.length > 0) {
+                        const totalPlayerMoves = tacticalPracticeMode.moves.filter(m => m.player).length;
+                        const currentPlayerMove = Math.floor((tacticalPracticeMode.currentMoveIndex || 0) / 2) + 1;
+                        progressInfo = `\n- Puzzle Progress: Move ${currentPlayerMove} of ${totalPlayerMoves}`;
+
+                        // Show next expected move
+                        const nextMove = tacticalPracticeMode.moves[tacticalPracticeMode.currentMoveIndex || 0];
+                        if (nextMove && nextMove.player) {
+                            progressInfo += `\n- Next Move to Find: ${nextMove.san} (${nextMove.uci})`;
+                        }
+                    }
+
                     finalPrompt = `[SYSTEM TRIGGER: hint]
 
 TEACHING MODE ACTIVATED:
@@ -392,14 +521,17 @@ User Question: ${text}
 
 Current Position Data:
 - FEN: ${currentFen}
-- Best Move: ${evaluation?.bestMove}
+- Best Move: ${bestMoveForHint || 'N/A'}
 - Evaluation: ${evaluation?.score ?? 'N/A'} centipawns ${evaluation?.score !== undefined ? (evaluation.score > 0 ? '(White is better)' : evaluation.score < 0 ? '(Black is better)' : '(Equal)') : ''}
 - Mate in: ${evaluation?.mate || 'None'}
 - Possible Openings: ${openingData && openingData.length > 0 ? openingData.map(o => `${o.name} (${o.eco})`).join(', ') : 'Unknown/Midgame'}
+${tacticalPracticeMode ? `- Tactical Pattern: ${tacticalPracticeMode.patternName}${progressInfo}` : ''}
 
 INSTRUCTIONS:
 - Give a HELPFUL hint without revealing the exact move (unless they specifically ask for it)
 - Point them toward what to look for: tactics, threats, piece placement, weaknesses
+${tacticalPracticeMode ? `- Guide them to find the ${tacticalPracticeMode.patternName} pattern` : ''}
+${tacticalPracticeMode?.moves && tacticalPracticeMode.moves.length > 1 ? '- This is a multi-move puzzle - guide them through the sequence step by step' : ''}
 - Examples: "Look at your knight on f3", "There's a tactic involving the bishop and queen", "Your king is vulnerable"
 - Stay in your personality style, but be HELPFUL and EDUCATIONAL
 - Do NOT refuse to help - teaching is your core role
@@ -412,9 +544,10 @@ User Question: ${text}
 Current Position Context:
 - FEN: ${currentFen}
 - Evaluation: ${evaluation?.score ?? 'N/A'} centipawns ${evaluation?.score !== undefined ? (evaluation.score > 0 ? '(White is better)' : evaluation.score < 0 ? '(Black is better)' : '(Equal)') : ''}
-- Best Move: ${evaluation?.bestMove ?? 'N/A'}
+- Best Move: ${bestMoveForHint ?? 'N/A'}
 - Mate in: ${evaluation?.mate || 'None'}
 - Possible Openings: ${openingData && openingData.length > 0 ? openingData.map(o => `${o.name} (${o.eco})`).join(', ') : 'Unknown/Midgame'}
+${tacticalPracticeMode ? `- Tactical Pattern: ${tacticalPracticeMode.patternName}` : ''}
 
 INSTRUCTIONS:
 - Answer the user's question based on the CURRENT position data above

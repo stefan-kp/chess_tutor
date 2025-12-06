@@ -1,22 +1,4385 @@
 {
-  "patternType": "FORK",
-  "description": "Knight fork hitting king and queen simultaneously.",
+  "description": "High-quality FORK tactical puzzles from Lichess database",
+  "source": "https://database.lichess.org/",
+  "generatedAt": "auto-generated",
   "cases": [
     {
-      "id": "fork_knight_checks_king_and_queen",
-      "initialFen": "4k3/5q2/8/5N2/8/8/8/6K1 w - - 0 1",
+      "id": "00BNd",
+      "initialFen": "1rr3k1/4ppbp/3p1np1/1b1N4/P2BP3/5P2/P2R2PP/R5K1 w - - 0 22",
       "sideToMove": "white",
-      "bestMove": { "san": "Nd6+", "uci": "f5d6" },
-      "resultingFen": "4k3/5q2/3N4/8/8/8/8/6K1 b - - 1 1",
-      "expectedPattern": {
-        "type": "FORK",
-        "side": "white",
-        "attackerSquares": ["d6"],
-        "targetSquares": ["e8", "f7"],
-        "explanationKey": "knight_fork"
+      "rating": 982,
+      "bestMove": {
+        "san": "Nxe7+",
+        "uci": "d5e7"
       },
-      "context": "The knight hop gives check on e8 while simultaneously attacking the queen on f7.",
-      "tags": ["tactics", "knight"]
+      "moves": [
+        {
+          "uci": "d5e7",
+          "san": "Nxe7+",
+          "player": true
+        },
+        {
+          "uci": "g8f8",
+          "san": "Kf8",
+          "player": false
+        },
+        {
+          "uci": "e7c8",
+          "san": "Nxc8",
+          "player": true
+        }
+      ],
+      "resultingFen": "1rN2k2/5pbp/3p1np1/1b6/P2BP3/5P2/P2R2PP/R5K1 b - - 0 23",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00BNd (Rating: 982, Popularity: 100)",
+      "tags": [
+        "advantage",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00Feu",
+      "initialFen": "4Rrk1/p6p/1pp2rp1/8/5B1q/4QP1P/P1P2PK1/8 w - - 3 29",
+      "sideToMove": "white",
+      "rating": 2016,
+      "bestMove": {
+        "san": "Bg5",
+        "uci": "f4g5"
+      },
+      "moves": [
+        {
+          "uci": "f4g5",
+          "san": "Bg5",
+          "player": true
+        },
+        {
+          "uci": "h4g5",
+          "san": "Qxg5+",
+          "player": false
+        },
+        {
+          "uci": "e3g5",
+          "san": "Qxg5",
+          "player": true
+        }
+      ],
+      "resultingFen": "4Rrk1/p6p/1pp2rp1/6Q1/8/5P1P/P1P2PK1/8 b - - 0 30",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Feu (Rating: 2016, Popularity: 100)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00Gvp",
+      "initialFen": "8/2kn1p2/8/3P4/R7/2PKN3/1r6/8 b - - 14 70",
+      "sideToMove": "black",
+      "rating": 979,
+      "bestMove": {
+        "san": "Nc5+",
+        "uci": "d7c5"
+      },
+      "moves": [
+        {
+          "uci": "d7c5",
+          "san": "Nc5+",
+          "player": true
+        },
+        {
+          "uci": "d3d4",
+          "san": "Kd4",
+          "player": false
+        },
+        {
+          "uci": "c5a4",
+          "san": "Nxa4",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/2k2p2/8/3P4/n2K4/2P1N3/1r6/8 w - - 0 72",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Gvp (Rating: 979, Popularity: 100)",
+      "tags": [
+        "advantage",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00IEW",
+      "initialFen": "2r3k1/6p1/R6p/3P1N2/8/3K4/5b2/8 w - - 6 58",
+      "sideToMove": "white",
+      "rating": 949,
+      "bestMove": {
+        "san": "Ne7+",
+        "uci": "f5e7"
+      },
+      "moves": [
+        {
+          "uci": "f5e7",
+          "san": "Ne7+",
+          "player": true
+        },
+        {
+          "uci": "g8f7",
+          "san": "Kf7",
+          "player": false
+        },
+        {
+          "uci": "e7c8",
+          "san": "Nxc8",
+          "player": true
+        }
+      ],
+      "resultingFen": "2N5/5kp1/R6p/3P4/8/3K4/5b2/8 b - - 0 59",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00IEW (Rating: 949, Popularity: 100)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00OxK",
+      "initialFen": "3r2k1/1p3p2/p1n2P2/2P3P1/1PR1p3/P2pP3/3B4/6K1 b - - 1 33",
+      "sideToMove": "black",
+      "rating": 1249,
+      "bestMove": {
+        "san": "Ne5",
+        "uci": "c6e5"
+      },
+      "moves": [
+        {
+          "uci": "c6e5",
+          "san": "Ne5",
+          "player": true
+        },
+        {
+          "uci": "c4e4",
+          "san": "Rxe4",
+          "player": false
+        },
+        {
+          "uci": "e5f3",
+          "san": "Nf3+",
+          "player": true
+        },
+        {
+          "uci": "g1f2",
+          "san": "Kf2",
+          "player": false
+        },
+        {
+          "uci": "f3d2",
+          "san": "Nxd2",
+          "player": true
+        }
+      ],
+      "resultingFen": "3r2k1/1p3p2/p4P2/2P3P1/1P2R3/P2pP3/3n1K2/8 w - - 0 36",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00OxK (Rating: 1249, Popularity: 100)",
+      "tags": [
+        "advantage",
+        "endgame",
+        "exposedKing",
+        "fork",
+        "long"
+      ]
+    },
+    {
+      "id": "00PUc",
+      "initialFen": "3r3k/pp4bp/3Bn1p1/7n/8/8/PP3P1K/3R1RN1 b - - 2 27",
+      "sideToMove": "black",
+      "rating": 1474,
+      "bestMove": {
+        "san": "Rxd6",
+        "uci": "d8d6"
+      },
+      "moves": [
+        {
+          "uci": "d8d6",
+          "san": "Rxd6",
+          "player": true
+        },
+        {
+          "uci": "d1d6",
+          "san": "Rxd6",
+          "player": false
+        },
+        {
+          "uci": "g7e5",
+          "san": "Be5+",
+          "player": true
+        },
+        {
+          "uci": "h2h1",
+          "san": "Kh1",
+          "player": false
+        },
+        {
+          "uci": "e5d6",
+          "san": "Bxd6",
+          "player": true
+        }
+      ],
+      "resultingFen": "7k/pp5p/3bn1p1/7n/8/8/PP3P2/5RNK w - - 0 30",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00PUc (Rating: 1474, Popularity: 100)",
+      "tags": [
+        "advantage",
+        "attraction",
+        "exposedKing",
+        "fork",
+        "long",
+        "middlegame",
+        "sacrifice"
+      ]
+    },
+    {
+      "id": "00Pc8",
+      "initialFen": "r1b2r2/pp1n2k1/2p3pp/4Np2/2BP4/8/PP4PP/2KRR3 w - - 1 19",
+      "sideToMove": "white",
+      "rating": 1087,
+      "bestMove": {
+        "san": "Nxd7",
+        "uci": "e5d7"
+      },
+      "moves": [
+        {
+          "uci": "e5d7",
+          "san": "Nxd7",
+          "player": true
+        },
+        {
+          "uci": "c8d7",
+          "san": "Bxd7",
+          "player": false
+        },
+        {
+          "uci": "e1e7",
+          "san": "Re7+",
+          "player": true
+        },
+        {
+          "uci": "g7f6",
+          "san": "Kf6",
+          "player": false
+        },
+        {
+          "uci": "e7d7",
+          "san": "Rxd7",
+          "player": true
+        }
+      ],
+      "resultingFen": "r4r2/pp1R4/2p2kpp/5p2/2BP4/8/PP4PP/2KR4 b - - 0 21",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Pc8 (Rating: 1087, Popularity: 100)",
+      "tags": [
+        "advantage",
+        "clearance",
+        "fork",
+        "long",
+        "middlegame"
+      ]
+    },
+    {
+      "id": "00WiX",
+      "initialFen": "8/5kpp/1p2p3/p1p1Q3/2Pn4/6P1/P4P1P/6K1 b - - 0 32",
+      "sideToMove": "black",
+      "rating": 1032,
+      "bestMove": {
+        "san": "Nf3+",
+        "uci": "d4f3"
+      },
+      "moves": [
+        {
+          "uci": "d4f3",
+          "san": "Nf3+",
+          "player": true
+        },
+        {
+          "uci": "g1f1",
+          "san": "Kf1",
+          "player": false
+        },
+        {
+          "uci": "f3e5",
+          "san": "Nxe5",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/5kpp/1p2p3/p1p1n3/2P5/6P1/P4P1P/5K2 w - - 0 34",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00WiX (Rating: 1032, Popularity: 100)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00DPI",
+      "initialFen": "3r2k1/1B3p1p/6p1/3N4/3p2r1/8/5KP1/3R4 w - - 0 36",
+      "sideToMove": "white",
+      "rating": 960,
+      "bestMove": {
+        "san": "Nf6+",
+        "uci": "d5f6"
+      },
+      "moves": [
+        {
+          "uci": "d5f6",
+          "san": "Nf6+",
+          "player": true
+        },
+        {
+          "uci": "g8g7",
+          "san": "Kg7",
+          "player": false
+        },
+        {
+          "uci": "f6g4",
+          "san": "Nxg4",
+          "player": true
+        }
+      ],
+      "resultingFen": "3r4/1B3pkp/6p1/8/3p2N1/8/5KP1/3R4 b - - 0 37",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00DPI (Rating: 960, Popularity: 99)",
+      "tags": [
+        "advantage",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00OPc",
+      "initialFen": "1k1rr3/ppp1q3/8/4nQ1p/8/2P2N1P/PP4P1/2K1R2R b - - 1 25",
+      "sideToMove": "black",
+      "rating": 2107,
+      "bestMove": {
+        "san": "Nd3+",
+        "uci": "e5d3"
+      },
+      "moves": [
+        {
+          "uci": "e5d3",
+          "san": "Nd3+",
+          "player": true
+        },
+        {
+          "uci": "f5d3",
+          "san": "Qxd3",
+          "player": false
+        },
+        {
+          "uci": "d8d3",
+          "san": "Rxd3",
+          "player": true
+        },
+        {
+          "uci": "e1e7",
+          "san": "Rxe7",
+          "player": false
+        },
+        {
+          "uci": "e8e7",
+          "san": "Rxe7",
+          "player": true
+        }
+      ],
+      "resultingFen": "1k6/ppp1r3/8/7p/8/2Pr1N1P/PP4P1/2K4R w - - 0 28",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00OPc (Rating: 2107, Popularity: 98)",
+      "tags": [
+        "advantage",
+        "fork",
+        "long",
+        "middlegame"
+      ]
+    },
+    {
+      "id": "00Rmm",
+      "initialFen": "2rr2k1/5ppp/p7/1p1nP3/1B1P1PP1/PK5P/2R5/3R4 b - - 5 30",
+      "sideToMove": "black",
+      "rating": 1446,
+      "bestMove": {
+        "san": "Rxc2",
+        "uci": "c8c2"
+      },
+      "moves": [
+        {
+          "uci": "c8c2",
+          "san": "Rxc2",
+          "player": true
+        },
+        {
+          "uci": "b3c2",
+          "san": "Kxc2",
+          "player": false
+        },
+        {
+          "uci": "d5e3",
+          "san": "Ne3+",
+          "player": true
+        },
+        {
+          "uci": "c2d3",
+          "san": "Kd3",
+          "player": false
+        },
+        {
+          "uci": "e3d1",
+          "san": "Nxd1",
+          "player": true
+        }
+      ],
+      "resultingFen": "3r2k1/5ppp/p7/1p2P3/1B1P1PP1/P2K3P/8/3n4 w - - 0 33",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Rmm (Rating: 1446, Popularity: 98)",
+      "tags": [
+        "advantage",
+        "attraction",
+        "endgame",
+        "fork",
+        "long"
+      ]
+    },
+    {
+      "id": "001wr",
+      "initialFen": "r4rk1/p3ppbp/Pp1q1np1/3PpbB1/2B5/2N2P2/1PPQ2PP/3RR1K1 b - - 0 18",
+      "sideToMove": "black",
+      "rating": 947,
+      "bestMove": {
+        "san": "Qc5+",
+        "uci": "d6c5"
+      },
+      "moves": [
+        {
+          "uci": "d6c5",
+          "san": "Qc5+",
+          "player": true
+        },
+        {
+          "uci": "g1h1",
+          "san": "Kh1",
+          "player": false
+        },
+        {
+          "uci": "c5c4",
+          "san": "Qxc4",
+          "player": true
+        }
+      ],
+      "resultingFen": "r4rk1/p3ppbp/Pp3np1/3PpbB1/2q5/2N2P2/1PPQ2PP/3RR2K w - - 0 20",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 001wr (Rating: 947, Popularity: 97)",
+      "tags": [
+        "advantage",
+        "fork",
+        "master",
+        "masterVsMaster",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "005nD",
+      "initialFen": "3rk2r/2qn2p1/p1Q1p3/3n3p/8/8/PP4PP/5R1K w k - 0 24",
+      "sideToMove": "white",
+      "rating": 1028,
+      "bestMove": {
+        "san": "Qxe6+",
+        "uci": "c6e6"
+      },
+      "moves": [
+        {
+          "uci": "c6e6",
+          "san": "Qxe6+",
+          "player": true
+        },
+        {
+          "uci": "d5e7",
+          "san": "Ne7",
+          "player": false
+        },
+        {
+          "uci": "e6f7",
+          "san": "Qf7#",
+          "player": true
+        }
+      ],
+      "resultingFen": "3rk2r/2qnnQp1/p7/7p/8/8/PP4PP/5R1K b k - 2 25",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 005nD (Rating: 1028, Popularity: 97)",
+      "tags": [
+        "fork",
+        "mate",
+        "mateIn2",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00Aas",
+      "initialFen": "3r1rk1/1p2q1pp/5p2/8/1P1n4/6Q1/PPBB1PPP/R4RK1 b - - 0 20",
+      "sideToMove": "black",
+      "rating": 1119,
+      "bestMove": {
+        "san": "Ne2+",
+        "uci": "d4e2"
+      },
+      "moves": [
+        {
+          "uci": "d4e2",
+          "san": "Ne2+",
+          "player": true
+        },
+        {
+          "uci": "g1h1",
+          "san": "Kh1",
+          "player": false
+        },
+        {
+          "uci": "e2g3",
+          "san": "Nxg3+",
+          "player": true
+        },
+        {
+          "uci": "f2g3",
+          "san": "fxg3",
+          "player": false
+        },
+        {
+          "uci": "d8d2",
+          "san": "Rxd2",
+          "player": true
+        }
+      ],
+      "resultingFen": "5rk1/1p2q1pp/5p2/8/1P6/6P1/PPBr2PP/R4R1K w - - 0 23",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Aas (Rating: 1119, Popularity: 97)",
+      "tags": [
+        "crushing",
+        "fork",
+        "long",
+        "middlegame"
+      ]
+    },
+    {
+      "id": "00BJm",
+      "initialFen": "r4rk1/1Q2bppp/p1N1p3/1p1q4/2pP1n2/2P5/PP3PPP/R4RK1 w - - 2 19",
+      "sideToMove": "white",
+      "rating": 1044,
+      "bestMove": {
+        "san": "Nxe7+",
+        "uci": "c6e7"
+      },
+      "moves": [
+        {
+          "uci": "c6e7",
+          "san": "Nxe7+",
+          "player": true
+        },
+        {
+          "uci": "g8h8",
+          "san": "Kh8",
+          "player": false
+        },
+        {
+          "uci": "e7d5",
+          "san": "Nxd5",
+          "player": true
+        }
+      ],
+      "resultingFen": "r4r1k/1Q3ppp/p3p3/1p1N4/2pP1n2/2P5/PP3PPP/R4RK1 b - - 0 20",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00BJm (Rating: 1044, Popularity: 97)",
+      "tags": [
+        "advantage",
+        "fork",
+        "hangingPiece",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00cud",
+      "initialFen": "8/5p2/6p1/1p1N1k2/1P1K4/2P3P1/8/5b2 w - - 1 49",
+      "sideToMove": "white",
+      "rating": 961,
+      "bestMove": {
+        "san": "Ne3+",
+        "uci": "d5e3"
+      },
+      "moves": [
+        {
+          "uci": "d5e3",
+          "san": "Ne3+",
+          "player": true
+        },
+        {
+          "uci": "f5e6",
+          "san": "Ke6",
+          "player": false
+        },
+        {
+          "uci": "e3f1",
+          "san": "Nxf1",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/5p2/4k1p1/1p6/1P1K4/2P3P1/8/5N2 b - - 0 50",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00cud (Rating: 961, Popularity: 97)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "master",
+        "short"
+      ]
+    },
+    {
+      "id": "0017R",
+      "initialFen": "r2qk2r/pp2ppbp/1n1p2p1/3P4/2n5/2NBBP1P/PP3P2/R2QK2R w KQkq - 0 13",
+      "sideToMove": "white",
+      "rating": 1677,
+      "bestMove": {
+        "san": "Bxc4",
+        "uci": "d3c4"
+      },
+      "moves": [
+        {
+          "uci": "d3c4",
+          "san": "Bxc4",
+          "player": true
+        },
+        {
+          "uci": "b6c4",
+          "san": "Nxc4",
+          "player": false
+        },
+        {
+          "uci": "d1a4",
+          "san": "Qa4+",
+          "player": true
+        },
+        {
+          "uci": "d8d7",
+          "san": "Qd7",
+          "player": false
+        },
+        {
+          "uci": "a4c4",
+          "san": "Qxc4",
+          "player": true
+        }
+      ],
+      "resultingFen": "r3k2r/pp1qppbp/3p2p1/3P4/2Q5/2N1BP1P/PP3P2/R3K2R b KQkq - 0 15",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 0017R (Rating: 1677, Popularity: 96)",
+      "tags": [
+        "advantage",
+        "fork",
+        "long",
+        "middlegame"
+      ]
+    },
+    {
+      "id": "005HG",
+      "initialFen": "r2q1rk1/p1p2pp1/3bbn1p/4N3/8/1P4P1/PBQPPP1P/RN2K2R b KQ - 2 12",
+      "sideToMove": "black",
+      "rating": 1744,
+      "bestMove": {
+        "san": "Bxe5",
+        "uci": "d6e5"
+      },
+      "moves": [
+        {
+          "uci": "d6e5",
+          "san": "Bxe5",
+          "player": true
+        },
+        {
+          "uci": "b2e5",
+          "san": "Bxe5",
+          "player": false
+        },
+        {
+          "uci": "d8d5",
+          "san": "Qd5",
+          "player": true
+        },
+        {
+          "uci": "f2f3",
+          "san": "f3",
+          "player": false
+        },
+        {
+          "uci": "d5e5",
+          "san": "Qxe5",
+          "player": true
+        }
+      ],
+      "resultingFen": "r4rk1/p1p2pp1/4bn1p/4q3/8/1P3PP1/P1QPP2P/RN2K2R w KQ - 0 15",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 005HG (Rating: 1744, Popularity: 96)",
+      "tags": [
+        "advantage",
+        "clearance",
+        "fork",
+        "long",
+        "opening"
+      ]
+    },
+    {
+      "id": "00GBX",
+      "initialFen": "r6k/pp2n1pp/2nN4/4p1r1/1PB5/2P4b/P3Nb1P/R2R3K w - - 0 23",
+      "sideToMove": "white",
+      "rating": 929,
+      "bestMove": {
+        "san": "Nf7+",
+        "uci": "d6f7"
+      },
+      "moves": [
+        {
+          "uci": "d6f7",
+          "san": "Nf7+",
+          "player": true
+        },
+        {
+          "uci": "h8g8",
+          "san": "Kg8",
+          "player": false
+        },
+        {
+          "uci": "f7g5",
+          "san": "Nxg5+",
+          "player": true
+        }
+      ],
+      "resultingFen": "r5k1/pp2n1pp/2n5/4p1N1/1PB5/2P4b/P3Nb1P/R2R3K b - - 0 24",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00GBX (Rating: 929, Popularity: 96)",
+      "tags": [
+        "advantage",
+        "discoveredAttack",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00Kia",
+      "initialFen": "5r1k/4n2p/1p4p1/pP5Q/P2pB2K/6P1/2P4P/4q3 w - - 0 38",
+      "sideToMove": "white",
+      "rating": 1704,
+      "bestMove": {
+        "san": "Qe5+",
+        "uci": "h5e5"
+      },
+      "moves": [
+        {
+          "uci": "h5e5",
+          "san": "Qe5+",
+          "player": true
+        },
+        {
+          "uci": "h8g8",
+          "san": "Kg8",
+          "player": false
+        },
+        {
+          "uci": "e4d5",
+          "san": "Bd5+",
+          "player": true
+        },
+        {
+          "uci": "e7d5",
+          "san": "Nxd5",
+          "player": false
+        },
+        {
+          "uci": "e5e1",
+          "san": "Qxe1",
+          "player": true
+        }
+      ],
+      "resultingFen": "5rk1/7p/1p4p1/pP1n4/P2p3K/6P1/2P4P/4Q3 b - - 0 40",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Kia (Rating: 1704, Popularity: 96)",
+      "tags": [
+        "advantage",
+        "discoveredAttack",
+        "endgame",
+        "fork",
+        "long"
+      ]
+    },
+    {
+      "id": "00Rue",
+      "initialFen": "r2qkb1r/pp1nppp1/2p2n1p/3p1b2/2PP4/BP2PN2/P4PPP/RN1QKB1R b KQkq - 0 7",
+      "sideToMove": "black",
+      "rating": 1864,
+      "bestMove": {
+        "san": "Bxb1",
+        "uci": "f5b1"
+      },
+      "moves": [
+        {
+          "uci": "f5b1",
+          "san": "Bxb1",
+          "player": true
+        },
+        {
+          "uci": "a1b1",
+          "san": "Rxb1",
+          "player": false
+        },
+        {
+          "uci": "d8a5",
+          "san": "Qa5+",
+          "player": true
+        },
+        {
+          "uci": "b3b4",
+          "san": "b4",
+          "player": false
+        },
+        {
+          "uci": "a5a3",
+          "san": "Qxa3",
+          "player": true
+        }
+      ],
+      "resultingFen": "r3kb1r/pp1nppp1/2p2n1p/3p4/1PPP4/q3PN2/P4PPP/1R1QKB1R w Kkq - 0 10",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Rue (Rating: 1864, Popularity: 96)",
+      "tags": [
+        "advantage",
+        "fork",
+        "long",
+        "opening"
+      ]
+    },
+    {
+      "id": "00ZDZ",
+      "initialFen": "8/pp4k1/2p3p1/3nRr2/3P1PK1/2P5/PP6/5R2 b - - 0 36",
+      "sideToMove": "black",
+      "rating": 1700,
+      "bestMove": {
+        "san": "Rxe5",
+        "uci": "f5e5"
+      },
+      "moves": [
+        {
+          "uci": "f5e5",
+          "san": "Rxe5",
+          "player": true
+        },
+        {
+          "uci": "d4e5",
+          "san": "dxe5",
+          "player": false
+        },
+        {
+          "uci": "d5e3",
+          "san": "Ne3+",
+          "player": true
+        },
+        {
+          "uci": "g4f3",
+          "san": "Kf3",
+          "player": false
+        },
+        {
+          "uci": "e3f1",
+          "san": "Nxf1",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/pp4k1/2p3p1/4P3/5P2/2P2K2/PP6/5n2 w - - 0 39",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00ZDZ (Rating: 1700, Popularity: 96)",
+      "tags": [
+        "advantage",
+        "endgame",
+        "fork",
+        "long"
+      ]
+    },
+    {
+      "id": "003jb",
+      "initialFen": "r3kb1r/p4ppp/b3p3/2pq4/3Q4/4BN2/PPP2PPP/R3K2R w KQkq - 0 12",
+      "sideToMove": "white",
+      "rating": 983,
+      "bestMove": {
+        "san": "Qa4+",
+        "uci": "d4a4"
+      },
+      "moves": [
+        {
+          "uci": "d4a4",
+          "san": "Qa4+",
+          "player": true
+        },
+        {
+          "uci": "a6b5",
+          "san": "Bb5",
+          "player": false
+        },
+        {
+          "uci": "a4b5",
+          "san": "Qxb5+",
+          "player": true
+        }
+      ],
+      "resultingFen": "r3kb1r/p4ppp/4p3/1Qpq4/8/4BN2/PPP2PPP/R3K2R b KQkq - 0 13",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 003jb (Rating: 983, Popularity: 95)",
+      "tags": [
+        "crushing",
+        "fork",
+        "master",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "006om",
+      "initialFen": "1r3k2/5p1p/2p1pp2/P2n4/r3N3/P4PK1/2R2P1P/2R5 w - - 10 30",
+      "sideToMove": "white",
+      "rating": 1910,
+      "bestMove": {
+        "san": "Nc5",
+        "uci": "e4c5"
+      },
+      "moves": [
+        {
+          "uci": "e4c5",
+          "san": "Nc5",
+          "player": true
+        },
+        {
+          "uci": "a4a5",
+          "san": "Rxa5",
+          "player": false
+        },
+        {
+          "uci": "c5d7",
+          "san": "Nd7+",
+          "player": true
+        },
+        {
+          "uci": "f8g7",
+          "san": "Kg7",
+          "player": false
+        },
+        {
+          "uci": "d7b8",
+          "san": "Nxb8",
+          "player": true
+        }
+      ],
+      "resultingFen": "1N6/5pkp/2p1pp2/r2n4/8/P4PK1/2R2P1P/2R5 b - - 0 32",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 006om (Rating: 1910, Popularity: 95)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "long",
+        "master"
+      ]
+    },
+    {
+      "id": "00EBZ",
+      "initialFen": "3rr1k1/p4pp1/1pp4p/3pPQ2/1P3P2/2P2RqP/P2R2P1/6K1 b - - 2 24",
+      "sideToMove": "black",
+      "rating": 831,
+      "bestMove": {
+        "san": "Qe1+",
+        "uci": "g3e1"
+      },
+      "moves": [
+        {
+          "uci": "g3e1",
+          "san": "Qe1+",
+          "player": true
+        },
+        {
+          "uci": "g1h2",
+          "san": "Kh2",
+          "player": false
+        },
+        {
+          "uci": "e1d2",
+          "san": "Qxd2",
+          "player": true
+        }
+      ],
+      "resultingFen": "3rr1k1/p4pp1/1pp4p/3pPQ2/1P3P2/2P2R1P/P2q2PK/8 w - - 0 26",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00EBZ (Rating: 831, Popularity: 95)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00IUT",
+      "initialFen": "1r2r1k1/ppp1q1pp/4b3/4P3/1Q1R1P2/8/P5PP/R1B3K1 b - - 0 19",
+      "sideToMove": "black",
+      "rating": 1536,
+      "bestMove": {
+        "san": "c5",
+        "uci": "c7c5"
+      },
+      "moves": [
+        {
+          "uci": "c7c5",
+          "san": "c5",
+          "player": true
+        },
+        {
+          "uci": "b4a3",
+          "san": "Qa3",
+          "player": false
+        },
+        {
+          "uci": "c5d4",
+          "san": "cxd4",
+          "player": true
+        },
+        {
+          "uci": "a3e7",
+          "san": "Qxe7",
+          "player": false
+        },
+        {
+          "uci": "e8e7",
+          "san": "Rxe7",
+          "player": true
+        }
+      ],
+      "resultingFen": "1r4k1/pp2r1pp/4b3/4P3/3p1P2/8/P5PP/R1B3K1 w - - 0 22",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00IUT (Rating: 1536, Popularity: 95)",
+      "tags": [
+        "crushing",
+        "fork",
+        "long",
+        "middlegame"
+      ]
+    },
+    {
+      "id": "00NHK",
+      "initialFen": "r1b2rk1/1p2b1p1/pq2p1P1/3pn3/1P1P4/P1N1P3/6P1/R2QK2R w KQ - 0 18",
+      "sideToMove": "white",
+      "rating": 1905,
+      "bestMove": {
+        "san": "Rh8+",
+        "uci": "h1h8"
+      },
+      "moves": [
+        {
+          "uci": "h1h8",
+          "san": "Rh8+",
+          "player": true
+        },
+        {
+          "uci": "g8h8",
+          "san": "Kxh8",
+          "player": false
+        },
+        {
+          "uci": "d1h5",
+          "san": "Qh5+",
+          "player": true
+        },
+        {
+          "uci": "h8g8",
+          "san": "Kg8",
+          "player": false
+        },
+        {
+          "uci": "h5h7",
+          "san": "Qh7#",
+          "player": true
+        }
+      ],
+      "resultingFen": "r1b2rk1/1p2b1pQ/pq2p1P1/3pn3/1P1P4/P1N1P3/6P1/R3K3 b Q - 3 20",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00NHK (Rating: 1905, Popularity: 95)",
+      "tags": [
+        "attraction",
+        "fork",
+        "long",
+        "mate",
+        "mateIn3",
+        "middlegame",
+        "sacrifice"
+      ]
+    },
+    {
+      "id": "00Nf5",
+      "initialFen": "r1bq1rk1/pp2bppp/2pp1n2/8/5P2/2N2N2/PBPPB1PP/R2Q1RK1 b - - 6 11",
+      "sideToMove": "black",
+      "rating": 1423,
+      "bestMove": {
+        "san": "Qb6+",
+        "uci": "d8b6"
+      },
+      "moves": [
+        {
+          "uci": "d8b6",
+          "san": "Qb6+",
+          "player": true
+        },
+        {
+          "uci": "g1h1",
+          "san": "Kh1",
+          "player": false
+        },
+        {
+          "uci": "b6b2",
+          "san": "Qxb2",
+          "player": true
+        },
+        {
+          "uci": "a1b1",
+          "san": "Rb1",
+          "player": false
+        },
+        {
+          "uci": "b2a3",
+          "san": "Qa3",
+          "player": true
+        }
+      ],
+      "resultingFen": "r1b2rk1/pp2bppp/2pp1n2/8/5P2/q1N2N2/P1PPB1PP/1R1Q1R1K w - - 2 14",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Nf5 (Rating: 1423, Popularity: 95)",
+      "tags": [
+        "advantage",
+        "fork",
+        "long",
+        "opening"
+      ]
+    },
+    {
+      "id": "00QOa",
+      "initialFen": "6rk/1pR3p1/6Bp/2b4P/8/pP3PK1/P1P5/8 b - - 0 32",
+      "sideToMove": "black",
+      "rating": 861,
+      "bestMove": {
+        "san": "Bd6+",
+        "uci": "c5d6"
+      },
+      "moves": [
+        {
+          "uci": "c5d6",
+          "san": "Bd6+",
+          "player": true
+        },
+        {
+          "uci": "f3f4",
+          "san": "f4",
+          "player": false
+        },
+        {
+          "uci": "d6c7",
+          "san": "Bxc7",
+          "player": true
+        }
+      ],
+      "resultingFen": "6rk/1pb3p1/6Bp/7P/5P2/pP4K1/P1P5/8 w - - 0 34",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00QOa (Rating: 861, Popularity: 95)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00Rcs",
+      "initialFen": "3k4/ppp2p1r/4p2P/5n2/3PK1N1/2P5/P1P3P1/7R b - - 0 30",
+      "sideToMove": "black",
+      "rating": 867,
+      "bestMove": {
+        "san": "Ng3+",
+        "uci": "f5g3"
+      },
+      "moves": [
+        {
+          "uci": "f5g3",
+          "san": "Ng3+",
+          "player": true
+        },
+        {
+          "uci": "e4f4",
+          "san": "Kf4",
+          "player": false
+        },
+        {
+          "uci": "g3h1",
+          "san": "Nxh1",
+          "player": true
+        }
+      ],
+      "resultingFen": "3k4/ppp2p1r/4p2P/8/3P1KN1/2P5/P1P3P1/7n w - - 0 32",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Rcs (Rating: 867, Popularity: 95)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00SCA",
+      "initialFen": "8/2Q5/2p2nk1/4K3/2r5/8/8/8 b - - 5 71",
+      "sideToMove": "black",
+      "rating": 1554,
+      "bestMove": {
+        "san": "Re4+",
+        "uci": "c4e4"
+      },
+      "moves": [
+        {
+          "uci": "c4e4",
+          "san": "Re4+",
+          "player": true
+        },
+        {
+          "uci": "e5d6",
+          "san": "Kd6",
+          "player": false
+        },
+        {
+          "uci": "f6e8",
+          "san": "Ne8+",
+          "player": true
+        },
+        {
+          "uci": "d6d7",
+          "san": "Kd7",
+          "player": false
+        },
+        {
+          "uci": "e8c7",
+          "san": "Nxc7",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/2nK4/2p3k1/8/4r3/8/8/8 w - - 0 74",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00SCA (Rating: 1554, Popularity: 95)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "long"
+      ]
+    },
+    {
+      "id": "00SU7",
+      "initialFen": "2rqr1k1/B2b1ppp/5n2/8/7Q/3B4/P1P2PPP/R3R1K1 b - - 4 22",
+      "sideToMove": "black",
+      "rating": 1632,
+      "bestMove": {
+        "san": "Rxe1+",
+        "uci": "e8e1"
+      },
+      "moves": [
+        {
+          "uci": "e8e1",
+          "san": "Rxe1+",
+          "player": true
+        },
+        {
+          "uci": "a1e1",
+          "san": "Rxe1",
+          "player": false
+        },
+        {
+          "uci": "d8a5",
+          "san": "Qa5",
+          "player": true
+        },
+        {
+          "uci": "e1a1",
+          "san": "Ra1",
+          "player": false
+        },
+        {
+          "uci": "a5a7",
+          "san": "Qxa7",
+          "player": true
+        }
+      ],
+      "resultingFen": "2r3k1/q2b1ppp/5n2/8/7Q/3B4/P1P2PPP/R5K1 w - - 0 25",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00SU7 (Rating: 1632, Popularity: 95)",
+      "tags": [
+        "advantage",
+        "fork",
+        "long",
+        "middlegame"
+      ]
+    },
+    {
+      "id": "00UyQ",
+      "initialFen": "4r1k1/p1Q2pp1/1p5p/4P3/5r1q/5R2/P3B1PP/R5K1 b - - 0 22",
+      "sideToMove": "black",
+      "rating": 1700,
+      "bestMove": {
+        "san": "Rxf3",
+        "uci": "f4f3"
+      },
+      "moves": [
+        {
+          "uci": "f4f3",
+          "san": "Rxf3",
+          "player": true
+        },
+        {
+          "uci": "g2f3",
+          "san": "gxf3",
+          "player": false
+        },
+        {
+          "uci": "h4d4",
+          "san": "Qd4+",
+          "player": true
+        },
+        {
+          "uci": "g1g2",
+          "san": "Kg2",
+          "player": false
+        },
+        {
+          "uci": "d4a1",
+          "san": "Qxa1",
+          "player": true
+        }
+      ],
+      "resultingFen": "4r1k1/p1Q2pp1/1p5p/4P3/8/5P2/P3B1KP/q7 w - - 0 25",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00UyQ (Rating: 1700, Popularity: 95)",
+      "tags": [
+        "advantage",
+        "clearance",
+        "fork",
+        "long",
+        "middlegame"
+      ]
+    },
+    {
+      "id": "00Y5Q",
+      "initialFen": "rnbq1rk1/pp2b2p/4p2Q/3p1p2/2pP4/P1N5/1PP1PPPP/2KR1BNR b - - 0 11",
+      "sideToMove": "black",
+      "rating": 962,
+      "bestMove": {
+        "san": "Bg5+",
+        "uci": "e7g5"
+      },
+      "moves": [
+        {
+          "uci": "e7g5",
+          "san": "Bg5+",
+          "player": true
+        },
+        {
+          "uci": "h6g5",
+          "san": "Qxg5+",
+          "player": false
+        },
+        {
+          "uci": "d8g5",
+          "san": "Qxg5+",
+          "player": true
+        }
+      ],
+      "resultingFen": "rnb2rk1/pp5p/4p3/3p1pq1/2pP4/P1N5/1PP1PPPP/2KR1BNR w - - 0 13",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Y5Q (Rating: 962, Popularity: 95)",
+      "tags": [
+        "crushing",
+        "fork",
+        "opening",
+        "short"
+      ]
+    },
+    {
+      "id": "00cxg",
+      "initialFen": "r2qk2r/1p2bp2/p2pp1p1/8/4b2P/4B3/PPPQB3/2K3RR w kq - 0 18",
+      "sideToMove": "white",
+      "rating": 1893,
+      "bestMove": {
+        "san": "Qd4",
+        "uci": "d2d4"
+      },
+      "moves": [
+        {
+          "uci": "d2d4",
+          "san": "Qd4",
+          "player": true
+        },
+        {
+          "uci": "e4h1",
+          "san": "Bxh1",
+          "player": false
+        },
+        {
+          "uci": "d4h8",
+          "san": "Qxh8+",
+          "player": true
+        },
+        {
+          "uci": "e8d7",
+          "san": "Kd7",
+          "player": false
+        },
+        {
+          "uci": "h8d8",
+          "san": "Qxd8+",
+          "player": true
+        }
+      ],
+      "resultingFen": "r2Q4/1p1kbp2/p2pp1p1/8/7P/4B3/PPP1B3/2K3Rb b - - 0 20",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00cxg (Rating: 1893, Popularity: 95)",
+      "tags": [
+        "advantage",
+        "fork",
+        "long",
+        "middlegame"
+      ]
+    },
+    {
+      "id": "00dTO",
+      "initialFen": "5q2/3n1rk1/3p2p1/p1p5/1pP2NP1/3PNp1P/PP5K/3Q4 w - - 2 31",
+      "sideToMove": "white",
+      "rating": 863,
+      "bestMove": {
+        "san": "Ne6+",
+        "uci": "f4e6"
+      },
+      "moves": [
+        {
+          "uci": "f4e6",
+          "san": "Ne6+",
+          "player": true
+        },
+        {
+          "uci": "g7g8",
+          "san": "Kg8",
+          "player": false
+        },
+        {
+          "uci": "e6f8",
+          "san": "Nxf8",
+          "player": true
+        }
+      ],
+      "resultingFen": "5Nk1/3n1r2/3p2p1/p1p5/1pP3P1/3PNp1P/PP5K/3Q4 b - - 0 32",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00dTO (Rating: 863, Popularity: 95)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "003mh",
+      "initialFen": "4rk1r/1pp2p2/p2p3p/3N4/3P2q1/8/PPP5/1K2Q1NR w - - 2 24",
+      "sideToMove": "white",
+      "rating": 1424,
+      "bestMove": {
+        "san": "Qxe8+",
+        "uci": "e1e8"
+      },
+      "moves": [
+        {
+          "uci": "e1e8",
+          "san": "Qxe8+",
+          "player": true
+        },
+        {
+          "uci": "f8e8",
+          "san": "Kxe8",
+          "player": false
+        },
+        {
+          "uci": "d5f6",
+          "san": "Nf6+",
+          "player": true
+        },
+        {
+          "uci": "e8e7",
+          "san": "Ke7",
+          "player": false
+        },
+        {
+          "uci": "f6g4",
+          "san": "Nxg4",
+          "player": true
+        }
+      ],
+      "resultingFen": "7r/1pp1kp2/p2p3p/8/3P2N1/8/PPP5/1K4NR b - - 0 26",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 003mh (Rating: 1424, Popularity: 94)",
+      "tags": [
+        "advantage",
+        "attraction",
+        "fork",
+        "long",
+        "middlegame",
+        "sacrifice"
+      ]
+    },
+    {
+      "id": "00761",
+      "initialFen": "3r2k1/1b4bR/p2P2p1/3p2N1/2p5/2P2N2/PP6/2K5 w - - 0 29",
+      "sideToMove": "white",
+      "rating": 1525,
+      "bestMove": {
+        "san": "Rxg7+",
+        "uci": "h7g7"
+      },
+      "moves": [
+        {
+          "uci": "h7g7",
+          "san": "Rxg7+",
+          "player": true
+        },
+        {
+          "uci": "g8g7",
+          "san": "Kxg7",
+          "player": false
+        },
+        {
+          "uci": "g5e6",
+          "san": "Ne6+",
+          "player": true
+        },
+        {
+          "uci": "g7g8",
+          "san": "Kg8",
+          "player": false
+        },
+        {
+          "uci": "e6d8",
+          "san": "Nxd8",
+          "player": true
+        }
+      ],
+      "resultingFen": "3N2k1/1b6/p2P2p1/3p4/2p5/2P2N2/PP6/2K5 b - - 0 31",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00761 (Rating: 1525, Popularity: 94)",
+      "tags": [
+        "attraction",
+        "crushing",
+        "endgame",
+        "exposedKing",
+        "fork",
+        "long",
+        "sacrifice"
+      ]
+    },
+    {
+      "id": "00UI2",
+      "initialFen": "2r3nr/p5pp/b3k3/3p1p2/4p3/BP3P2/P1PN2PP/2KR3R w - - 0 19",
+      "sideToMove": "white",
+      "rating": 1986,
+      "bestMove": {
+        "san": "fxe4",
+        "uci": "f3e4"
+      },
+      "moves": [
+        {
+          "uci": "f3e4",
+          "san": "fxe4",
+          "player": true
+        },
+        {
+          "uci": "f5e4",
+          "san": "fxe4",
+          "player": false
+        },
+        {
+          "uci": "d2e4",
+          "san": "Nxe4",
+          "player": true
+        },
+        {
+          "uci": "d5e4",
+          "san": "dxe4",
+          "player": false
+        },
+        {
+          "uci": "d1d6",
+          "san": "Rd6+",
+          "player": true
+        },
+        {
+          "uci": "e6f7",
+          "san": "Kf7",
+          "player": false
+        },
+        {
+          "uci": "d6a6",
+          "san": "Rxa6",
+          "player": true
+        }
+      ],
+      "resultingFen": "2r3nr/p4kpp/R7/8/4p3/BP6/P1P3PP/2K4R b - - 0 22",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00UI2 (Rating: 1986, Popularity: 94)",
+      "tags": [
+        "clearance",
+        "crushing",
+        "fork",
+        "middlegame",
+        "sacrifice",
+        "veryLong"
+      ]
+    },
+    {
+      "id": "00UgJ",
+      "initialFen": "1r1q1rk1/1b4b1/4p1Bp/3pP3/p2B2P1/7Q/PPP5/2KR3R b - - 0 23",
+      "sideToMove": "black",
+      "rating": 928,
+      "bestMove": {
+        "san": "Qg5+",
+        "uci": "d8g5"
+      },
+      "moves": [
+        {
+          "uci": "d8g5",
+          "san": "Qg5+",
+          "player": true
+        },
+        {
+          "uci": "c1b1",
+          "san": "Kb1",
+          "player": false
+        },
+        {
+          "uci": "g5g6",
+          "san": "Qxg6",
+          "player": true
+        }
+      ],
+      "resultingFen": "1r3rk1/1b4b1/4p1qp/3pP3/p2B2P1/7Q/PPP5/1K1R3R w - - 0 25",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00UgJ (Rating: 928, Popularity: 94)",
+      "tags": [
+        "advantage",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00bTs",
+      "initialFen": "2r4k/6RP/8/3p4/pp1qn3/3N1Q2/PPP5/1K5R b - - 0 35",
+      "sideToMove": "black",
+      "rating": 1076,
+      "bestMove": {
+        "san": "Nd2+",
+        "uci": "e4d2"
+      },
+      "moves": [
+        {
+          "uci": "e4d2",
+          "san": "Nd2+",
+          "player": true
+        },
+        {
+          "uci": "b1a1",
+          "san": "Ka1",
+          "player": false
+        },
+        {
+          "uci": "d2f3",
+          "san": "Nxf3",
+          "player": true
+        }
+      ],
+      "resultingFen": "2r4k/6RP/8/3p4/pp1q4/3N1n2/PPP5/K6R w - - 0 37",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00bTs (Rating: 1076, Popularity: 94)",
+      "tags": [
+        "advantage",
+        "fork",
+        "master",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00HEx",
+      "initialFen": "R7/5pk1/4pn1p/8/3NP3/5P2/6PP/2rB2K1 b - - 0 31",
+      "sideToMove": "black",
+      "rating": 975,
+      "bestMove": {
+        "san": "Rxd1+",
+        "uci": "c1d1"
+      },
+      "moves": [
+        {
+          "uci": "c1d1",
+          "san": "Rxd1+",
+          "player": true
+        },
+        {
+          "uci": "g1f2",
+          "san": "Kf2",
+          "player": false
+        },
+        {
+          "uci": "d1d4",
+          "san": "Rxd4",
+          "player": true
+        }
+      ],
+      "resultingFen": "R7/5pk1/4pn1p/8/3rP3/5P2/5KPP/8 w - - 0 33",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00HEx (Rating: 975, Popularity: 93)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "hangingPiece",
+        "master",
+        "short"
+      ]
+    },
+    {
+      "id": "00PGi",
+      "initialFen": "3r1q1k/p1pb2pp/1pnp4/6N1/5B2/1Q4P1/PP4PP/4R2K w - - 0 25",
+      "sideToMove": "white",
+      "rating": 1029,
+      "bestMove": {
+        "san": "Nf7+",
+        "uci": "g5f7"
+      },
+      "moves": [
+        {
+          "uci": "g5f7",
+          "san": "Nf7+",
+          "player": true
+        },
+        {
+          "uci": "f8f7",
+          "san": "Qxf7",
+          "player": false
+        },
+        {
+          "uci": "b3f7",
+          "san": "Qxf7",
+          "player": true
+        }
+      ],
+      "resultingFen": "3r3k/p1pb1Qpp/1pnp4/8/5B2/6P1/PP4PP/4R2K b - - 0 26",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00PGi (Rating: 1029, Popularity: 93)",
+      "tags": [
+        "crushing",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00QCe",
+      "initialFen": "1k5r/n1r3pp/5p2/ppN5/5P2/8/2R3PP/1R4K1 w - - 4 29",
+      "sideToMove": "white",
+      "rating": 1400,
+      "bestMove": {
+        "san": "Na6+",
+        "uci": "c5a6"
+      },
+      "moves": [
+        {
+          "uci": "c5a6",
+          "san": "Na6+",
+          "player": true
+        },
+        {
+          "uci": "b8b7",
+          "san": "Kb7",
+          "player": false
+        },
+        {
+          "uci": "a6c7",
+          "san": "Nxc7",
+          "player": true
+        }
+      ],
+      "resultingFen": "7r/nkN3pp/5p2/pp6/5P2/8/2R3PP/1R4K1 b - - 0 30",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00QCe (Rating: 1400, Popularity: 93)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00Ta0",
+      "initialFen": "4k3/1R6/6N1/5p1p/7P/2r3PK/5b2/8 b - - 0 47",
+      "sideToMove": "black",
+      "rating": 1170,
+      "bestMove": {
+        "san": "Rxg3+",
+        "uci": "c3g3"
+      },
+      "moves": [
+        {
+          "uci": "c3g3",
+          "san": "Rxg3+",
+          "player": true
+        },
+        {
+          "uci": "h3h2",
+          "san": "Kh2",
+          "player": false
+        },
+        {
+          "uci": "g3g6",
+          "san": "Rxg6",
+          "player": true
+        }
+      ],
+      "resultingFen": "4k3/1R6/6r1/5p1p/7P/8/5b1K/8 w - - 0 49",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Ta0 (Rating: 1170, Popularity: 93)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00Uwn",
+      "initialFen": "3r1rk1/p1p2pbp/1p4p1/7n/4P2q/1P2BP2/P1B3QP/3R1R1K w - - 7 24",
+      "sideToMove": "white",
+      "rating": 1574,
+      "bestMove": {
+        "san": "Bg5",
+        "uci": "e3g5"
+      },
+      "moves": [
+        {
+          "uci": "e3g5",
+          "san": "Bg5",
+          "player": true
+        },
+        {
+          "uci": "h5g3",
+          "san": "Ng3+",
+          "player": false
+        },
+        {
+          "uci": "g2g3",
+          "san": "Qxg3",
+          "player": true
+        }
+      ],
+      "resultingFen": "3r1rk1/p1p2pbp/1p4p1/6B1/4P2q/1P3PQ1/P1B4P/3R1R1K b - - 0 25",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Uwn (Rating: 1574, Popularity: 93)",
+      "tags": [
+        "advantage",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00VGt",
+      "initialFen": "3K4/8/2P5/R5pp/1n6/5PkP/6P1/8 b - - 4 61",
+      "sideToMove": "black",
+      "rating": 931,
+      "bestMove": {
+        "san": "Nxc6+",
+        "uci": "b4c6"
+      },
+      "moves": [
+        {
+          "uci": "b4c6",
+          "san": "Nxc6+",
+          "player": true
+        },
+        {
+          "uci": "d8d7",
+          "san": "Kd7",
+          "player": false
+        },
+        {
+          "uci": "c6a5",
+          "san": "Nxa5",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/3K4/8/n5pp/8/5PkP/6P1/8 w - - 0 63",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00VGt (Rating: 931, Popularity: 93)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00aOF",
+      "initialFen": "3r2k1/pp2R2p/5pbQ/q2p4/6PP/1Br2P2/P1P5/5RK1 b - - 1 24",
+      "sideToMove": "black",
+      "rating": 1229,
+      "bestMove": {
+        "san": "Qc5+",
+        "uci": "a5c5"
+      },
+      "moves": [
+        {
+          "uci": "a5c5",
+          "san": "Qc5+",
+          "player": true
+        },
+        {
+          "uci": "f1f2",
+          "san": "Rf2",
+          "player": false
+        },
+        {
+          "uci": "c5e7",
+          "san": "Qxe7",
+          "player": true
+        }
+      ],
+      "resultingFen": "3r2k1/pp2q2p/5pbQ/3p4/6PP/1Br2P2/P1P2R2/6K1 w - - 0 26",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00aOF (Rating: 1229, Popularity: 93)",
+      "tags": [
+        "advantage",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00byq",
+      "initialFen": "2r3k1/2r1bppp/3ppn2/qp6/4P3/1Q2B1P1/PP3PBP/1RR3K1 b - - 6 21",
+      "sideToMove": "black",
+      "rating": 1080,
+      "bestMove": {
+        "san": "Rxc1+",
+        "uci": "c7c1"
+      },
+      "moves": [
+        {
+          "uci": "c7c1",
+          "san": "Rxc1+",
+          "player": true
+        },
+        {
+          "uci": "b1c1",
+          "san": "Rxc1",
+          "player": false
+        },
+        {
+          "uci": "c8c1",
+          "san": "Rxc1+",
+          "player": true
+        },
+        {
+          "uci": "e3c1",
+          "san": "Bxc1",
+          "player": false
+        },
+        {
+          "uci": "a5e1",
+          "san": "Qe1+",
+          "player": true
+        },
+        {
+          "uci": "g2f1",
+          "san": "Bf1",
+          "player": false
+        },
+        {
+          "uci": "e1c1",
+          "san": "Qxc1",
+          "player": true
+        }
+      ],
+      "resultingFen": "6k1/4bppp/3ppn2/1p6/4P3/1Q4P1/PP3P1P/2q2BK1 w - - 0 25",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00byq (Rating: 1080, Popularity: 93)",
+      "tags": [
+        "advantage",
+        "fork",
+        "middlegame",
+        "pin",
+        "veryLong"
+      ]
+    },
+    {
+      "id": "000Pw",
+      "initialFen": "6k1/5p1p/4p3/4q3/3n4/2Q3P1/PP1N1P1P/6K1 b - - 3 37",
+      "sideToMove": "black",
+      "rating": 1422,
+      "bestMove": {
+        "san": "Ne2+",
+        "uci": "d4e2"
+      },
+      "moves": [
+        {
+          "uci": "d4e2",
+          "san": "Ne2+",
+          "player": true
+        },
+        {
+          "uci": "g1f1",
+          "san": "Kf1",
+          "player": false
+        },
+        {
+          "uci": "e2c3",
+          "san": "Nxc3",
+          "player": true
+        }
+      ],
+      "resultingFen": "6k1/5p1p/4p3/4q3/8/2n3P1/PP1N1P1P/5K2 w - - 0 39",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 000Pw (Rating: 1422, Popularity: 92)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "008lc",
+      "initialFen": "7k/pb1qn1rn/1p2R2Q/2p2p2/2Pp4/3B4/PP3P1P/4RK2 w - - 2 28",
+      "sideToMove": "white",
+      "rating": 2005,
+      "bestMove": {
+        "san": "Qxg7+",
+        "uci": "h6g7"
+      },
+      "moves": [
+        {
+          "uci": "h6g7",
+          "san": "Qxg7+",
+          "player": true
+        },
+        {
+          "uci": "h8g7",
+          "san": "Kxg7",
+          "player": false
+        },
+        {
+          "uci": "e6e7",
+          "san": "Rxe7+",
+          "player": true
+        },
+        {
+          "uci": "d7e7",
+          "san": "Qxe7",
+          "player": false
+        },
+        {
+          "uci": "e1e7",
+          "san": "Rxe7+",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/pb2R1kn/1p6/2p2p2/2Pp4/3B4/PP3P1P/5K2 b - - 0 30",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 008lc (Rating: 2005, Popularity: 92)",
+      "tags": [
+        "attraction",
+        "crushing",
+        "exposedKing",
+        "fork",
+        "long",
+        "middlegame"
+      ]
+    },
+    {
+      "id": "00Evs",
+      "initialFen": "5qk1/pQ3p2/7p/b2N1bp1/P3r3/5K2/7P/R4B2 w - - 0 25",
+      "sideToMove": "white",
+      "rating": 1077,
+      "bestMove": {
+        "san": "Nf6+",
+        "uci": "d5f6"
+      },
+      "moves": [
+        {
+          "uci": "d5f6",
+          "san": "Nf6+",
+          "player": true
+        },
+        {
+          "uci": "g8h8",
+          "san": "Kh8",
+          "player": false
+        },
+        {
+          "uci": "f6e4",
+          "san": "Nxe4",
+          "player": true
+        }
+      ],
+      "resultingFen": "5q1k/pQ3p2/7p/b4bp1/P3N3/5K2/7P/R4B2 b - - 0 26",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Evs (Rating: 1077, Popularity: 92)",
+      "tags": [
+        "advantage",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00HzX",
+      "initialFen": "4r1k1/5pp1/7R/1p6/8/1PP3QP/2q2PP1/6K1 b - - 0 29",
+      "sideToMove": "black",
+      "rating": 1638,
+      "bestMove": {
+        "san": "Qc1+",
+        "uci": "c2c1"
+      },
+      "moves": [
+        {
+          "uci": "c2c1",
+          "san": "Qc1+",
+          "player": true
+        },
+        {
+          "uci": "g1h2",
+          "san": "Kh2",
+          "player": false
+        },
+        {
+          "uci": "c1h6",
+          "san": "Qxh6",
+          "player": true
+        }
+      ],
+      "resultingFen": "4r1k1/5pp1/7q/1p6/8/1PP3QP/5PPK/8 w - - 0 31",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00HzX (Rating: 1638, Popularity: 92)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00QnO",
+      "initialFen": "1k1r1r2/pp4p1/6q1/2Qp4/5NP1/2P4p/PPN4P/R4R1K b - - 0 30",
+      "sideToMove": "black",
+      "rating": 1428,
+      "bestMove": {
+        "san": "Qe4+",
+        "uci": "g6e4"
+      },
+      "moves": [
+        {
+          "uci": "g6e4",
+          "san": "Qe4+",
+          "player": true
+        },
+        {
+          "uci": "h1g1",
+          "san": "Kg1",
+          "player": false
+        },
+        {
+          "uci": "f8f4",
+          "san": "Rxf4",
+          "player": true
+        }
+      ],
+      "resultingFen": "1k1r4/pp4p1/8/2Qp4/4qrP1/2P4p/PPN4P/R4RK1 w - - 0 32",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00QnO (Rating: 1428, Popularity: 92)",
+      "tags": [
+        "crushing",
+        "fork",
+        "intermezzo",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00KNK",
+      "initialFen": "r3r1k1/p1p4p/3b4/6qN/4p3/1P1b1Q2/P2P1PP1/B5KR w - - 0 23",
+      "sideToMove": "white",
+      "rating": 2036,
+      "bestMove": {
+        "san": "Nf6+",
+        "uci": "h5f6"
+      },
+      "moves": [
+        {
+          "uci": "h5f6",
+          "san": "Nf6+",
+          "player": true
+        },
+        {
+          "uci": "g8f8",
+          "san": "Kf8",
+          "player": false
+        },
+        {
+          "uci": "f6h7",
+          "san": "Nxh7+",
+          "player": true
+        },
+        {
+          "uci": "f8e7",
+          "san": "Ke7",
+          "player": false
+        },
+        {
+          "uci": "a1f6",
+          "san": "Bf6+",
+          "player": true
+        },
+        {
+          "uci": "g5f6",
+          "san": "Qxf6",
+          "player": false
+        },
+        {
+          "uci": "f3f6",
+          "san": "Qxf6+",
+          "player": true
+        }
+      ],
+      "resultingFen": "r3r3/p1p1k2N/3b1Q2/8/4p3/1P1b4/P2P1PP1/6KR b - - 0 26",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00KNK (Rating: 2036, Popularity: 91)",
+      "tags": [
+        "advantage",
+        "deflection",
+        "doubleCheck",
+        "fork",
+        "middlegame",
+        "veryLong"
+      ]
+    },
+    {
+      "id": "00MwU",
+      "initialFen": "3r1b1R/1pq3p1/p1k3P1/3p4/1P1Q4/4PP2/P1P5/2K5 w - - 0 27",
+      "sideToMove": "white",
+      "rating": 1769,
+      "bestMove": {
+        "san": "Rxf8",
+        "uci": "h8f8"
+      },
+      "moves": [
+        {
+          "uci": "h8f8",
+          "san": "Rxf8",
+          "player": true
+        },
+        {
+          "uci": "d8f8",
+          "san": "Rxf8",
+          "player": false
+        },
+        {
+          "uci": "d4c5",
+          "san": "Qc5+",
+          "player": true
+        },
+        {
+          "uci": "c6d7",
+          "san": "Kd7",
+          "player": false
+        },
+        {
+          "uci": "c5f8",
+          "san": "Qxf8",
+          "player": true
+        }
+      ],
+      "resultingFen": "5Q2/1pqk2p1/p5P1/3p4/1P6/4PP2/P1P5/2K5 b - - 0 29",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00MwU (Rating: 1769, Popularity: 91)",
+      "tags": [
+        "advantage",
+        "attraction",
+        "endgame",
+        "fork",
+        "long",
+        "sacrifice"
+      ]
+    },
+    {
+      "id": "00Nej",
+      "initialFen": "6k1/1p3pp1/pB2q2p/2P1b3/1P6/6QP/4r1P1/3R3K w - - 5 34",
+      "sideToMove": "white",
+      "rating": 1072,
+      "bestMove": {
+        "san": "Rd8+",
+        "uci": "d1d8"
+      },
+      "moves": [
+        {
+          "uci": "d1d8",
+          "san": "Rd8+",
+          "player": true
+        },
+        {
+          "uci": "g8h7",
+          "san": "Kh7",
+          "player": false
+        },
+        {
+          "uci": "g3d3",
+          "san": "Qd3+",
+          "player": true
+        },
+        {
+          "uci": "e6g6",
+          "san": "Qg6",
+          "player": false
+        },
+        {
+          "uci": "d3e2",
+          "san": "Qxe2",
+          "player": true
+        }
+      ],
+      "resultingFen": "3R4/1p3ppk/pB4qp/2P1b3/1P6/7P/4Q1P1/7K b - - 0 36",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Nej (Rating: 1072, Popularity: 91)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "long"
+      ]
+    },
+    {
+      "id": "00Ybq",
+      "initialFen": "2r5/4kp2/p3p2q/1p3nNP/3rQP2/P1N5/1P3K2/6R1 w - - 0 35",
+      "sideToMove": "white",
+      "rating": 1192,
+      "bestMove": {
+        "san": "Qb7+",
+        "uci": "e4b7"
+      },
+      "moves": [
+        {
+          "uci": "e4b7",
+          "san": "Qb7+",
+          "player": true
+        },
+        {
+          "uci": "d4d7",
+          "san": "Rd7",
+          "player": false
+        },
+        {
+          "uci": "b7c8",
+          "san": "Qxc8",
+          "player": true
+        }
+      ],
+      "resultingFen": "2Q5/3rkp2/p3p2q/1p3nNP/5P2/P1N5/1P3K2/6R1 b - - 0 36",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Ybq (Rating: 1192, Popularity: 91)",
+      "tags": [
+        "crushing",
+        "fork",
+        "master",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "003Jb",
+      "initialFen": "6k1/Q2bqr1p/2rpp1pR/p7/Pp2P3/1B3P2/1PP3P1/2KR4 b - - 7 22",
+      "sideToMove": "black",
+      "rating": 993,
+      "bestMove": {
+        "san": "Qg5+",
+        "uci": "e7g5"
+      },
+      "moves": [
+        {
+          "uci": "e7g5",
+          "san": "Qg5+",
+          "player": true
+        },
+        {
+          "uci": "c1b1",
+          "san": "Kb1",
+          "player": false
+        },
+        {
+          "uci": "g5h6",
+          "san": "Qxh6",
+          "player": true
+        }
+      ],
+      "resultingFen": "6k1/Q2b1r1p/2rpp1pq/p7/Pp2P3/1B3P2/1PP3P1/1K1R4 w - - 0 24",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 003Jb (Rating: 993, Popularity: 90)",
+      "tags": [
+        "advantage",
+        "fork",
+        "master",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "003o0",
+      "initialFen": "r1bqk2r/pp1nbppp/3p4/1B1p4/3P1B2/5N2/PPP2PPP/R2QK2R b KQkq - 3 9",
+      "sideToMove": "black",
+      "rating": 1003,
+      "bestMove": {
+        "san": "Qa5+",
+        "uci": "d8a5"
+      },
+      "moves": [
+        {
+          "uci": "d8a5",
+          "san": "Qa5+",
+          "player": true
+        },
+        {
+          "uci": "d1d2",
+          "san": "Qd2",
+          "player": false
+        },
+        {
+          "uci": "a5b5",
+          "san": "Qxb5",
+          "player": true
+        }
+      ],
+      "resultingFen": "r1b1k2r/pp1nbppp/3p4/1q1p4/3P1B2/5N2/PPPQ1PPP/R3K2R w KQkq - 0 11",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 003o0 (Rating: 1003, Popularity: 90)",
+      "tags": [
+        "advantage",
+        "fork",
+        "master",
+        "opening",
+        "short"
+      ]
+    },
+    {
+      "id": "0050w",
+      "initialFen": "5rk1/1p2p2p/p2p4/2pPb2R/2P1P3/1P1BKPrR/8/8 w - - 5 31",
+      "sideToMove": "white",
+      "rating": 1066,
+      "bestMove": {
+        "san": "Rxg3+",
+        "uci": "h3g3"
+      },
+      "moves": [
+        {
+          "uci": "h3g3",
+          "san": "Rxg3+",
+          "player": true
+        },
+        {
+          "uci": "e5g3",
+          "san": "Bxg3",
+          "player": false
+        },
+        {
+          "uci": "h5g5",
+          "san": "Rg5+",
+          "player": true
+        },
+        {
+          "uci": "g8f7",
+          "san": "Kf7",
+          "player": false
+        },
+        {
+          "uci": "g5g3",
+          "san": "Rxg3",
+          "player": true
+        }
+      ],
+      "resultingFen": "5r2/1p2pk1p/p2p4/2pP4/2P1P3/1P1BKPR1/8/8 b - - 0 33",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 0050w (Rating: 1066, Popularity: 90)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "long"
+      ]
+    },
+    {
+      "id": "00Hpe",
+      "initialFen": "1rr3k1/4Qppp/q3p3/p2pn3/3N4/4P2P/5PP1/RR4K1 w - - 0 30",
+      "sideToMove": "white",
+      "rating": 1748,
+      "bestMove": {
+        "san": "Rxb8",
+        "uci": "b1b8"
+      },
+      "moves": [
+        {
+          "uci": "b1b8",
+          "san": "Rxb8",
+          "player": true
+        },
+        {
+          "uci": "c8b8",
+          "san": "Rxb8",
+          "player": false
+        },
+        {
+          "uci": "e7c7",
+          "san": "Qc7",
+          "player": true
+        },
+        {
+          "uci": "b8c8",
+          "san": "Rc8",
+          "player": false
+        },
+        {
+          "uci": "c7e5",
+          "san": "Qxe5",
+          "player": true
+        }
+      ],
+      "resultingFen": "2r3k1/5ppp/q3p3/p2pQ3/3N4/4P2P/5PP1/R5K1 b - - 0 32",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Hpe (Rating: 1748, Popularity: 90)",
+      "tags": [
+        "advantage",
+        "fork",
+        "long",
+        "middlegame"
+      ]
+    },
+    {
+      "id": "00Tll",
+      "initialFen": "5r1k/1pN3p1/7p/pP6/P3P3/2PP3P/3BnbPK/R7 b - - 0 27",
+      "sideToMove": "black",
+      "rating": 1546,
+      "bestMove": {
+        "san": "Bg3+",
+        "uci": "f2g3"
+      },
+      "moves": [
+        {
+          "uci": "f2g3",
+          "san": "Bg3+",
+          "player": true
+        },
+        {
+          "uci": "h2h1",
+          "san": "Kh1",
+          "player": false
+        },
+        {
+          "uci": "g3c7",
+          "san": "Bxc7",
+          "player": true
+        }
+      ],
+      "resultingFen": "5r1k/1pb3p1/7p/pP6/P3P3/2PP3P/3Bn1P1/R6K w - - 0 29",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Tll (Rating: 1546, Popularity: 90)",
+      "tags": [
+        "advantage",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00Ty2",
+      "initialFen": "r5k1/ppp4p/2P3r1/8/4P3/B1P5/P1Q1K3/6N1 b - - 0 31",
+      "sideToMove": "black",
+      "rating": 2154,
+      "bestMove": {
+        "san": "Rg2+",
+        "uci": "g6g2"
+      },
+      "moves": [
+        {
+          "uci": "g6g2",
+          "san": "Rg2+",
+          "player": true
+        },
+        {
+          "uci": "e2d3",
+          "san": "Kd3",
+          "player": false
+        },
+        {
+          "uci": "a8d8",
+          "san": "Rd8+",
+          "player": true
+        },
+        {
+          "uci": "d3c4",
+          "san": "Kc4",
+          "player": false
+        },
+        {
+          "uci": "g2c2",
+          "san": "Rxc2",
+          "player": true
+        }
+      ],
+      "resultingFen": "3r2k1/ppp4p/2P5/8/2K1P3/B1P5/P1r5/6N1 w - - 0 34",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Ty2 (Rating: 2154, Popularity: 90)",
+      "tags": [
+        "advantage",
+        "endgame",
+        "exposedKing",
+        "fork",
+        "long"
+      ]
+    },
+    {
+      "id": "003jH",
+      "initialFen": "rn3rk1/p5pp/3N4/4np1q/5Q2/1P6/PB1P1KP1/2R4R b - - 1 25",
+      "sideToMove": "black",
+      "rating": 1067,
+      "bestMove": {
+        "san": "Nd3+",
+        "uci": "e5d3"
+      },
+      "moves": [
+        {
+          "uci": "e5d3",
+          "san": "Nd3+",
+          "player": true
+        },
+        {
+          "uci": "f2e3",
+          "san": "Ke3",
+          "player": false
+        },
+        {
+          "uci": "d3f4",
+          "san": "Nxf4",
+          "player": true
+        },
+        {
+          "uci": "h1h5",
+          "san": "Rxh5",
+          "player": false
+        },
+        {
+          "uci": "f4h5",
+          "san": "Nxh5",
+          "player": true
+        }
+      ],
+      "resultingFen": "rn3rk1/p5pp/3N4/5p1n/8/1P2K3/PB1P2P1/2R5 w - - 0 28",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 003jH (Rating: 1067, Popularity: 89)",
+      "tags": [
+        "crushing",
+        "fork",
+        "long",
+        "middlegame"
+      ]
+    },
+    {
+      "id": "003jv",
+      "initialFen": "7R/1p2k2p/p2n2p1/4K3/8/6P1/P6P/8 b - - 11 37",
+      "sideToMove": "black",
+      "rating": 1007,
+      "bestMove": {
+        "san": "Nf7+",
+        "uci": "d6f7"
+      },
+      "moves": [
+        {
+          "uci": "d6f7",
+          "san": "Nf7+",
+          "player": true
+        },
+        {
+          "uci": "e5e4",
+          "san": "Ke4",
+          "player": false
+        },
+        {
+          "uci": "f7h8",
+          "san": "Nxh8",
+          "player": true
+        }
+      ],
+      "resultingFen": "7n/1p2k2p/p5p1/8/4K3/6P1/P6P/8 w - - 0 39",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 003jv (Rating: 1007, Popularity: 89)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00Ngg",
+      "initialFen": "3qk2r/1p1bbppp/4pn2/1BPp1n2/3P4/4PN2/4QPPP/BN2K2R b Kk - 2 15",
+      "sideToMove": "black",
+      "rating": 1484,
+      "bestMove": {
+        "san": "Qa5+",
+        "uci": "d8a5"
+      },
+      "moves": [
+        {
+          "uci": "d8a5",
+          "san": "Qa5+",
+          "player": true
+        },
+        {
+          "uci": "a1c3",
+          "san": "Bc3",
+          "player": false
+        },
+        {
+          "uci": "a5b5",
+          "san": "Qxb5",
+          "player": true
+        }
+      ],
+      "resultingFen": "4k2r/1p1bbppp/4pn2/1qPp1n2/3P4/2B1PN2/4QPPP/1N2K2R w Kk - 0 17",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Ngg (Rating: 1484, Popularity: 89)",
+      "tags": [
+        "advantage",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00OYl",
+      "initialFen": "3r4/5p2/k3p1p1/2B1Pr2/2P3nN/1p4Pp/4QP1P/6K1 b - - 1 34",
+      "sideToMove": "black",
+      "rating": 1918,
+      "bestMove": {
+        "san": "Rxe5",
+        "uci": "f5e5"
+      },
+      "moves": [
+        {
+          "uci": "f5e5",
+          "san": "Rxe5",
+          "player": true
+        },
+        {
+          "uci": "e2f1",
+          "san": "Qf1",
+          "player": false
+        },
+        {
+          "uci": "e5c5",
+          "san": "Rxc5",
+          "player": true
+        }
+      ],
+      "resultingFen": "3r4/5p2/k3p1p1/2r5/2P3nN/1p4Pp/5P1P/5QK1 w - - 0 36",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00OYl (Rating: 1918, Popularity: 89)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00SIE",
+      "initialFen": "2k3nr/ppp2ppp/2n5/8/8/1Q2P3/q4rPP/1R2KB1R w K - 0 16",
+      "sideToMove": "white",
+      "rating": 1196,
+      "bestMove": {
+        "san": "Qxb7+",
+        "uci": "b3b7"
+      },
+      "moves": [
+        {
+          "uci": "b3b7",
+          "san": "Qxb7+",
+          "player": true
+        },
+        {
+          "uci": "c8d7",
+          "san": "Kd7",
+          "player": false
+        },
+        {
+          "uci": "b1d1",
+          "san": "Rd1+",
+          "player": true
+        }
+      ],
+      "resultingFen": "6nr/pQpk1ppp/2n5/8/8/4P3/q4rPP/3RKB1R b K - 2 17",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00SIE (Rating: 1196, Popularity: 89)",
+      "tags": [
+        "crushing",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00TV2",
+      "initialFen": "6k1/p1Q2p1p/4p1p1/3p4/1r6/7P/q4PP1/5RK1 w - - 0 27",
+      "sideToMove": "white",
+      "rating": 1732,
+      "bestMove": {
+        "san": "Qc8+",
+        "uci": "c7c8"
+      },
+      "moves": [
+        {
+          "uci": "c7c8",
+          "san": "Qc8+",
+          "player": true
+        },
+        {
+          "uci": "g8g7",
+          "san": "Kg7",
+          "player": false
+        },
+        {
+          "uci": "c8c3",
+          "san": "Qc3+",
+          "player": true
+        },
+        {
+          "uci": "d5d4",
+          "san": "d4",
+          "player": false
+        },
+        {
+          "uci": "c3b4",
+          "san": "Qxb4",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/p4pkp/4p1p1/8/1Q1p4/7P/q4PP1/5RK1 b - - 0 29",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00TV2 (Rating: 1732, Popularity: 89)",
+      "tags": [
+        "advantage",
+        "endgame",
+        "fork",
+        "long",
+        "master"
+      ]
+    },
+    {
+      "id": "00WG3",
+      "initialFen": "8/pk1r1Rp1/1p2p2p/4P1bP/4N3/8/PP6/1K1r1R2 w - - 5 34",
+      "sideToMove": "white",
+      "rating": 1049,
+      "bestMove": {
+        "san": "Rxd1",
+        "uci": "f1d1"
+      },
+      "moves": [
+        {
+          "uci": "f1d1",
+          "san": "Rxd1",
+          "player": true
+        },
+        {
+          "uci": "d7f7",
+          "san": "Rxf7",
+          "player": false
+        },
+        {
+          "uci": "e4d6",
+          "san": "Nd6+",
+          "player": true
+        },
+        {
+          "uci": "b7c7",
+          "san": "Kc7",
+          "player": false
+        },
+        {
+          "uci": "d6f7",
+          "san": "Nxf7",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/p1k2Np1/1p2p2p/4P1bP/8/8/PP6/1K1R4 b - - 0 36",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00WG3 (Rating: 1049, Popularity: 89)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "long",
+        "pin"
+      ]
+    },
+    {
+      "id": "003r5",
+      "initialFen": "r2qr1k1/ppp2ppp/4P3/8/1nP2Q2/2N2N1P/PP3KP1/R4R2 b - - 0 15",
+      "sideToMove": "black",
+      "rating": 1107,
+      "bestMove": {
+        "san": "Nd3+",
+        "uci": "b4d3"
+      },
+      "moves": [
+        {
+          "uci": "b4d3",
+          "san": "Nd3+",
+          "player": true
+        },
+        {
+          "uci": "f2g1",
+          "san": "Kg1",
+          "player": false
+        },
+        {
+          "uci": "d3f4",
+          "san": "Nxf4",
+          "player": true
+        }
+      ],
+      "resultingFen": "r2qr1k1/ppp2ppp/4P3/8/2P2n2/2N2N1P/PP4P1/R4RK1 w - - 0 17",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 003r5 (Rating: 1107, Popularity: 88)",
+      "tags": [
+        "crushing",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00WUu",
+      "initialFen": "r3k1nr/pp3ppp/1q2b3/8/1n1B4/6P1/P2QPPBP/R3K1NR b KQkq - 0 13",
+      "sideToMove": "black",
+      "rating": 1507,
+      "bestMove": {
+        "san": "Qxd4",
+        "uci": "b6d4"
+      },
+      "moves": [
+        {
+          "uci": "b6d4",
+          "san": "Qxd4",
+          "player": true
+        },
+        {
+          "uci": "d2d4",
+          "san": "Qxd4",
+          "player": false
+        },
+        {
+          "uci": "b4c2",
+          "san": "Nc2+",
+          "player": true
+        },
+        {
+          "uci": "e1f1",
+          "san": "Kf1",
+          "player": false
+        },
+        {
+          "uci": "c2d4",
+          "san": "Nxd4",
+          "player": true
+        }
+      ],
+      "resultingFen": "r3k1nr/pp3ppp/4b3/8/3n4/6P1/P3PPBP/R4KNR w kq - 0 16",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00WUu (Rating: 1507, Popularity: 88)",
+      "tags": [
+        "attraction",
+        "crushing",
+        "fork",
+        "long",
+        "opening",
+        "sacrifice"
+      ]
+    },
+    {
+      "id": "00baZ",
+      "initialFen": "r7/8/p1k5/1p1p1pn1/7R/2P1P2P/5P2/R5K1 b - - 0 31",
+      "sideToMove": "black",
+      "rating": 812,
+      "bestMove": {
+        "san": "Nf3+",
+        "uci": "g5f3"
+      },
+      "moves": [
+        {
+          "uci": "g5f3",
+          "san": "Nf3+",
+          "player": true
+        },
+        {
+          "uci": "g1g2",
+          "san": "Kg2",
+          "player": false
+        },
+        {
+          "uci": "f3h4",
+          "san": "Nxh4+",
+          "player": true
+        }
+      ],
+      "resultingFen": "r7/8/p1k5/1p1p1p2/7n/2P1P2P/5PK1/R7 w - - 0 33",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00baZ (Rating: 812, Popularity: 88)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00Ea3",
+      "initialFen": "3r4/p5k1/1p1qpr1p/1Q1pn1p1/3P1pP1/1PP5/P5PP/4RRK1 w - - 0 30",
+      "sideToMove": "white",
+      "rating": 1317,
+      "bestMove": {
+        "san": "dxe5",
+        "uci": "d4e5"
+      },
+      "moves": [
+        {
+          "uci": "d4e5",
+          "san": "dxe5",
+          "player": true
+        },
+        {
+          "uci": "d6c5",
+          "san": "Qc5+",
+          "player": false
+        },
+        {
+          "uci": "b5c5",
+          "san": "Qxc5",
+          "player": true
+        },
+        {
+          "uci": "b6c5",
+          "san": "bxc5",
+          "player": false
+        },
+        {
+          "uci": "e5f6",
+          "san": "exf6+",
+          "player": true
+        }
+      ],
+      "resultingFen": "3r4/p5k1/4pP1p/2pp2p1/5pP1/1PP5/P5PP/4RRK1 b - - 0 32",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Ea3 (Rating: 1317, Popularity: 87)",
+      "tags": [
+        "crushing",
+        "fork",
+        "long",
+        "middlegame"
+      ]
+    },
+    {
+      "id": "00HZa",
+      "initialFen": "6k1/6pp/1p6/p1n5/4q3/1P2pN2/P4PPP/3Q2K1 w - - 0 29",
+      "sideToMove": "white",
+      "rating": 937,
+      "bestMove": {
+        "san": "Qd8+",
+        "uci": "d1d8"
+      },
+      "moves": [
+        {
+          "uci": "d1d8",
+          "san": "Qd8+",
+          "player": true
+        },
+        {
+          "uci": "g8f7",
+          "san": "Kf7",
+          "player": false
+        },
+        {
+          "uci": "f3g5",
+          "san": "Ng5+",
+          "player": true
+        },
+        {
+          "uci": "f7g6",
+          "san": "Kg6",
+          "player": false
+        },
+        {
+          "uci": "g5e4",
+          "san": "Nxe4",
+          "player": true
+        }
+      ],
+      "resultingFen": "3Q4/6pp/1p4k1/p1n5/4N3/1P2p3/P4PPP/6K1 b - - 0 31",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00HZa (Rating: 937, Popularity: 87)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "long",
+        "master"
+      ]
+    },
+    {
+      "id": "00O8m",
+      "initialFen": "r3r1k1/ppp2ppp/2nnq3/8/3P4/P1P1P1P1/2Q3BP/R1B1KR2 w Q - 5 17",
+      "sideToMove": "white",
+      "rating": 1409,
+      "bestMove": {
+        "san": "d5",
+        "uci": "d4d5"
+      },
+      "moves": [
+        {
+          "uci": "d4d5",
+          "san": "d5",
+          "player": true
+        },
+        {
+          "uci": "e6e5",
+          "san": "Qe5",
+          "player": false
+        },
+        {
+          "uci": "d5c6",
+          "san": "dxc6",
+          "player": true
+        }
+      ],
+      "resultingFen": "r3r1k1/ppp2ppp/2Pn4/4q3/8/P1P1P1P1/2Q3BP/R1B1KR2 b Q - 0 18",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00O8m (Rating: 1409, Popularity: 87)",
+      "tags": [
+        "crushing",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "0047P",
+      "initialFen": "8/1N3k2/6p1/8/2P3P1/pr6/R7/5K2 b - - 2 56",
+      "sideToMove": "black",
+      "rating": 1769,
+      "bestMove": {
+        "san": "Rb1+",
+        "uci": "b3b1"
+      },
+      "moves": [
+        {
+          "uci": "b3b1",
+          "san": "Rb1+",
+          "player": true
+        },
+        {
+          "uci": "f1e2",
+          "san": "Ke2",
+          "player": false
+        },
+        {
+          "uci": "b1b2",
+          "san": "Rb2+",
+          "player": true
+        },
+        {
+          "uci": "e2d1",
+          "san": "Kd1",
+          "player": false
+        },
+        {
+          "uci": "b2a2",
+          "san": "Rxa2",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/1N3k2/6p1/8/2P3P1/p7/r7/3K4 w - - 0 59",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 0047P (Rating: 1769, Popularity: 86)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "exposedKing",
+        "fork",
+        "long",
+        "master"
+      ]
+    },
+    {
+      "id": "00QN3",
+      "initialFen": "r1b1B2k/pp4pp/2pb4/4q3/8/6P1/PPP4P/R2Q1R1K b - - 0 17",
+      "sideToMove": "black",
+      "rating": 1901,
+      "bestMove": {
+        "san": "Qe4+",
+        "uci": "e5e4"
+      },
+      "moves": [
+        {
+          "uci": "e5e4",
+          "san": "Qe4+",
+          "player": true
+        },
+        {
+          "uci": "d1f3",
+          "san": "Qf3",
+          "player": false
+        },
+        {
+          "uci": "e4e8",
+          "san": "Qxe8",
+          "player": true
+        }
+      ],
+      "resultingFen": "r1b1q2k/pp4pp/2pb4/8/8/5QP1/PPP4P/R4R1K w - - 0 19",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00QN3 (Rating: 1901, Popularity: 86)",
+      "tags": [
+        "advantage",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00TOX",
+      "initialFen": "b7/2k1pp2/ppn2qp1/8/4B3/1PNR4/P1P2PP1/5K2 w - - 0 27",
+      "sideToMove": "white",
+      "rating": 802,
+      "bestMove": {
+        "san": "Nd5+",
+        "uci": "c3d5"
+      },
+      "moves": [
+        {
+          "uci": "c3d5",
+          "san": "Nd5+",
+          "player": true
+        },
+        {
+          "uci": "c7b8",
+          "san": "Kb8",
+          "player": false
+        },
+        {
+          "uci": "d5f6",
+          "san": "Nxf6",
+          "player": true
+        }
+      ],
+      "resultingFen": "bk6/4pp2/ppn2Np1/8/4B3/1P1R4/P1P2PP1/5K2 b - - 0 28",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00TOX (Rating: 802, Popularity: 86)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00Vqp",
+      "initialFen": "8/2R2ppp/4p3/p6k/6R1/4P2P/3q1PP1/6K1 b - - 3 33",
+      "sideToMove": "black",
+      "rating": 1584,
+      "bestMove": {
+        "san": "Qd1+",
+        "uci": "d2d1"
+      },
+      "moves": [
+        {
+          "uci": "d2d1",
+          "san": "Qd1+",
+          "player": true
+        },
+        {
+          "uci": "g1h2",
+          "san": "Kh2",
+          "player": false
+        },
+        {
+          "uci": "d1d6",
+          "san": "Qd6+",
+          "player": true
+        },
+        {
+          "uci": "g2g3",
+          "san": "g3",
+          "player": false
+        },
+        {
+          "uci": "d6c7",
+          "san": "Qxc7",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/2q2ppp/4p3/p6k/6R1/4P1PP/5P1K/8 w - - 0 36",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Vqp (Rating: 1584, Popularity: 86)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "long",
+        "queenRookEndgame"
+      ]
+    },
+    {
+      "id": "00YYk",
+      "initialFen": "2k2rr1/1p1q3p/p1nb4/2p1p3/2N1R3/3P1QP1/PPP5/R1B3K1 w - - 5 23",
+      "sideToMove": "white",
+      "rating": 2015,
+      "bestMove": {
+        "san": "Qxf8+",
+        "uci": "f3f8"
+      },
+      "moves": [
+        {
+          "uci": "f3f8",
+          "san": "Qxf8+",
+          "player": true
+        },
+        {
+          "uci": "g8f8",
+          "san": "Rxf8",
+          "player": false
+        },
+        {
+          "uci": "c4b6",
+          "san": "Nb6+",
+          "player": true
+        },
+        {
+          "uci": "c8c7",
+          "san": "Kc7",
+          "player": false
+        },
+        {
+          "uci": "b6d7",
+          "san": "Nxd7",
+          "player": true
+        }
+      ],
+      "resultingFen": "5r2/1pkN3p/p1nb4/2p1p3/4R3/3P2P1/PPP5/R1B3K1 b - - 0 25",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00YYk (Rating: 2015, Popularity: 86)",
+      "tags": [
+        "advantage",
+        "fork",
+        "long",
+        "middlegame",
+        "sacrifice"
+      ]
+    },
+    {
+      "id": "000rO",
+      "initialFen": "3R4/8/8/KB2b3/1p6/1P2k3/3p4/8 b - - 0 58",
+      "sideToMove": "black",
+      "rating": 1110,
+      "bestMove": {
+        "san": "Bc7+",
+        "uci": "e5c7"
+      },
+      "moves": [
+        {
+          "uci": "e5c7",
+          "san": "Bc7+",
+          "player": true
+        },
+        {
+          "uci": "a5b4",
+          "san": "Kxb4",
+          "player": false
+        },
+        {
+          "uci": "c7d8",
+          "san": "Bxd8",
+          "player": true
+        }
+      ],
+      "resultingFen": "3b4/8/8/1B6/1K6/1P2k3/3p4/8 w - - 0 60",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 000rO (Rating: 1110, Popularity: 85)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "master",
+        "short"
+      ]
+    },
+    {
+      "id": "008D5",
+      "initialFen": "r1bqk2r/pp3ppp/4p3/3pPn2/1b1P1P2/2N5/PP4PP/R1BQKB1R w KQkq - 3 10",
+      "sideToMove": "white",
+      "rating": 1408,
+      "bestMove": {
+        "san": "Qa4+",
+        "uci": "d1a4"
+      },
+      "moves": [
+        {
+          "uci": "d1a4",
+          "san": "Qa4+",
+          "player": true
+        },
+        {
+          "uci": "c8d7",
+          "san": "Bd7",
+          "player": false
+        },
+        {
+          "uci": "a4b4",
+          "san": "Qxb4",
+          "player": true
+        }
+      ],
+      "resultingFen": "r2qk2r/pp1b1ppp/4p3/3pPn2/1Q1P1P2/2N5/PP4PP/R1B1KB1R b KQkq - 0 11",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 008D5 (Rating: 1408, Popularity: 85)",
+      "tags": [
+        "advantage",
+        "fork",
+        "master",
+        "opening",
+        "short"
+      ]
+    },
+    {
+      "id": "00O9Z",
+      "initialFen": "5Q1R/5p1p/1b3qp1/p6k/P2P4/8/1P2rPPP/5RK1 b - - 8 32",
+      "sideToMove": "black",
+      "rating": 1628,
+      "bestMove": {
+        "san": "Qxf2+",
+        "uci": "f6f2"
+      },
+      "moves": [
+        {
+          "uci": "f6f2",
+          "san": "Qxf2+",
+          "player": true
+        },
+        {
+          "uci": "f1f2",
+          "san": "Rxf2",
+          "player": false
+        },
+        {
+          "uci": "e2e1",
+          "san": "Re1+",
+          "player": true
+        },
+        {
+          "uci": "f2f1",
+          "san": "Rf1",
+          "player": false
+        },
+        {
+          "uci": "b6d4",
+          "san": "Bxd4+",
+          "player": true
+        },
+        {
+          "uci": "g1h1",
+          "san": "Kh1",
+          "player": false
+        },
+        {
+          "uci": "e1f1",
+          "san": "Rxf1#",
+          "player": true
+        }
+      ],
+      "resultingFen": "5Q1R/5p1p/6p1/p6k/P2b4/8/1P4PP/5r1K w - - 0 36",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00O9Z (Rating: 1628, Popularity: 85)",
+      "tags": [
+        "backRankMate",
+        "deflection",
+        "endgame",
+        "fork",
+        "master",
+        "mate",
+        "mateIn4",
+        "pin",
+        "sacrifice",
+        "veryLong"
+      ]
+    },
+    {
+      "id": "00dUW",
+      "initialFen": "4k2r/1pb3pp/p4p2/2PNp2b/1PBn4/P5P1/3B1P1P/5RK1 b k - 4 23",
+      "sideToMove": "black",
+      "rating": 1251,
+      "bestMove": {
+        "san": "Nf3+",
+        "uci": "d4f3"
+      },
+      "moves": [
+        {
+          "uci": "d4f3",
+          "san": "Nf3+",
+          "player": true
+        },
+        {
+          "uci": "g1g2",
+          "san": "Kg2",
+          "player": false
+        },
+        {
+          "uci": "f3d2",
+          "san": "Nxd2",
+          "player": true
+        }
+      ],
+      "resultingFen": "4k2r/1pb3pp/p4p2/2PNp2b/1PB5/P5P1/3n1PKP/5R2 w k - 0 25",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00dUW (Rating: 1251, Popularity: 85)",
+      "tags": [
+        "crushing",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "002Tf",
+      "initialFen": "r3kbnr/ppp1qppp/2n5/1B1pP3/5B2/4PQ2/PPP2PPP/RN2K2R b KQkq - 2 7",
+      "sideToMove": "black",
+      "rating": 1564,
+      "bestMove": {
+        "san": "Qb4+",
+        "uci": "e7b4"
+      },
+      "moves": [
+        {
+          "uci": "e7b4",
+          "san": "Qb4+",
+          "player": true
+        },
+        {
+          "uci": "b1c3",
+          "san": "Nc3",
+          "player": false
+        },
+        {
+          "uci": "b4b2",
+          "san": "Qxb2",
+          "player": true
+        }
+      ],
+      "resultingFen": "r3kbnr/ppp2ppp/2n5/1B1pP3/5B2/2N1PQ2/PqP2PPP/R3K2R w KQkq - 0 9",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 002Tf (Rating: 1564, Popularity: 84)",
+      "tags": [
+        "advantage",
+        "fork",
+        "opening",
+        "short"
+      ]
+    },
+    {
+      "id": "00ISm",
+      "initialFen": "5r2/5p1k/2ppq1p1/4p1b1/4N2P/3P4/1P1R1P2/4K1R1 w - - 0 30",
+      "sideToMove": "white",
+      "rating": 907,
+      "bestMove": {
+        "san": "Nxg5+",
+        "uci": "e4g5"
+      },
+      "moves": [
+        {
+          "uci": "e4g5",
+          "san": "Nxg5+",
+          "player": true
+        },
+        {
+          "uci": "h7h6",
+          "san": "Kh6",
+          "player": false
+        },
+        {
+          "uci": "g5e6",
+          "san": "Nxe6",
+          "player": true
+        }
+      ],
+      "resultingFen": "5r2/5p2/2ppN1pk/4p3/7P/3P4/1P1R1P2/4K1R1 b - - 0 31",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00ISm (Rating: 907, Popularity: 84)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "004nd",
+      "initialFen": "3q2k1/3r4/pp3p1Q/2b1n3/P3N3/2P5/1P4PP/R6K w - - 1 25",
+      "sideToMove": "white",
+      "rating": 898,
+      "bestMove": {
+        "san": "Nxf6+",
+        "uci": "e4f6"
+      },
+      "moves": [
+        {
+          "uci": "e4f6",
+          "san": "Nxf6+",
+          "player": true
+        },
+        {
+          "uci": "d8f6",
+          "san": "Qxf6",
+          "player": false
+        },
+        {
+          "uci": "h6f6",
+          "san": "Qxf6",
+          "player": true
+        }
+      ],
+      "resultingFen": "6k1/3r4/pp3Q2/2b1n3/P7/2P5/1P4PP/R6K b - - 0 26",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 004nd (Rating: 898, Popularity: 83)",
+      "tags": [
+        "crushing",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00Kq4",
+      "initialFen": "r2qk3/5p1r/p1p1p3/1p1pP1N1/P1nP2Pn/2P3B1/2P2P2/R1QR2K1 b q - 0 21",
+      "sideToMove": "black",
+      "rating": 1419,
+      "bestMove": {
+        "san": "Qxg5",
+        "uci": "d8g5"
+      },
+      "moves": [
+        {
+          "uci": "d8g5",
+          "san": "Qxg5",
+          "player": true
+        },
+        {
+          "uci": "c1g5",
+          "san": "Qxg5",
+          "player": false
+        },
+        {
+          "uci": "h4f3",
+          "san": "Nf3+",
+          "player": true
+        },
+        {
+          "uci": "g1g2",
+          "san": "Kg2",
+          "player": false
+        },
+        {
+          "uci": "f3g5",
+          "san": "Nxg5",
+          "player": true
+        }
+      ],
+      "resultingFen": "r3k3/5p1r/p1p1p3/1p1pP1n1/P1nP2P1/2P3B1/2P2PK1/R2R4 w q - 0 24",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Kq4 (Rating: 1419, Popularity: 83)",
+      "tags": [
+        "advantage",
+        "attraction",
+        "fork",
+        "long",
+        "middlegame",
+        "sacrifice"
+      ]
+    },
+    {
+      "id": "00W3Q",
+      "initialFen": "3r1k2/5p2/Np3P1p/1P2R3/2p1N3/b1P1n3/P5PP/6K1 b - - 0 32",
+      "sideToMove": "black",
+      "rating": 2157,
+      "bestMove": {
+        "san": "Rd1+",
+        "uci": "d8d1"
+      },
+      "moves": [
+        {
+          "uci": "d8d1",
+          "san": "Rd1+",
+          "player": true
+        },
+        {
+          "uci": "g1f2",
+          "san": "Kf2",
+          "player": false
+        },
+        {
+          "uci": "e3g4",
+          "san": "Ng4+",
+          "player": true
+        },
+        {
+          "uci": "f2e2",
+          "san": "Ke2",
+          "player": false
+        },
+        {
+          "uci": "d1d3",
+          "san": "Rd3",
+          "player": true
+        }
+      ],
+      "resultingFen": "5k2/5p2/Np3P1p/1P2R3/2p1N1n1/b1Pr4/P3K1PP/8 w - - 5 35",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00W3Q (Rating: 2157, Popularity: 83)",
+      "tags": [
+        "advantage",
+        "endgame",
+        "fork",
+        "long",
+        "master",
+        "masterVsMaster"
+      ]
+    },
+    {
+      "id": "003Tx",
+      "initialFen": "2r5/pR5p/5p1k/4p3/4R3/B4nPP/PP3P2/1K6 b - - 0 27",
+      "sideToMove": "black",
+      "rating": 1518,
+      "bestMove": {
+        "san": "Nd2+",
+        "uci": "f3d2"
+      },
+      "moves": [
+        {
+          "uci": "f3d2",
+          "san": "Nd2+",
+          "player": true
+        },
+        {
+          "uci": "b1a1",
+          "san": "Ka1",
+          "player": false
+        },
+        {
+          "uci": "c8c1",
+          "san": "Rc1#",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/pR5p/5p1k/4p3/4R3/B5PP/PP1n1P2/K1r5 w - - 3 29",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 003Tx (Rating: 1518, Popularity: 82)",
+      "tags": [
+        "backRankMate",
+        "endgame",
+        "fork",
+        "mate",
+        "mateIn2",
+        "short"
+      ]
+    },
+    {
+      "id": "006wz",
+      "initialFen": "2r5/4ppkp/6p1/1p6/1P6/P3B3/1br2PPP/1R1R2K1 w - - 3 23",
+      "sideToMove": "white",
+      "rating": 1428,
+      "bestMove": {
+        "san": "Rxb2",
+        "uci": "b1b2"
+      },
+      "moves": [
+        {
+          "uci": "b1b2",
+          "san": "Rxb2",
+          "player": true
+        },
+        {
+          "uci": "c2b2",
+          "san": "Rxb2",
+          "player": false
+        },
+        {
+          "uci": "e3d4",
+          "san": "Bd4+",
+          "player": true
+        },
+        {
+          "uci": "f7f6",
+          "san": "f6",
+          "player": false
+        },
+        {
+          "uci": "d4b2",
+          "san": "Bxb2",
+          "player": true
+        }
+      ],
+      "resultingFen": "2r5/4p1kp/5pp1/1p6/1P6/P7/1B3PPP/3R2K1 b - - 0 25",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 006wz (Rating: 1428, Popularity: 80)",
+      "tags": [
+        "attraction",
+        "crushing",
+        "endgame",
+        "fork",
+        "long",
+        "sacrifice"
+      ]
+    },
+    {
+      "id": "00cRN",
+      "initialFen": "8/4rkb1/R5R1/5P1p/P6P/6P1/1r2p3/4K3 w - - 0 45",
+      "sideToMove": "white",
+      "rating": 1726,
+      "bestMove": {
+        "san": "Rxg7+",
+        "uci": "g6g7"
+      },
+      "moves": [
+        {
+          "uci": "g6g7",
+          "san": "Rxg7+",
+          "player": true
+        },
+        {
+          "uci": "f7g7",
+          "san": "Kxg7",
+          "player": false
+        },
+        {
+          "uci": "f5f6",
+          "san": "f6+",
+          "player": true
+        },
+        {
+          "uci": "g7f7",
+          "san": "Kf7",
+          "player": false
+        },
+        {
+          "uci": "f6e7",
+          "san": "fxe7",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/4Pk2/R7/7p/P6P/6P1/1r2p3/4K3 b - - 0 47",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00cRN (Rating: 1726, Popularity: 79)",
+      "tags": [
+        "advancedPawn",
+        "advantage",
+        "attraction",
+        "endgame",
+        "exposedKing",
+        "fork",
+        "long",
+        "sacrifice"
+      ]
+    },
+    {
+      "id": "00Lyc",
+      "initialFen": "4R3/1p4k1/1q3bpp/3B4/4Np1P/p4P2/3RK1P1/8 b - - 5 42",
+      "sideToMove": "black",
+      "rating": 1975,
+      "bestMove": {
+        "san": "Qb5+",
+        "uci": "b6b5"
+      },
+      "moves": [
+        {
+          "uci": "b6b5",
+          "san": "Qb5+",
+          "player": true
+        },
+        {
+          "uci": "d2d3",
+          "san": "Rd3",
+          "player": false
+        },
+        {
+          "uci": "b5e8",
+          "san": "Qxe8",
+          "player": true
+        }
+      ],
+      "resultingFen": "4q3/1p4k1/5bpp/3B4/4Np1P/p2R1P2/4K1P1/8 w - - 0 44",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Lyc (Rating: 1975, Popularity: 78)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "fork",
+        "master",
+        "short"
+      ]
+    },
+    {
+      "id": "00Yjy",
+      "initialFen": "6k1/5p1p/B2bp2q/5p2/6rP/1P4P1/1Q3P2/3R3K b - - 4 34",
+      "sideToMove": "black",
+      "rating": 2001,
+      "bestMove": {
+        "san": "Rxh4+",
+        "uci": "g4h4"
+      },
+      "moves": [
+        {
+          "uci": "g4h4",
+          "san": "Rxh4+",
+          "player": true
+        },
+        {
+          "uci": "g3h4",
+          "san": "gxh4",
+          "player": false
+        },
+        {
+          "uci": "h6h4",
+          "san": "Qxh4+",
+          "player": true
+        },
+        {
+          "uci": "h1g2",
+          "san": "Kg2",
+          "player": false
+        },
+        {
+          "uci": "h4g4",
+          "san": "Qg4+",
+          "player": true
+        },
+        {
+          "uci": "g2f1",
+          "san": "Kf1",
+          "player": false
+        },
+        {
+          "uci": "g4d1",
+          "san": "Qxd1+",
+          "player": true
+        }
+      ],
+      "resultingFen": "6k1/5p1p/B2bp3/5p2/8/1P6/1Q3P2/3q1K2 w - - 0 38",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Yjy (Rating: 2001, Popularity: 73)",
+      "tags": [
+        "crushing",
+        "endgame",
+        "exposedKing",
+        "fork",
+        "sacrifice",
+        "veryLong"
+      ]
+    },
+    {
+      "id": "00LG5",
+      "initialFen": "6k1/5r1p/4b1pQ/5q2/3B3P/2P5/4R1P1/6K1 b - - 8 36",
+      "sideToMove": "black",
+      "rating": 1113,
+      "bestMove": {
+        "san": "Qf1+",
+        "uci": "f5f1"
+      },
+      "moves": [
+        {
+          "uci": "f5f1",
+          "san": "Qf1+",
+          "player": true
+        },
+        {
+          "uci": "g1h2",
+          "san": "Kh2",
+          "player": false
+        },
+        {
+          "uci": "f1e2",
+          "san": "Qxe2",
+          "player": true
+        }
+      ],
+      "resultingFen": "6k1/5r1p/4b1pQ/8/3B3P/2P5/4q1PK/8 w - - 0 38",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00LG5 (Rating: 1113, Popularity: 71)",
+      "tags": [
+        "advantage",
+        "endgame",
+        "fork",
+        "short"
+      ]
+    },
+    {
+      "id": "00abm",
+      "initialFen": "r1b1k2r/ppp2p2/3ppq1p/3Pn1p1/1bP3P1/2N2N2/PP2PPP1/2RQKB1R w Kkq - 1 12",
+      "sideToMove": "white",
+      "rating": 1384,
+      "bestMove": {
+        "san": "Qa4+",
+        "uci": "d1a4"
+      },
+      "moves": [
+        {
+          "uci": "d1a4",
+          "san": "Qa4+",
+          "player": true
+        },
+        {
+          "uci": "e8f8",
+          "san": "Kf8",
+          "player": false
+        },
+        {
+          "uci": "a4b4",
+          "san": "Qxb4",
+          "player": true
+        }
+      ],
+      "resultingFen": "r1b2k1r/ppp2p2/3ppq1p/3Pn1p1/1QP3P1/2N2N2/PP2PPP1/2R1KB1R b K - 0 13",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00abm (Rating: 1384, Popularity: 70)",
+      "tags": [
+        "crushing",
+        "fork",
+        "middlegame",
+        "short"
+      ]
+    },
+    {
+      "id": "00Svg",
+      "initialFen": "8/p7/1p4k1/2pN2p1/4Pp2/P1P4r/1P2K1R1/8 b - - 7 50",
+      "sideToMove": "black",
+      "rating": 1182,
+      "bestMove": {
+        "san": "f3+",
+        "uci": "f4f3"
+      },
+      "moves": [
+        {
+          "uci": "f4f3",
+          "san": "f3+",
+          "player": true
+        },
+        {
+          "uci": "e2f2",
+          "san": "Kf2",
+          "player": false
+        },
+        {
+          "uci": "f3g2",
+          "san": "fxg2",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/p7/1p4k1/2pN2p1/4P3/P1P4r/1P3Kp1/8 w - - 0 52",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00Svg (Rating: 1182, Popularity: 64)",
+      "tags": [
+        "advancedPawn",
+        "advantage",
+        "endgame",
+        "fork",
+        "master",
+        "short"
+      ]
+    },
+    {
+      "id": "00ZR6",
+      "initialFen": "8/1pr2pk1/5np1/6p1/p5Pn/1B2P2P/P2RqP2/3R2KQ b - - 1 41",
+      "sideToMove": "black",
+      "rating": 969,
+      "bestMove": {
+        "san": "Nf3+",
+        "uci": "h4f3"
+      },
+      "moves": [
+        {
+          "uci": "h4f3",
+          "san": "Nf3+",
+          "player": true
+        },
+        {
+          "uci": "h1f3",
+          "san": "Qxf3",
+          "player": false
+        },
+        {
+          "uci": "e2f3",
+          "san": "Qxf3",
+          "player": true
+        }
+      ],
+      "resultingFen": "8/1pr2pk1/5np1/6p1/p5P1/1B2Pq1P/P2R1P2/3R2K1 w - - 0 43",
+      "expectedPattern": {
+        "type": "FORK"
+      },
+      "context": "Lichess puzzle 00ZR6 (Rating: 969, Popularity: 50)",
+      "tags": [
+        "crushing",
+        "fork",
+        "master",
+        "masterVsMaster",
+        "middlegame",
+        "short"
+      ]
     }
   ]
 }
