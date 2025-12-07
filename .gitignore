@@ -62,3 +62,7 @@ __pycache__/
 /public/openings/*.json
 /public/wikipedia/*.json
 /public/wikipedia/.initialized
+
+# Capacitor native projects (generated)
+/ios/
+/android/
