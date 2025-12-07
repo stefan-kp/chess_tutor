@@ -513,9 +513,24 @@ Debug mode is a powerful feature that helps you understand and troubleshoot how 
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 (GPLv3) - see the [LICENSE](LICENSE) file for details.
+Copyright (c) 2024 KaProblem (https://www.kaproblem.com). All rights reserved.
 
-This application uses [Stockfish](https://stockfishchess.org/), which is licensed under the GPLv3.
+This project uses **dual licensing** (required for App Store compliance):
+
+- **Source Code**: GPL-3.0 (see [LICENSE](LICENSE))
+- **Mobile Apps**: Proprietary (copyright holder only)
+
+**Why Dual Licensing?**
+App Store and Google Play terms are incompatible with GPL-3.0. Mobile builds exclude GPL code (Stockfish.js) and use API calls instead, allowing proprietary licensing for app store distribution.
+
+**Important for Third Parties:**
+- You may use this code under GPL-3.0 terms
+- You CANNOT distribute GPL apps on App Store/Google Play (platform restrictions)
+- You CANNOT create proprietary mobile apps from this code
+- Only the copyright holder can distribute proprietary versions
+- See [COPYRIGHT](COPYRIGHT) and [LICENSING.md](LICENSING.md) for details
+
+This application uses [Stockfish](https://stockfishchess.org/), which is licensed under GPL-3.0 (web builds only; mobile builds use API calls).
 
 ## Credits
 - Opening collection originally by [ragizaki/ChessOpeningsRecommender](https://github.com/ragizaki/ChessOpeningsRecommender)

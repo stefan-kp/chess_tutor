@@ -1,0 +1,98 @@
+Chess Tutor - AI-powered Chess Training Application
+
+Copyright (c) 2024 KaProblem (https://www.kaproblem.com / GitHub: stefan-kp)
+All rights reserved.
+
+================================================================================
+
+WHY DUAL LICENSING?
+================================================================================
+
+Apple's App Store and Google Play Store terms are INCOMPATIBLE with GPL-3.0:
+- App Store DRM conflicts with GPL's redistribution rights
+- Platform restrictions violate GPL's freedom requirements
+- FSF considers App Store distribution a GPL violation
+
+Therefore, we CANNOT distribute GPL apps on mobile app stores.
+
+Solution: Mobile builds exclude GPL code (Stockfish.js) and use API calls instead,
+allowing proprietary licensing for app store compliance.
+
+================================================================================
+
+IMPORTANT NOTICE REGARDING DUAL LICENSING
+================================================================================
+
+This software is available under DUAL LICENSING terms:
+
+1. GPL-3.0 License (Public Open Source Use)
+   - Source code is licensed under GPL-3.0
+   - You may use, modify, and distribute under GPL-3.0 terms
+   - See LICENSE file for full GPL-3.0 text
+
+2. Proprietary License (Copyright Holder Only)
+   - Only the copyright holder (KaProblem/stefan-kp) may distribute under proprietary terms
+   - Specifically applies to mobile app distributions (iOS/Android)
+   - Required for App Store/Google Play compliance
+   - Third parties DO NOT have this right
+
+================================================================================
+
+THIRD PARTY RIGHTS AND RESTRICTIONS
+================================================================================
+
+If you are NOT the copyright holder, you must comply with GPL-3.0:
+
+✅ ALLOWED:
+- Use the software under GPL-3.0 terms
+- Modify and fork the source code
+- Distribute modified versions under GPL-3.0
+- Create web applications using this code (under GPL-3.0)
+
+❌ NOT ALLOWED:
+- Distribute proprietary (closed-source) versions
+- Create proprietary mobile apps for App Store/Google Play
+- Remove or bypass GPL requirements
+- Claim exclusive rights to the software
+
+================================================================================
+
+CONTRIBUTIONS
+================================================================================
+
+By contributing code, documentation, or other materials to this project, you:
+
+1. License your contributions under GPL-3.0 for public use
+2. Grant the copyright holder (KaProblem/stefan-kp) the right to use your
+   contributions under ANY license, including proprietary licenses
+3. Represent that you have the legal right to make such grants
+4. Understand that the copyright holder may include your contributions
+   in proprietary mobile app distributions for App Store/Google Play
+
+This dual licensing model is similar to those used by MySQL, Qt, and other
+successful open source projects.
+
+================================================================================
+
+DEPENDENCIES AND THIRD PARTY CODE
+================================================================================
+
+This software includes or depends on:
+
+- Stockfish.js (GPL-3.0) - Chess engine
+  Used in web builds only, not included in mobile builds
+
+- Next.js (MIT License)
+- React (MIT License)
+- Chess.js (BSD License)
+- Other dependencies listed in package.json
+
+Mobile builds do NOT include GPL-licensed components and use a network API
+architecture instead, allowing proprietary distribution by the copyright holder.
+
+================================================================================
+
+For questions regarding licensing or to request a proprietary license,
+contact: KaProblem (https://www.kaproblem.com or stefan-kp via GitHub)
+
+Last Updated: 2024-12-07
