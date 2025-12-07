@@ -145,11 +145,24 @@ export default function LearningAreaPage() {
                             </h2>
                         </div>
 
-                        <div className="bg-white dark:bg-gray-800 p-8 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-center">
-                            <p className="text-gray-500 dark:text-gray-400 text-lg">
-                                {t.learning.comingSoon}
-                            </p>
-                        </div>
+                        <button
+                            onClick={() => router.push('/learning/openings')}
+                            className="w-full group bg-white dark:bg-gray-800 p-8 rounded-xl hover:bg-purple-50 dark:hover:bg-gray-700 transition-all border-2 border-transparent hover:border-purple-500 dark:hover:border-purple-400 shadow-sm hover:shadow-md text-left"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="text-5xl group-hover:scale-110 transition-transform">
+                                    📖
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900 dark:text-white text-xl mb-2">
+                                        Opening Training
+                                    </h3>
+                                    <p className="text-gray-600 dark:text-gray-400">
+                                        Practice opening repertoire with engine-backed feedback and AI explanations
+                                    </p>
+                                </div>
+                            </div>
+                        </button>
                     </div>
                 </div>
             </div>

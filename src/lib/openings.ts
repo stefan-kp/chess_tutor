@@ -11,6 +11,7 @@ export interface OpeningMetadata {
     moves: string;
     name: string;
     isEcoRoot?: boolean;
+    wikipediaSlug?: string;
     aliases?: { [key: string]: string };
     meta?: {
         strengths_white?: string[];

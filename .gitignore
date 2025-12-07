@@ -57,3 +57,8 @@ __pycache__/
 *.csv.zst
 *.pgn
 *.pgn.zst
+
+# Generated opening and Wikipedia data (fetched at Docker startup)
+/public/openings/*.json
+/public/wikipedia/*.json
+/public/wikipedia/.initialized

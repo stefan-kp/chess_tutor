@@ -771,8 +771,8 @@ export function generateTacticExercise(params: TacticExerciseParams): TacticExer
     },
     resultPosition: { fen: chosen.resultingFen },
     pattern: chosen.expectedPattern as TacticalPattern,
-    moves: chosen.moves,  // Include full move sequence
-    rating: chosen.rating,  // Include puzzle rating
+    ...(('moves' in chosen) && { moves: chosen.moves }),  // Include full move sequence if available
+    ...(('rating' in chosen) && { rating: chosen.rating }),  // Include puzzle rating if available
   };
 }
 

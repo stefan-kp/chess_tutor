@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Stockfish, StockfishEvaluation } from "@/lib/stockfish";
+import { StockfishEvaluation } from "@/lib/stockfish";
+import { ChessEngine } from "@/lib/engine";
 import { Chess, Move } from "chess.js";
 import { getGenAIModel } from "@/lib/gemini";
 import { ChatSession } from "@google/generative-ai";
@@ -16,13 +17,16 @@ import { SupportedLanguage } from '@/lib/i18n/translations';
 import { DetectedTactic } from '@/lib/tacticDetection';
 import { useDebug } from '@/contexts/DebugContext';
 import { MoveHistoryItem } from './GameOverModal';
+import { parseGeminiError, GeminiErrorInfo, isGeminiError } from '@/lib/geminiErrorHandler';
+import { GeminiErrorModal } from './GeminiErrorModal';
+import { getApiKeyInfo } from '@/lib/apiKeyHelper';
 
 interface TutorProps {
     game: Chess;
     currentFen: string;
     userMove: Move | null;
     computerMove: Move | null;
-    stockfish: Stockfish | null;
+    stockfish: ChessEngine | null;
     evalP0: StockfishEvaluation | null;
     evalP2: StockfishEvaluation | null;
     openingData: OpeningMetadata[];
@@ -54,6 +58,22 @@ interface TutorProps {
             bestStreak: number;
         };
     };
+    openingPracticeMode?: {
+        openingName: string;
+        openingEco: string;
+        repertoireMoves: string[];  // Full sequence from opening database
+        currentMoveIndex: number;
+        isInTheory: boolean;
+        deviationMoveIndex: number | null;
+        lastUserMove: Move | null;
+        lastTutorMove: Move | null;
+        currentFeedback: {
+            category: 'in-theory' | 'playable' | 'weak';
+            evaluationChange: number;
+            theoreticalAlternatives: string[];
+        } | null;
+        wikipediaSummary?: string;  // Optional Wikipedia context
+    };
 }
 
 interface Message {
@@ -62,11 +82,12 @@ interface Message {
     timestamp: number;
 }
 
-export function Tutor({ game, currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, missedTactics, onAnalysisComplete, apiKey, personality, language, playerColor, onCheckComputerMove, resignationContext, tacticalPracticeMode }: TutorProps) {
+export function Tutor({ game, currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, missedTactics, onAnalysisComplete, apiKey, personality, language, playerColor, onCheckComputerMove, resignationContext, tacticalPracticeMode, openingPracticeMode }: TutorProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [chatSession, setChatSession] = useState<ChatSession | null>(null);
+    const [geminiError, setGeminiError] = useState<GeminiErrorInfo | null>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const { addEntry } = useDebug();
 
@@ -84,15 +105,59 @@ export function Tutor({ game, currentFen, userMove, computerMove, stockfish, eva
     // Track the current puzzle to detect when it changes
     const currentPuzzleRef = useRef<string | null>(null);
 
+    // Track last opening moves to detect when new moves are made
+    const lastUserMoveRef = useRef<string | null>(null);
+    const lastTutorMoveRef = useRef<string | null>(null);
+
     // Initialize chat session with Personality System Prompt (only once per pattern type)
     useEffect(() => {
         if (apiKey) {
             const model = getGenAIModel(apiKey, "gemini-2.5-flash");
 
             // Build system prompt based on mode
-            // NOTE: For tactical practice, we don't include the specific puzzle solution in the system prompt
-            // Instead, we'll send it as a message when the puzzle changes
-            const systemPrompt = tacticalPracticeMode ? `
+            const systemPrompt = openingPracticeMode ? `
+You are a Chess Tutor helping a student learn the "${openingPracticeMode.openingName}" opening.
+You must strictly follow the personality defined below.
+
+PERSONALITY:
+${personality.systemPrompt}
+
+${openingPracticeMode.wikipediaSummary ? `OPENING BACKGROUND (from Wikipedia):
+${openingPracticeMode.wikipediaSummary}
+
+Use this background to enrich your explanations, but keep responses concise.
+` : ''}
+
+YOUR ROLE:
+You are BOTH the opponent AND the tutor in this opening training session.
+
+1. OPPONENT: You are playing as ${tutorColorName} in the ${openingPracticeMode.openingName}.
+   - You will make moves from the opening repertoire
+   - Refer to your moves naturally ("I played e5", "My response is...")
+
+2. TUTOR: You are teaching the student this opening.
+   - The student is playing as ${playerColorName}
+   - Explain the IDEAS behind each move, not just the moves themselves
+   - When the student asks for help, ALWAYS provide guidance
+   - When the student stays in theory, praise them and explain what's happening
+   - When the student deviates, explain why the repertoire move is better
+
+YOUR RESPONSIBILITIES:
+1. WELCOME: Start with a warm greeting and brief explanation of the ${openingPracticeMode.openingName}
+2. GUIDANCE: After each move, explain the ideas and plans
+3. ENCOURAGEMENT: Keep the student motivated while learning
+4. DEVIATION HANDLING: When the student leaves theory, gently correct them
+5. ANSWERING QUESTIONS: Always help when the student asks
+
+CRITICAL RULES:
+- Be encouraging and supportive
+- Explain IDEAS and PLANS, not just moves
+- Keep responses concise (2-4 sentences)
+- Do NOT be repetitive - vary your language
+- You MUST respond in the following language: ${language.toUpperCase()}
+- NEVER mention "Stockfish", "engine", "computer", or "AI"
+- When you make a move, explain WHY briefly
+` : tacticalPracticeMode ? `
 You are a Chess Coach helping a student practice tactical patterns.
 You must strictly follow the personality defined below.
 
@@ -161,7 +226,9 @@ CRITICAL RULES:
                     },
                     {
                         role: "model",
-                        parts: [{ text: tacticalPracticeMode
+                        parts: [{ text: openingPracticeMode
+                            ? `Understood. I will teach you the ${openingPracticeMode.openingName} opening in ${language}. I am both your opponent and your tutor. I'll explain the ideas behind each move and help you learn this opening.`
+                            : tacticalPracticeMode
                             ? `Understood. I will help you practice ${tacticalPracticeMode.patternName} in ${language}. I'll provide hints and encouragement while maintaining my personality.`
                             : `Understood. I am both the opponent (${tutorColorName}) AND your tutor. I will compete against you while teaching you to improve. I will speak in ${language} and never mention engines or AI. When you ask for help, I will always provide guidance - that's my purpose.`
                         }]
@@ -171,7 +238,18 @@ CRITICAL RULES:
             setChatSession(session);
 
             // Get initial greeting in the selected language
-            const greetingPrompt = tacticalPracticeMode
+            const greetingPrompt = openingPracticeMode
+                ? `Welcome the student to learn the ${openingPracticeMode.openingName}. Briefly explain the key ideas of this opening (in 2-3 sentences).
+
+IMPORTANT:
+- Clarify that YOU are playing as ${tutorColorName} and the STUDENT is playing as ${playerColorName}
+- If the student is White, make it clear THEY will make the first move, not you
+- If the student is Black, explain you'll make the first move and then they'll respond
+- Don't claim you'll make a move that the student should be making
+- Be encouraging and clear about the game flow
+
+Keep it in ${language}.`
+                : tacticalPracticeMode
                 ? `Welcome the student to practice ${tacticalPracticeMode.patternName}. Briefly explain what this tactical pattern is (in 1-2 sentences). Keep it encouraging and in ${language}.`
                 : `Introduce yourself briefly to start our game. Keep it short and in ${language}.`;
 
@@ -180,14 +258,23 @@ CRITICAL RULES:
                 setMessages([{ role: "model", text: greetingText, timestamp: Date.now() }]);
             }).catch(err => {
                 console.error("Failed to get greeting:", err);
+
+                // Check if it's a Gemini API error
+                if (isGeminiError(err)) {
+                    const errorInfo = parseGeminiError(err);
+                    setGeminiError(errorInfo);
+                }
+
                 // Fallback greeting
-                const fallbackText = tacticalPracticeMode
+                const fallbackText = openingPracticeMode
+                    ? `Hello! Let's learn the ${openingPracticeMode.openingName} together!`
+                    : tacticalPracticeMode
                     ? `Hello! Let's practice ${tacticalPracticeMode.patternName} together!`
                     : `Hello! I am ${personality.name}. Let's play!`;
                 setMessages([{ role: "model", text: fallbackText, timestamp: Date.now() }]);
             });
         }
-    }, [apiKey, personality, language, playerColor, patternName]);
+    }, [apiKey, personality, language, playerColor, patternName, openingPracticeMode]);
     // NOTE: Removed solutionMoveKey from dependencies - we don't want to reset chat when puzzle changes
 
     // Notify tutor about new puzzle (without resetting chat)
@@ -230,8 +317,111 @@ Acknowledge this new puzzle briefly (1 sentence) and encourage the student to fi
             setMessages(prev => [...prev, { role: "model", text: responseText, timestamp: Date.now() }]);
         }).catch(err => {
             console.error("Failed to notify about new puzzle:", err);
+
+            // Check if it's a Gemini API error
+            if (isGeminiError(err)) {
+                const errorInfo = parseGeminiError(err);
+                setGeminiError(errorInfo);
+            }
         });
     }, [solutionMoveKey, chatSession, tacticalPracticeMode, currentFen, language]);
+
+    // Automatic commentary for opening practice mode
+    useEffect(() => {
+        if (!chatSession || !openingPracticeMode) return;
+
+        const userMoveKey = openingPracticeMode.lastUserMove
+            ? `${openingPracticeMode.lastUserMove.san}-${openingPracticeMode.currentMoveIndex}`
+            : null;
+        const tutorMoveKey = openingPracticeMode.lastTutorMove
+            ? `${openingPracticeMode.lastTutorMove.san}-${openingPracticeMode.currentMoveIndex}`
+            : null;
+
+        // Check if user made a new move
+        if (userMoveKey && userMoveKey !== lastUserMoveRef.current) {
+            lastUserMoveRef.current = userMoveKey;
+
+            // Generate commentary about user's move
+            const feedback = openingPracticeMode.currentFeedback;
+            const moveCommentary = `
+[SYSTEM TRIGGER: user_move_in_opening]
+
+The student just played: ${openingPracticeMode.lastUserMove!.san}
+Move category: ${feedback?.category || 'unknown'}
+Position status: ${openingPracticeMode.isInTheory ? 'In theory' : 'Deviated from repertoire'}
+${feedback?.evaluationChange !== undefined ? `Evaluation change: ${feedback.evaluationChange.toFixed(2)}` : ''}
+${feedback?.theoreticalAlternatives && feedback.theoreticalAlternatives.length > 0 ? `Theory suggested: ${feedback.theoreticalAlternatives.join(', ')}` : ''}
+
+INSTRUCTIONS:
+${openingPracticeMode.isInTheory
+    ? `- The student is following the repertoire correctly - praise them briefly
+- Explain the key idea behind this move (1-2 sentences)
+- If you're about to make the next move, you can mention it naturally`
+    : `- The student deviated from theory
+- Gently point out what the repertoire move was
+- Explain why the repertoire move is preferred
+- Ask if they want to try again or continue exploring`}
+- Keep it concise (2-3 sentences max)
+- Stay in ${language}
+- Maintain your personality
+`.trim();
+
+            chatSession.sendMessage(moveCommentary).then(result => {
+                const response = result.response.text();
+                setMessages(prev => [...prev, { role: "model", text: response, timestamp: Date.now() }]);
+            }).catch(err => {
+                console.error("Failed to generate user move commentary:", err);
+                if (isGeminiError(err)) {
+                    setGeminiError(parseGeminiError(err));
+                }
+            });
+        }
+
+        // Check if tutor made a new move
+        if (tutorMoveKey && tutorMoveKey !== lastTutorMoveRef.current) {
+            lastTutorMoveRef.current = tutorMoveKey;
+
+            // Generate commentary about tutor's move
+            const tutorCommentary = `
+[SYSTEM TRIGGER: tutor_move_in_opening]
+
+I just played: ${openingPracticeMode.lastTutorMove!.san}
+Current position FEN: ${currentFen}
+Progress: ${openingPracticeMode.currentMoveIndex}/${openingPracticeMode.repertoireMoves.length} moves
+
+INSTRUCTIONS:
+- Explain WHY you played this move (the idea behind it)
+- Mention what it accomplishes (controls center, develops, creates threat, etc.)
+- If relevant, mention what the student should think about for their next move
+- Keep it conversational and in character
+- 2-3 sentences max
+- Respond in ${language}
+
+Remember: You are both the opponent AND the tutor. Explain your move as if you're teaching.
+`.trim();
+
+            // Add small delay before tutor explains their move
+            setTimeout(() => {
+                chatSession.sendMessage(tutorCommentary).then(result => {
+                    const response = result.response.text();
+                    setMessages(prev => [...prev, { role: "model", text: response, timestamp: Date.now() }]);
+                }).catch(err => {
+                    console.error("Failed to generate tutor move commentary:", err);
+                    if (isGeminiError(err)) {
+                        setGeminiError(parseGeminiError(err));
+                    }
+                });
+            }, 300); // Brief delay so the move appears first, then the explanation
+        }
+    }, [
+        chatSession,
+        openingPracticeMode?.lastUserMove?.san,
+        openingPracticeMode?.lastTutorMove?.san,
+        openingPracticeMode?.currentMoveIndex,
+        openingPracticeMode?.isInTheory,
+        currentFen,
+        language
+    ]);
 
     // Scroll chat container to bottom (not the whole page)
     useEffect(() => {
@@ -583,7 +773,33 @@ INSTRUCTIONS:
             setMessages(prev => [...prev, { role: "model", text: textResponse, timestamp: Date.now() }]);
         } catch (error) {
             console.error("Chat Error:", error);
-            setMessages(prev => [...prev, { role: "model", text: "Sorry, I encountered an error.", timestamp: Date.now() }]);
+
+            // Check if it's a Gemini API error
+            if (isGeminiError(error)) {
+                const errorInfo = parseGeminiError(error);
+                setGeminiError(errorInfo);
+
+                // Show a brief error message in chat
+                if (errorInfo.isQuotaError) {
+                    setMessages(prev => [...prev, {
+                        role: "model",
+                        text: "⚠️ API quota exceeded. Please check the error message for details.",
+                        timestamp: Date.now()
+                    }]);
+                } else {
+                    setMessages(prev => [...prev, {
+                        role: "model",
+                        text: "⚠️ I encountered an error. Please try again.",
+                        timestamp: Date.now()
+                    }]);
+                }
+            } else {
+                setMessages(prev => [...prev, {
+                    role: "model",
+                    text: "Sorry, I encountered an error.",
+                    timestamp: Date.now()
+                }]);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -748,6 +964,15 @@ INSTRUCTIONS:
                     <Send size={20} />
                 </button>
             </form>
+
+            {/* Gemini Error Modal */}
+            {geminiError && (
+                <GeminiErrorModal
+                    error={geminiError}
+                    apiKeyInfo={getApiKeyInfo()}
+                    onClose={() => setGeminiError(null)}
+                />
+            )}
         </div>
     );
 }

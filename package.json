@@ -12,14 +12,27 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "test:all": "npm test && npm run test:e2e"
+    "test:all": "npm test && npm run test:e2e",
+    "build:opening-index": "node scripts/buildOpeningIndex.js",
+    "cache:wikipedia": "tsx scripts/fetch-wikipedia-openings.ts",
+    "update:wikipedia-slugs": "tsx scripts/add-wikipedia-to-openings.ts",
+    "build:mobile": "./scripts/build-mobile.sh",
+    "mobile:build": "npm run build:mobile && npx cap sync",
+    "mobile:ios": "npm run mobile:build && npx cap open ios",
+    "mobile:android": "npm run mobile:build && npx cap open android",
+    "cap:sync": "npx cap sync",
+    "cap:copy": "npx cap copy"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
+    "@capacitor/ios": "^7.4.4",
     "@google/generative-ai": "^0.24.1",
     "chess.js": "^1.4.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.554.0",
-    "next": "16.0.3",
+    "next": "^16.0.7",
     "react": "19.2.0",
     "react-chessboard": "^5.8.4",
     "react-dom": "19.2.0",
@@ -37,6 +50,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/uuid": "^10.0.0",
+    "baseline-browser-mapping": "^2.9.4",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
     "jest": "^30.2.0",
@@ -44,6 +59,7 @@
     "tailwindcss": "^4",
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }

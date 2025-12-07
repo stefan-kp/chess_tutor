@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Chess, Move } from "chess.js";
+import { Chess, Move, Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { ArrowLeft, CheckCircle, XCircle, RefreshCw, SkipForward } from "lucide-react";
 import Header from "@/components/Header";
@@ -153,7 +153,7 @@ export default function TacticalPracticePage() {
     if (setupError) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <Header language={language} onLanguageChange={setLanguage} />
+                <Header language={language} />
                 <div className="container mx-auto px-4 py-8">
                     <div className="max-w-2xl mx-auto">
                         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
@@ -218,7 +218,7 @@ export default function TacticalPracticePage() {
         return t.learning.patterns[mapping[pattern]];
     };
 
-    const onDrop = ({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }) => {
+    const onDrop = ({ sourceSquare, targetSquare }: { sourceSquare: Square; targetSquare: Square | null }) => {
         if (!targetSquare || feedback !== 'none') return false;
 
         // Additional validation: Check if there's actually a piece on the source square
@@ -571,7 +571,7 @@ export default function TacticalPracticePage() {
                                         position: fen,
                                         onPieceDrop: ({ sourceSquare, targetSquare }) => {
                                             console.log('🎲 onPieceDrop called with:', { sourceSquare, targetSquare });
-                                            return onDrop({ sourceSquare, targetSquare });
+                                            return onDrop({ sourceSquare: sourceSquare as Square, targetSquare: targetSquare as Square | null });
                                         },
                                         darkSquareStyle: { backgroundColor: '#779954' },
                                         lightSquareStyle: { backgroundColor: '#e9edcc' },
