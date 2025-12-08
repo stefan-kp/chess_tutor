@@ -14,6 +14,7 @@
     "test:e2e:headed": "playwright test --headed",
     "test:all": "npm test && npm run test:e2e",
     "build:opening-index": "node scripts/buildOpeningIndex.js",
+    "generate:test-fixtures": "npx tsx scripts/generate-test-fixtures.ts",
     "cache:wikipedia": "tsx scripts/fetch-wikipedia-openings.ts",
     "update:wikipedia-slugs": "tsx scripts/add-wikipedia-to-openings.ts",
     "build:mobile": "./scripts/build-mobile.sh",
