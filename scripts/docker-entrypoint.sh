@@ -15,6 +15,9 @@ if [ ! -f "public/wikipedia/.initialized" ] || [ -z "$(ls -A public/wikipedia/*.
   echo "🔗 Updating Wikipedia slugs in opening database..."
   npm run update:wikipedia-slugs || echo "⚠️  Warning: Wikipedia slug update failed, continuing..."
 
+  echo "📊 Rebuilding opening move index..."
+  npm run build:opening-index || echo "⚠️  Warning: Move index rebuild failed, continuing..."
+
   # Mark as initialized
   touch public/wikipedia/.initialized
   echo "✅ Wikipedia data initialized"
