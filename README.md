@@ -9,22 +9,42 @@ This application was built using **Antigravity by Google**. I like to work with 
 
 **AI Chess Tutor** is an interactive chess learning application where you play against an AI opponent powered by Stockfish while receiving real-time coaching feedback from a Large Language Model (LLM).
 
-### Typical Game Flow
+### Learning Modes
 
-1. **Start or Resume**: From the homepage, either start a new game or continue an unfinished game from where you left off
-2. **Choose Your Personality**: Select from 9 unique AI coaching personalities, each with their own teaching style and character
+**Opening Training Mode** - Learn chess openings systematically:
+1. **Browse Openings**: Explore 12,379 openings organized by ECO code and family
+2. **Select an Opening**: Choose from openings like French Defense, Sicilian, Ruy Lopez, etc.
+3. **Read Background**: View Wikipedia context about the opening's history and strategic ideas
+4. **Practice Moves**: Make moves while the AI tutor guides you through the repertoire
+5. **Real-Time Feedback**: Get instant feedback on whether you're in theory or deviating
+6. **Handle Deviations**: When you leave theory, choose to:
+   - **Undo** and return to the repertoire
+   - **Continue Playing** in full game mode with opening context
+   - **Explore** the variation further
+7. **Resume Sessions**: Your progress is saved - pick up where you left off
+
+**Tactical Practice Mode** - Master tactical patterns:
+1. **Choose a Pattern**: Select from 8 tactical themes (Pin, Fork, Skewer, etc.)
+2. **Solve Puzzles**: Find the winning tactical move in realistic positions
+3. **Get Feedback**: Receive immediate feedback and explanations
+4. **Track Progress**: Monitor your streak and success rate
+5. **Learn Patterns**: Build pattern recognition through repetition
+
+**Game Mode** - Play full games with AI coaching:
+1. **Start or Resume**: From the homepage, either start a new game or continue an unfinished game
+2. **Choose Your Personality**: Select from 9 unique AI coaching personalities
 3. **Select Your Color**: Play as White, Black, or let the app choose randomly
 4. **Play Chess**: Make your moves on the board while the Stockfish engine plays against you
-5. **Get Real-Time Feedback**: After each move exchange, your AI tutor analyzes the position and provides personalized feedback based on:
+5. **Get Real-Time Feedback**: After each move exchange, your AI tutor analyzes the position:
    - Move quality and alternatives
    - Position evaluation changes
    - **Missed tactical opportunities** (pins, forks, skewers, checks, hanging pieces, material captures)
    - Opening theory (when applicable)
    - Strategic and positional considerations
-6. **Chat with Your Tutor**: Ask questions anytime using the integrated chat feature - your tutor will answer in character
-7. **Export Your Game**: Download your game as PGN or export the current position as FEN at any time
-8. **Resign When Needed**: Use the resign button to end the game early - your AI tutor will provide a final in-character message acknowledging the resignation
-9. **Post-Game Analysis**: When the game ends (including by resignation), review a comprehensive analysis showing:
+6. **Chat with Your Tutor**: Ask questions anytime - your tutor answers in character
+7. **Export Your Game**: Download your game as PGN or export the current position as FEN
+8. **Resign When Needed**: End the game early with in-character tutor feedback
+9. **Post-Game Analysis**: Review comprehensive analysis showing:
    - All your mistakes and inaccuracies
    - Missed tactical opportunities throughout the game
    - Learning opportunities and improvement suggestions
@@ -36,8 +56,19 @@ This application was built using **Antigravity by Google**. I like to work with 
 
 ### Core Features
 - **Stockfish Engine**: Powerful chess engine for move analysis and opponent play
+- **Opening Training Mode**: Interactive opening trainer with AI tutor guidance
+  - Practice 12,379 chess openings from comprehensive ECO database
+  - Real-time feedback on theory adherence vs. deviations
+  - Wikipedia integration for opening history and strategic context
+  - Session persistence with resume capability
+  - Deviation dialog with options to undo, continue, or transition to game mode
+  - Automatic opponent moves following repertoire lines
+- **Tactical Practice Mode**: Pattern-based puzzle training with 8 tactical themes
+  - 20+ puzzles per pattern from Lichess database
+  - Patterns: Pin, Fork, Skewer, Discovered Check, Double Attack, Overloading, Back Rank Weakness, Trapped Piece
+  - Streak tracking and performance statistics
 - **Tactical Recognition**: Automatically detects missed tactical opportunities (pins, forks, skewers, checks, hanging pieces, material captures)
-- **Opening Database**: Comprehensive database of chess openings with metadata and theory
+- **Opening Database**: Comprehensive ECO database with 12,379 openings, metadata, and theory
 - **Real-Time Evaluation**: Live position evaluation with visual evaluation bar
 - **Move Analysis**: Detailed feedback on every move you make with tactical insights
 - **Interactive Chat**: Ask your AI tutor questions and get personalized answers
@@ -50,6 +81,7 @@ This application was built using **Antigravity by Google**. I like to work with 
 - **Move History**: Visual move history table with evaluation changes and tactical annotations
 - **Saved Games**: Continue unfinished games from where you left off
 - **Settings Management**: Customize your experience with language preferences, API key management, and data controls
+- **Mobile Apps**: iOS and Android apps with Capacitor (proprietary licensing for App Store compliance)
 
 ### AI Personalities
 
