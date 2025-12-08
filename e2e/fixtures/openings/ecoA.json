@@ -1,0 +1,48 @@
+{
+  "rn1qkbnr/ppp2ppp/8/3p4/5p2/6PB/PPPPP2P/RNBQK2R w KQkq - 0 5": {
+    "src": "eco_tsv",
+    "eco": "A00",
+    "moves": "1. Nh3 d5 2. g3 e5 3. f4 Bxh3 4. Bxh3 exf4",
+    "name": "Amar Gambit"
+  },
+  "rnbqkbnr/pppppppp/8/8/8/7N/PPPPPPPP/RNBQKB1R b KQkq - 1 1": {
+    "src": "eco_tsv",
+    "eco": "A00",
+    "moves": "1. Nh3",
+    "name": "Amar Opening",
+    "scid": "A00g",
+    "aliases": {
+      "scid": "Amar/Paris Opening",
+      "eco_wikip": "Irregular Openings: Amar Opening",
+      "ct": "Amar Opening, General",
+      "chessGraph": "Amar; Paris Opening",
+      "chronos": "Amar (Paris) opening",
+      "icsbot": "Amar; Paris Opening "
+    }
+  },
+  "rn1qkbnr/ppp2ppp/8/3p4/8/6PB/PPPPP3/RNBQ1RK1 b kq - 0 6": {
+    "src": "eco_tsv",
+    "eco": "A00",
+    "moves": "1. Nh3 d5 2. g3 e5 3. f4 Bxh3 4. Bxh3 exf4 5. O-O fxg3 6. hxg3",
+    "name": "Amar Opening: Paris Gambit, Gent Gambit",
+    "aliases": {
+      "ct": "Amar Opening, Gent Gambit"
+    }
+  },
+  "rnbqkbnr/ppp2ppp/8/3pp3/5P2/6PN/PPPPP2P/RNBQKB1R b KQkq - 0 3": {
+    "src": "eco_tsv",
+    "eco": "A00",
+    "moves": "1. Nh3 d5 2. g3 e5 3. f4",
+    "name": "Amar Opening: Paris Gambit",
+    "scid": "A00g",
+    "aliases": {
+      "scid": "Amar: Paris Gambit"
+    }
+  },
+  "r1bqkb1r/ppp2ppp/2np1n2/4p3/2P5/1PN1P3/P2P1PPP/R1BQKBNR w KQkq - 1 5": {
+    "src": "eco_tsv",
+    "eco": "A00",
+    "moves": "1. e3 e5 2. c4 d6 3. Nc3 Nc6 4. b3 Nf6",
+    "name": "Amsterdam Attack"
+  }
+}

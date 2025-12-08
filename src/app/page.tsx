@@ -22,6 +22,13 @@ export default function Home() {
         initialPersonality: Personality;
         initialColor: 'white' | 'black';
         initialStockfishDepth?: number;
+        openingContext?: {
+            openingName: string;
+            openingEco: string;
+            movesCompleted: number;
+            wikipediaSummary?: string;
+            contextMessage: string;
+        };
     } | null>(null);
 
     const [savedGames, setSavedGames] = useState<SavedGame[]>([]);
@@ -48,18 +55,31 @@ export default function Home() {
 
                 const personality = PERSONALITIES.find(p => p.id === pendingGame.personalityId) || PERSONALITIES[0];
 
+                // Check for opening context (from opening trainer)
+                const openingContextRaw = localStorage.getItem("chess_tutor_opening_context");
+                let openingContext;
+                if (openingContextRaw) {
+                    try {
+                        openingContext = JSON.parse(openingContextRaw);
+                    } catch (err) {
+                        console.error("Failed to parse opening context", err);
+                    }
+                }
+
                 setGameProps({
                     gameId: crypto.randomUUID ? crypto.randomUUID() : `game-${Date.now()}`,
                     initialFen: pendingGame.fen,
                     initialPersonality: personality,
                     initialColor: pendingGame.color,
                     initialStockfishDepth: pendingGame.stockfishDepth,
+                    openingContext,
                 });
                 setView('game');
             } catch (err) {
                 console.error("Failed to load pending game", err);
             } finally {
                 localStorage.removeItem("chess_tutor_pending_game");
+                localStorage.removeItem("chess_tutor_opening_context");
             }
         }
 
@@ -127,6 +147,7 @@ export default function Home() {
                     initialPersonality={gameProps.initialPersonality}
                     initialColor={gameProps.initialColor}
                     initialStockfishDepth={gameProps.initialStockfishDepth}
+                    openingContext={gameProps.openingContext}
                     onBack={handleBackToMenu}
                 />
             )}

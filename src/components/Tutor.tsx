@@ -45,6 +45,13 @@ interface TutorProps {
         result: string;
         winner: 'White' | 'Black' | 'Draw';
     } | null;
+    openingContext?: {
+        openingName: string;
+        openingEco: string;
+        movesCompleted: number;
+        wikipediaSummary?: string;
+        contextMessage: string;
+    };
     tacticalPracticeMode?: {
         patternName: string;
         solutionMove: { from: string; to: string; promotion?: string };
@@ -73,6 +80,8 @@ interface TutorProps {
             theoreticalAlternatives: string[];
         } | null;
         wikipediaSummary?: string;  // Optional Wikipedia context
+        shouldTutorSpeak?: boolean;  // Guardrail: controls when tutor can send messages
+        onTutorMessageSent?: () => void;  // Callback when tutor sends a message
     };
 }
 
@@ -82,7 +91,7 @@ interface Message {
     timestamp: number;
 }
 
-export function Tutor({ game, currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, missedTactics, onAnalysisComplete, apiKey, personality, language, playerColor, onCheckComputerMove, resignationContext, tacticalPracticeMode, openingPracticeMode }: TutorProps) {
+export function Tutor({ game, currentFen, userMove, computerMove, stockfish, evalP0, evalP2, openingData, missedTactics, onAnalysisComplete, apiKey, personality, language, playerColor, onCheckComputerMove, resignationContext, openingContext, tacticalPracticeMode, openingPracticeMode }: TutorProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -102,6 +111,11 @@ export function Tutor({ game, currentFen, userMove, computerMove, stockfish, eva
     const patternName = tacticalPracticeMode?.patternName;
     const solutionMoveKey = tacticalPracticeMode ? `${tacticalPracticeMode.solutionMove.from}-${tacticalPracticeMode.solutionMove.to}` : null;
 
+    // Extract stable values from openingPracticeMode to avoid recreating chat
+    const openingName = openingPracticeMode?.openingName;
+    const openingEco = openingPracticeMode?.openingEco;
+    const wikipediaSummary = openingPracticeMode?.wikipediaSummary;
+
     // Track the current puzzle to detect when it changes
     const currentPuzzleRef = useRef<string | null>(null);
 
@@ -115,15 +129,15 @@ export function Tutor({ game, currentFen, userMove, computerMove, stockfish, eva
             const model = getGenAIModel(apiKey, "gemini-2.5-flash");
 
             // Build system prompt based on mode
-            const systemPrompt = openingPracticeMode ? `
-You are a Chess Tutor helping a student learn the "${openingPracticeMode.openingName}" opening.
+            const systemPrompt = openingName ? `
+You are a Chess Tutor helping a student learn the "${openingName}" opening.
 You must strictly follow the personality defined below.
 
 PERSONALITY:
 ${personality.systemPrompt}
 
-${openingPracticeMode.wikipediaSummary ? `OPENING BACKGROUND (from Wikipedia):
-${openingPracticeMode.wikipediaSummary}
+${wikipediaSummary ? `OPENING BACKGROUND (from Wikipedia):
+${wikipediaSummary}
 
 Use this background to enrich your explanations, but keep responses concise.
 ` : ''}
@@ -131,7 +145,7 @@ Use this background to enrich your explanations, but keep responses concise.
 YOUR ROLE:
 You are BOTH the opponent AND the tutor in this opening training session.
 
-1. OPPONENT: You are playing as ${tutorColorName} in the ${openingPracticeMode.openingName}.
+1. OPPONENT: You are playing as ${tutorColorName} in the ${openingName}.
    - You will make moves from the opening repertoire
    - Refer to your moves naturally ("I played e5", "My response is...")
 
@@ -143,7 +157,7 @@ You are BOTH the opponent AND the tutor in this opening training session.
    - When the student deviates, explain why the repertoire move is better
 
 YOUR RESPONSIBILITIES:
-1. WELCOME: Start with a warm greeting and brief explanation of the ${openingPracticeMode.openingName}
+1. WELCOME: Start with a warm greeting and brief explanation of the ${openingName}
 2. GUIDANCE: After each move, explain the ideas and plans
 3. ENCOURAGEMENT: Keep the student motivated while learning
 4. DEVIATION HANDLING: When the student leaves theory, gently correct them
@@ -226,8 +240,8 @@ CRITICAL RULES:
                     },
                     {
                         role: "model",
-                        parts: [{ text: openingPracticeMode
-                            ? `Understood. I will teach you the ${openingPracticeMode.openingName} opening in ${language}. I am both your opponent and your tutor. I'll explain the ideas behind each move and help you learn this opening.`
+                        parts: [{ text: openingName
+                            ? `Understood. I will teach you the ${openingName} opening in ${language}. I am both your opponent and your tutor. I'll explain the ideas behind each move and help you learn this opening.`
                             : tacticalPracticeMode
                             ? `Understood. I will help you practice ${tacticalPracticeMode.patternName} in ${language}. I'll provide hints and encouragement while maintaining my personality.`
                             : `Understood. I am both the opponent (${tutorColorName}) AND your tutor. I will compete against you while teaching you to improve. I will speak in ${language} and never mention engines or AI. When you ask for help, I will always provide guidance - that's my purpose.`
@@ -238,17 +252,29 @@ CRITICAL RULES:
             setChatSession(session);
 
             // Get initial greeting in the selected language
-            const greetingPrompt = openingPracticeMode
-                ? `Welcome the student to learn the ${openingPracticeMode.openingName}. Briefly explain the key ideas of this opening (in 2-3 sentences).
+            const greetingPrompt = openingName
+                ? `Welcome the student to learn the ${openingName}.
 
-IMPORTANT:
+${wikipediaSummary ? `OPENING CONTEXT (from Wikipedia):
+${wikipediaSummary}
+
+Use this information to:
+- Briefly explain the opening's historical background or origin
+- Mention any interesting anecdotes or notable players associated with it
+- Explain the main strategic ideas and goals
+` : `Since no Wikipedia information is available:
+- Focus on the opening's main strategic ideas and goals
+- Explain what this opening aims to accomplish
+- Don't just list moves - explain the underlying concepts
+`}
+
+IMPORTANT GAME SETUP:
 - Clarify that YOU are playing as ${tutorColorName} and the STUDENT is playing as ${playerColorName}
 - If the student is White, make it clear THEY will make the first move, not you
 - If the student is Black, explain you'll make the first move and then they'll respond
-- Don't claim you'll make a move that the student should be making
-- Be encouraging and clear about the game flow
+- Be encouraging and welcoming
 
-Keep it in ${language}.`
+Keep your response to 3-4 sentences, be engaging, and respond in ${language}.`
                 : tacticalPracticeMode
                 ? `Welcome the student to practice ${tacticalPracticeMode.patternName}. Briefly explain what this tactical pattern is (in 1-2 sentences). Keep it encouraging and in ${language}.`
                 : `Introduce yourself briefly to start our game. Keep it short and in ${language}.`;
@@ -266,15 +292,15 @@ Keep it in ${language}.`
                 }
 
                 // Fallback greeting
-                const fallbackText = openingPracticeMode
-                    ? `Hello! Let's learn the ${openingPracticeMode.openingName} together!`
+                const fallbackText = openingName
+                    ? `Hello! Let's learn the ${openingName} together!`
                     : tacticalPracticeMode
                     ? `Hello! Let's practice ${tacticalPracticeMode.patternName} together!`
                     : `Hello! I am ${personality.name}. Let's play!`;
                 setMessages([{ role: "model", text: fallbackText, timestamp: Date.now() }]);
             });
         }
-    }, [apiKey, personality, language, playerColor, patternName, openingPracticeMode]);
+    }, [apiKey, personality, language, playerColor, patternName, openingName, wikipediaSummary]);
     // NOTE: Removed solutionMoveKey from dependencies - we don't want to reset chat when puzzle changes
 
     // Notify tutor about new puzzle (without resetting chat)
@@ -326,15 +352,30 @@ Acknowledge this new puzzle briefly (1 sentence) and encourage the student to fi
         });
     }, [solutionMoveKey, chatSession, tacticalPracticeMode, currentFen, language]);
 
+    // Extract stable values for opening practice commentary
+    const lastUserMoveSan = openingPracticeMode?.lastUserMove?.san;
+    const lastTutorMoveSan = openingPracticeMode?.lastTutorMove?.san;
+    const currentMoveIndex = openingPracticeMode?.currentMoveIndex ?? 0;
+    const isInTheory = openingPracticeMode?.isInTheory ?? true;
+    const currentFeedback = openingPracticeMode?.currentFeedback;
+    const repertoireMovesLength = openingPracticeMode?.repertoireMoves?.length ?? 0;
+
     // Automatic commentary for opening practice mode
     useEffect(() => {
-        if (!chatSession || !openingPracticeMode) return;
+        if (!chatSession || !openingName) return;
 
-        const userMoveKey = openingPracticeMode.lastUserMove
-            ? `${openingPracticeMode.lastUserMove.san}-${openingPracticeMode.currentMoveIndex}`
+        // Guardrail: Check if tutor is allowed to speak
+        const shouldSpeak = openingPracticeMode?.shouldTutorSpeak ?? true;
+        if (!shouldSpeak) {
+            console.log('[Tutor] Guardrail: Not allowed to speak yet');
+            return;
+        }
+
+        const userMoveKey = lastUserMoveSan
+            ? `${lastUserMoveSan}-${currentMoveIndex}`
             : null;
-        const tutorMoveKey = openingPracticeMode.lastTutorMove
-            ? `${openingPracticeMode.lastTutorMove.san}-${openingPracticeMode.currentMoveIndex}`
+        const tutorMoveKey = lastTutorMoveSan
+            ? `${lastTutorMoveSan}-${currentMoveIndex}`
             : null;
 
         // Check if user made a new move
@@ -342,18 +383,17 @@ Acknowledge this new puzzle briefly (1 sentence) and encourage the student to fi
             lastUserMoveRef.current = userMoveKey;
 
             // Generate commentary about user's move
-            const feedback = openingPracticeMode.currentFeedback;
             const moveCommentary = `
 [SYSTEM TRIGGER: user_move_in_opening]
 
-The student just played: ${openingPracticeMode.lastUserMove!.san}
-Move category: ${feedback?.category || 'unknown'}
-Position status: ${openingPracticeMode.isInTheory ? 'In theory' : 'Deviated from repertoire'}
-${feedback?.evaluationChange !== undefined ? `Evaluation change: ${feedback.evaluationChange.toFixed(2)}` : ''}
-${feedback?.theoreticalAlternatives && feedback.theoreticalAlternatives.length > 0 ? `Theory suggested: ${feedback.theoreticalAlternatives.join(', ')}` : ''}
+The student just played: ${lastUserMoveSan}
+Move category: ${currentFeedback?.category || 'unknown'}
+Position status: ${isInTheory ? 'In theory' : 'Deviated from repertoire'}
+${currentFeedback?.evaluationChange !== undefined ? `Evaluation change: ${currentFeedback.evaluationChange.toFixed(2)}` : ''}
+${currentFeedback?.theoreticalAlternatives && currentFeedback.theoreticalAlternatives.length > 0 ? `Theory suggested: ${currentFeedback.theoreticalAlternatives.join(', ')}` : ''}
 
 INSTRUCTIONS:
-${openingPracticeMode.isInTheory
+${isInTheory
     ? `- The student is following the repertoire correctly - praise them briefly
 - Explain the key idea behind this move (1-2 sentences)
 - If you're about to make the next move, you can mention it naturally`
@@ -369,6 +409,9 @@ ${openingPracticeMode.isInTheory
             chatSession.sendMessage(moveCommentary).then(result => {
                 const response = result.response.text();
                 setMessages(prev => [...prev, { role: "model", text: response, timestamp: Date.now() }]);
+
+                // Notify parent that tutor sent a message
+                openingPracticeMode?.onTutorMessageSent?.();
             }).catch(err => {
                 console.error("Failed to generate user move commentary:", err);
                 if (isGeminiError(err)) {
@@ -385,9 +428,9 @@ ${openingPracticeMode.isInTheory
             const tutorCommentary = `
 [SYSTEM TRIGGER: tutor_move_in_opening]
 
-I just played: ${openingPracticeMode.lastTutorMove!.san}
+I just played: ${lastTutorMoveSan}
 Current position FEN: ${currentFen}
-Progress: ${openingPracticeMode.currentMoveIndex}/${openingPracticeMode.repertoireMoves.length} moves
+Progress: ${currentMoveIndex}/${repertoireMovesLength} moves
 
 INSTRUCTIONS:
 - Explain WHY you played this move (the idea behind it)
@@ -405,6 +448,9 @@ Remember: You are both the opponent AND the tutor. Explain your move as if you'r
                 chatSession.sendMessage(tutorCommentary).then(result => {
                     const response = result.response.text();
                     setMessages(prev => [...prev, { role: "model", text: response, timestamp: Date.now() }]);
+
+                    // Notify parent that tutor sent a message
+                    openingPracticeMode?.onTutorMessageSent?.();
                 }).catch(err => {
                     console.error("Failed to generate tutor move commentary:", err);
                     if (isGeminiError(err)) {
@@ -415,12 +461,15 @@ Remember: You are both the opponent AND the tutor. Explain your move as if you'r
         }
     }, [
         chatSession,
-        openingPracticeMode?.lastUserMove?.san,
-        openingPracticeMode?.lastTutorMove?.san,
-        openingPracticeMode?.currentMoveIndex,
-        openingPracticeMode?.isInTheory,
+        lastUserMoveSan,
+        lastTutorMoveSan,
+        currentMoveIndex,
+        isInTheory,
         currentFen,
-        language
+        language,
+        openingName,
+        currentFeedback,
+        repertoireMovesLength
     ]);
 
     // Scroll chat container to bottom (not the whole page)
@@ -862,6 +911,60 @@ INSTRUCTIONS:
 
         handleResignationMessage();
     }, [chatSession, language, personality.name, resignationContext?.trigger, resignationContext?.evaluation, resignationContext?.fen, resignationContext?.result, resignationContext?.winner, stockfish]);
+
+    // Opening Context Message (when transitioning from opening trainer to game mode)
+    useEffect(() => {
+        const handleOpeningContextMessage = async () => {
+            if (!openingContext || !chatSession) return;
+
+            // Only send this message once when the context is first loaded
+            // We can check if messages array is still just the greeting
+            if (messages.length > 1) return;
+
+            setIsLoading(true);
+
+            try {
+                let evaluation = null;
+                if (stockfish) {
+                    evaluation = await stockfish.evaluate(currentFen, 15);
+                }
+
+                const whiteEval = evaluation ? `${evaluation.score} cp${evaluation.mate ? ` (mate in ${evaluation.mate})` : ''}` : "N/A";
+                const blackEval = evaluation ? `${-evaluation.score} cp${evaluation.mate ? ` (mate in ${-evaluation.mate})` : ''}` : "N/A";
+
+                const prompt = `
+[SYSTEM TRIGGER: opening_training_transition]
+The student has just transitioned from opening training to a real game.
+
+OPENING TRAINING CONTEXT:
+- Opening Studied: ${openingContext.openingName} (${openingContext.openingEco})
+- Moves Completed in Training: ${openingContext.movesCompleted}
+${openingContext.wikipediaSummary ? `- Opening Background: ${openingContext.wikipediaSummary}` : ''}
+
+CURRENT POSITION:
+- FEN: ${currentFen}
+- ENGINE EVALUATION: White ${whiteEval}, Black ${blackEval}
+
+INSTRUCTIONS:
+- Welcome the student to the game continuation
+- Acknowledge that they've studied the ${openingContext.openingName} up to move ${openingContext.movesCompleted}
+- Briefly mention what to focus on next (based on the opening's typical plans)
+- Encourage them to apply what they've learned
+- Keep it concise (3-4 sentences max)
+- Respond in ${language.toUpperCase()}
+- Stay in your personality (${personality.name})
+                `.trim();
+
+                await sendMessageToChat(prompt, true);
+            } catch (error) {
+                console.error("Failed to send opening context message", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        handleOpeningContextMessage();
+    }, [chatSession, openingContext, stockfish, currentFen, language, personality.name]);
 
     if (!apiKey) return null;
 

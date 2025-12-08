@@ -1,0 +1,305 @@
+{
+  "1. Nh3 d5 2. g3 e5 3. f4 Bxh3 4. Bxh3 exf4": [
+    {
+      "src": "eco_tsv",
+      "eco": "A00",
+      "moves": "1. Nh3 d5 2. g3 e5 3. f4 Bxh3 4. Bxh3 exf4",
+      "name": "Amar Gambit"
+    }
+  ],
+  "1. Nh3": [
+    {
+      "src": "eco_tsv",
+      "eco": "A00",
+      "moves": "1. Nh3",
+      "name": "Amar Opening",
+      "scid": "A00g",
+      "aliases": {
+        "scid": "Amar/Paris Opening",
+        "eco_wikip": "Irregular Openings: Amar Opening",
+        "ct": "Amar Opening, General",
+        "chessGraph": "Amar; Paris Opening",
+        "chronos": "Amar (Paris) opening",
+        "icsbot": "Amar; Paris Opening "
+      }
+    }
+  ],
+  "1. Nh3 d5 2. g3 e5 3. f4 Bxh3 4. Bxh3 exf4 5. O-O fxg3 6. hxg3": [
+    {
+      "src": "eco_tsv",
+      "eco": "A00",
+      "moves": "1. Nh3 d5 2. g3 e5 3. f4 Bxh3 4. Bxh3 exf4 5. O-O fxg3 6. hxg3",
+      "name": "Amar Opening: Paris Gambit, Gent Gambit",
+      "aliases": {
+        "ct": "Amar Opening, Gent Gambit"
+      }
+    }
+  ],
+  "1. Nh3 d5 2. g3 e5 3. f4": [
+    {
+      "src": "eco_tsv",
+      "eco": "A00",
+      "moves": "1. Nh3 d5 2. g3 e5 3. f4",
+      "name": "Amar Opening: Paris Gambit",
+      "scid": "A00g",
+      "aliases": {
+        "scid": "Amar: Paris Gambit"
+      }
+    }
+  ],
+  "1. e3 e5 2. c4 d6 3. Nc3 Nc6 4. b3 Nf6": [
+    {
+      "src": "eco_tsv",
+      "eco": "A00",
+      "moves": "1. e3 e5 2. c4 d6 3. Nc3 Nc6 4. b3 Nf6",
+      "name": "Amsterdam Attack"
+    }
+  ],
+  "1. e4 f6": [
+    {
+      "src": "eco_tsv",
+      "eco": "B00",
+      "moves": "1. e4 f6",
+      "name": "Barnes Defense"
+    }
+  ],
+  "1. e4 a6 2. d4 h6": [
+    {
+      "src": "scid",
+      "eco": "B00",
+      "moves": "1. e4 a6 2. d4 h6",
+      "name": "Basman's Creepy-Crawly System (as Black)",
+      "scid": "B00c"
+    }
+  ],
+  "1. e4 g5": [
+    {
+      "src": "eco_tsv",
+      "eco": "B00",
+      "moves": "1. e4 g5",
+      "name": "Borg Defense",
+      "scid": "B00b",
+      "aliases": {
+        "scid": "Reversed Grob (Borg/Basman Defence)",
+        "ct": "Borg Defense, General",
+        "chessGraph": "Basman Defense; Macho Grob",
+        "chronos": "Reversed Grob (Borg/Basman defence/macho Grob)",
+        "icsbot": "Basman Defense; Macho Grob "
+      }
+    }
+  ],
+  "1. e4 g5 2. d4 Bg7": [
+    {
+      "src": "eco_tsv",
+      "eco": "B00",
+      "moves": "1. e4 g5 2. d4 Bg7",
+      "name": "Borg Defense: Borg Gambit",
+      "aliases": {
+        "eco_js": "Borg Defense: Borg Gambit, 2. d4 Bg7",
+        "chessGraph": "Borg Gambit",
+        "icsbot": "Borg Gambit "
+      }
+    }
+  ],
+  "1. e4 g5 2. d4 e6 3. c3 c5 4. dxc5 b6": [
+    {
+      "src": "eco_js",
+      "eco": "B00",
+      "moves": "1. e4 g5 2. d4 e6 3. c3 c5 4. dxc5 b6",
+      "name": "Borg Defense: Langhorst Gambit"
+    }
+  ],
+  "1. e4 e6": [
+    {
+      "src": "eco_tsv",
+      "eco": "C00",
+      "moves": "1. e4 e6",
+      "name": "French Defense",
+      "scid": "C00a",
+      "aliases": {
+        "scid": "French",
+        "ct": "French Defense, General",
+        "chessGraph": "French Defense; C00",
+        "icsbot": "French Defense; C00 "
+      },
+      "isEcoRoot": true,
+      "wikipediaSlug": "french-defense"
+    }
+  ],
+  "1. e4 e6 2. d4 d5": [
+    {
+      "src": "eco_tsv",
+      "eco": "C00",
+      "moves": "1. e4 e6 2. d4 d5",
+      "name": "French Defense",
+      "scid": "C00x",
+      "aliases": {
+        "scid": "French: 2.d4 d5",
+        "eco_js": "French Defense, 2. d4 d5",
+        "ct": "French Defense, Main Line"
+      },
+      "wikipediaSlug": "french-defense"
+    }
+  ],
+  "1. e4 e6 2. d4 d5 3. Be3": [
+    {
+      "src": "eco_tsv",
+      "eco": "C00",
+      "moves": "1. e4 e6 2. d4 d5 3. Be3",
+      "name": "French Defense: Alapin Gambit",
+      "scid": "C00x",
+      "aliases": {
+        "scid": "French: Alapin-Diemer Gambit (ADG)",
+        "chessGraph": "Alapin; Witaker Gambit, French",
+        "chronos": "French: Alapin variation",
+        "icsbot": "Alapin; Witaker Gambit, French "
+      },
+      "wikipediaSlug": "french-defense"
+    }
+  ],
+  "1. e4 e6 2. d4 b5": [
+    {
+      "src": "eco_tsv",
+      "eco": "C00",
+      "moves": "1. e4 e6 2. d4 b5",
+      "name": "French Defense: Baeuerle Gambit",
+      "aliases": {
+        "chessGraph": "Baeuerle Gambit, French",
+        "icsbot": "Baeuerle Gambit, French "
+      },
+      "wikipediaSlug": "french-defense"
+    }
+  ],
+  "1. e4 e6 2. b4": [
+    {
+      "src": "eco_tsv",
+      "eco": "C00",
+      "moves": "1. e4 e6 2. b4",
+      "name": "French Defense: Banzai-Leong Gambit",
+      "aliases": {
+        "chessGraph": "Banzai-Leong Gambit, French",
+        "icsbot": "Banzai-Leong Gambit, French "
+      },
+      "wikipediaSlug": "french-defense"
+    }
+  ],
+  "1. d4 d5 2. Qd3": [
+    {
+      "src": "eco_tsv",
+      "eco": "D00",
+      "moves": "1. d4 d5 2. Qd3",
+      "name": "Amazon Attack"
+    }
+  ],
+  "1. d4 d5 2. e4": [
+    {
+      "src": "eco_tsv",
+      "eco": "D00",
+      "moves": "1. d4 d5 2. e4",
+      "name": "Blackmar-Diemer Gambit",
+      "scid": "D00l",
+      "aliases": {
+        "scid": "Blackmar-Diemer Gambit (BDG): 2.e4",
+        "ct": "Blackmar-Diemer Gambit, General",
+        "chronos": "Blackmar gambit"
+      }
+    }
+  ],
+  "1. d4 d5 2. e4 dxe4 3. Nc3 Nf6": [
+    {
+      "src": "eco_tsv",
+      "eco": "D00",
+      "moves": "1. d4 d5 2. e4 dxe4 3. Nc3 Nf6",
+      "name": "Blackmar-Diemer Gambit",
+      "aliases": {
+        "chessGraph": "Vienna Variation, BDG",
+        "icsbot": "Vienna Variation, BDG "
+      }
+    }
+  ],
+  "1. d4 d5 2. e4 dxe4": [
+    {
+      "src": "scid",
+      "eco": "D00",
+      "moves": "1. d4 d5 2. e4 dxe4",
+      "name": "Blackmar-Diemer Gambit (BDG): 2.e4 dxe4",
+      "scid": "D00l"
+    }
+  ],
+  "1. d4 d5 2. e4 dxe4 3. Nc3 Nf6 4. f3 exf3": [
+    {
+      "src": "eco_tsv",
+      "eco": "D00",
+      "moves": "1. d4 d5 2. e4 dxe4 3. Nc3 Nf6 4. f3 exf3",
+      "name": "Blackmar-Diemer Gambit Accepted",
+      "scid": "D00v",
+      "aliases": {
+        "scid": "Blackmar-Diemer: Accepted"
+      }
+    }
+  ],
+  "1. d4 Nf6 2. c4 e6 3. g3": [
+    {
+      "src": "eco_tsv",
+      "eco": "E00",
+      "moves": "1. d4 Nf6 2. c4 e6 3. g3",
+      "name": "Catalan Opening",
+      "scid": "E00g",
+      "aliases": {
+        "scid": "Catalan",
+        "ct": "Catalan Opening, General"
+      },
+      "wikipediaSlug": "catalan-opening"
+    }
+  ],
+  "1. d4 Nf6 2. c4 e6 3. g3 d5": [
+    {
+      "src": "eco_tsv",
+      "eco": "E00",
+      "moves": "1. d4 Nf6 2. c4 e6 3. g3 d5",
+      "name": "Catalan Opening",
+      "scid": "E00n",
+      "aliases": {
+        "scid": "Catalan: 3...d5",
+        "eco_js": "Catalan Opening, 2. c4 e6 3. g3 d5",
+        "chessGraph": "E01"
+      },
+      "wikipediaSlug": "catalan-opening"
+    }
+  ],
+  "1. d4 Nf6 2. c4 e6 3. g3 e5": [
+    {
+      "src": "eco_tsv",
+      "eco": "E00",
+      "moves": "1. d4 Nf6 2. c4 e6 3. g3 e5",
+      "name": "Catalan Opening: Hungarian Gambit",
+      "scid": "E00g",
+      "aliases": {
+        "scid": "Catalan: Hungarian Gambit",
+        "chessGraph": "Hungarian Gambit, Catalan",
+        "icsbot": "Hungarian Gambit, Catalan "
+      },
+      "wikipediaSlug": "catalan-opening"
+    }
+  ],
+  "1. d4 Nf6 2. c4 e6 3. g3 Bb4+": [
+    {
+      "src": "scid",
+      "eco": "E00",
+      "moves": "1. d4 Nf6 2. c4 e6 3. g3 Bb4+",
+      "name": "Catalan: 3...Bb4+",
+      "scid": "E00i",
+      "wikipediaSlug": "catalan"
+    }
+  ],
+  "1. d4 Nf6 2. c4 e6 3. g3 Bb4+ 4. Bd2": [
+    {
+      "src": "scid",
+      "eco": "E00",
+      "moves": "1. d4 Nf6 2. c4 e6 3. g3 Bb4+ 4. Bd2",
+      "name": "Catalan: 3...Bb4+ 4.Bd2",
+      "scid": "E00j",
+      "wikipediaSlug": "catalan"
+    }
+  ]
+}

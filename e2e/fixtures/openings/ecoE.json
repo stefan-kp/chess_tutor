@@ -1,0 +1,56 @@
+{
+  "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/6P1/PP2PP1P/RNBQKBNR b KQkq - 0 3": {
+    "src": "eco_tsv",
+    "eco": "E00",
+    "moves": "1. d4 Nf6 2. c4 e6 3. g3",
+    "name": "Catalan Opening",
+    "scid": "E00g",
+    "aliases": {
+      "scid": "Catalan",
+      "ct": "Catalan Opening, General"
+    },
+    "wikipediaSlug": "catalan-opening"
+  },
+  "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/6P1/PP2PP1P/RNBQKBNR w KQkq - 0 4": {
+    "src": "eco_tsv",
+    "eco": "E00",
+    "moves": "1. d4 Nf6 2. c4 e6 3. g3 d5",
+    "name": "Catalan Opening",
+    "scid": "E00n",
+    "aliases": {
+      "scid": "Catalan: 3...d5",
+      "eco_js": "Catalan Opening, 2. c4 e6 3. g3 d5",
+      "chessGraph": "E01"
+    },
+    "wikipediaSlug": "catalan-opening"
+  },
+  "rnbqkb1r/pppp1ppp/5n2/4p3/2PP4/6P1/PP2PP1P/RNBQKBNR w KQkq - 0 4": {
+    "src": "eco_tsv",
+    "eco": "E00",
+    "moves": "1. d4 Nf6 2. c4 e6 3. g3 e5",
+    "name": "Catalan Opening: Hungarian Gambit",
+    "scid": "E00g",
+    "aliases": {
+      "scid": "Catalan: Hungarian Gambit",
+      "chessGraph": "Hungarian Gambit, Catalan",
+      "icsbot": "Hungarian Gambit, Catalan "
+    },
+    "wikipediaSlug": "catalan-opening"
+  },
+  "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/6P1/PP2PP1P/RNBQKBNR w KQkq - 1 4": {
+    "src": "scid",
+    "eco": "E00",
+    "moves": "1. d4 Nf6 2. c4 e6 3. g3 Bb4+",
+    "name": "Catalan: 3...Bb4+",
+    "scid": "E00i",
+    "wikipediaSlug": "catalan"
+  },
+  "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/6P1/PP1BPP1P/RN1QKBNR b KQkq - 2 4": {
+    "src": "scid",
+    "eco": "E00",
+    "moves": "1. d4 Nf6 2. c4 e6 3. g3 Bb4+ 4. Bd2",
+    "name": "Catalan: 3...Bb4+ 4.Bd2",
+    "scid": "E00j",
+    "wikipediaSlug": "catalan"
+  }
+}

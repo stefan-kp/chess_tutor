@@ -1,19 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { OpeningMetadata } from '@/lib/openings';
-import { useOpeningTraining } from '@/contexts/OpeningTrainingContext';
+import { useOpeningTraining, useChessInstance } from '@/contexts/OpeningTrainingContext';
 import { loadSession } from '@/lib/openingTrainer/sessionManager';
-import { parseMoveSequence, getUserColor } from '@/lib/openingTrainer/repertoireNavigation';
+import { parseMoveSequence, getUserColor } from '@/lib/openingTrainer/gameLogic';
 import { getWikipediaSummary } from '@/lib/openingTrainer/wikipediaService';
 import { WikipediaSummary as WikipediaSummaryType } from '@/types/openingTraining';
 import { extractFamilyName } from '@/lib/openingTrainer/openingFamilies';
 import WikipediaSummary from './WikipediaSummary';
+import DeviationDialog from './DeviationDialog';
 import { Tutor } from '@/components/Tutor';
 import { Personality } from '@/lib/personalities';
 import { SupportedLanguage } from '@/lib/i18n/translations';
+import { useRouter } from 'next/navigation';
 
 interface OpeningTrainerProps {
   opening: OpeningMetadata;
@@ -23,15 +25,19 @@ interface OpeningTrainerProps {
 }
 
 export default function OpeningTrainer({ opening, personality, apiKey, language }: OpeningTrainerProps) {
+  const router = useRouter();
+
   const {
     session,
-    chess,
     stockfish,
     currentFeedback,
     initializeSession,
     makeMove,
     navigateToMove,
   } = useOpeningTraining();
+
+  // Get Chess instance on-demand from current FEN
+  const chess = useChessInstance(session);
 
   const [boardOrientation, setBoardOrientation] = useState<'white' | 'black'>(
     'white'
@@ -41,6 +47,51 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
   const [existingSession, setExistingSession] = useState<any>(null);
   const [wikipediaSummary, setWikipediaSummary] = useState<WikipediaSummaryType | null>(null);
+
+  // Tutor message control - track when tutor last spoke
+  const [lastTutorMessageMoveIndex, setLastTutorMessageMoveIndex] = useState<number>(-1);
+
+  // Deviation handling
+  const [showDeviationDialog, setShowDeviationDialog] = useState(false);
+
+  // ============================================================================
+  // Tutor Message Guardrail (computed values - must be before early returns)
+  // ============================================================================
+
+  const moveCount = session?.moveHistory.length ?? 0;
+  const userColor = getUserColor(opening);
+
+  // Determine when tutor should be allowed to speak
+  const shouldTutorSpeak = useMemo(() => {
+    if (!session || moveCount === 0) {
+      // At start, tutor can give initial greeting
+      return lastTutorMessageMoveIndex === -1;
+    }
+
+    // Check if we've had new moves since tutor last spoke
+    const newMovesSinceLastMessage = moveCount - lastTutorMessageMoveIndex;
+
+    if (session.deviationMoveIndex !== null) {
+      // Off-book: Tutor speaks immediately after player's deviation
+      return newMovesSinceLastMessage >= 1;
+    }
+
+    // In theory: Wait for both player AND opponent to move
+    const isAtEndOfRepertoire = session.phase === 'end_of_repertoire';
+    const movesNeeded = isAtEndOfRepertoire ? 1 : 2;
+
+    return newMovesSinceLastMessage >= movesNeeded;
+  }, [session, moveCount, lastTutorMessageMoveIndex]);
+
+  // Detect deviation and show dialog
+  useEffect(() => {
+    if (session?.deviationMoveIndex !== null && !showDeviationDialog) {
+      const timer = setTimeout(() => {
+        setShowDeviationDialog(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [session?.deviationMoveIndex, showDeviationDialog]);
 
   useEffect(() => {
     checkForExistingSession();
@@ -120,12 +171,19 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
       const testChess = new Chess();
       testChess.loadPgn(chess.pgn());
 
-      // Try to make the move on the clone
-      const move = testChess.move({
-        from: sourceSquare,
-        to: targetSquare,
-        promotion: 'q', // Always promote to queen for simplicity
-      });
+      // Try to make the move on the clone (this can throw for invalid moves)
+      let move;
+      try {
+        move = testChess.move({
+          from: sourceSquare,
+          to: targetSquare,
+          promotion: 'q', // Always promote to queen for simplicity
+        });
+      } catch (moveError) {
+        // Invalid move format or illegal move - silently reject
+        console.log('Invalid move attempt:', { from: sourceSquare, to: targetSquare });
+        return false;
+      }
 
       if (move === null) {
         // Illegal move
@@ -136,9 +194,67 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
       makeMove(move.san);
       return true;
     } catch (error) {
-      console.error('Move error:', error);
+      console.error('Unexpected error in handlePieceDrop:', error);
       return false;
     }
+  };
+
+  // ============================================================================
+  // Deviation Dialog Handlers
+  // ============================================================================
+
+  const handleUndoDeviation = () => {
+    if (!session || session.deviationMoveIndex === null) return;
+
+    // Navigate back to the move before deviation
+    navigateToMove(session.deviationMoveIndex - 1);
+    setShowDeviationDialog(false);
+
+    // After a brief delay, make another legal move to continue in theory
+    // This allows the player to try again
+  };
+
+  const handleStartGameFromPosition = () => {
+    if (!session || !chess) return;
+
+    // Store the game start data in localStorage with the expected key
+    // The home page (/) will pick this up and start the game
+    const gameStartData = {
+      fen: session.currentFEN,
+      personalityId: personality.id,
+      color: getUserColor(opening),
+      stockfishDepth: 15,
+    };
+
+    localStorage.setItem('chess_tutor_pending_game', JSON.stringify(gameStartData));
+
+    // Optional: Store additional context for the tutor
+    const openingContext = {
+      openingName: opening.name,
+      openingEco: opening.eco,
+      movesCompleted: session.deviationMoveIndex || session.moveHistory.length,
+      wikipediaSummary: wikipediaSummary?.extract,
+      contextMessage: `You've studied the ${opening.name} (${opening.eco}) up to move ${
+        session.deviationMoveIndex || session.moveHistory.length
+      }. Let's continue playing from here!`,
+    };
+
+    localStorage.setItem('chess_tutor_opening_context', JSON.stringify(openingContext));
+
+    // Navigate to home page which will start the game
+    router.push('/');
+  };
+
+  const handleContinueExploring = () => {
+    // User wants to continue exploring off-book moves
+    // Just close the dialog and let them continue
+    setShowDeviationDialog(false);
+  };
+
+  const handleTutorMessageSent = () => {
+    // Called when tutor successfully sends a message
+    // Update the tracking to prevent rapid-fire messages
+    setLastTutorMessageMoveIndex(moveCount);
   };
 
   // Session recovery dialog
@@ -228,10 +344,6 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
   }
 
   const currentPosition = chess.fen();
-  const moveCount = session.moveHistory.length;
-
-  // Determine user's color based on opening ECO code
-  const userColor = getUserColor(opening);
 
   // Build opening practice mode prop for Tutor
   const repertoireMoves = parseMoveSequence(opening.moves);
@@ -285,7 +397,9 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
       evaluationChange: currentFeedback.classification.evaluationChange,
       theoreticalAlternatives: currentFeedback.classification.theoreticalAlternatives
     } : null,
-    wikipediaSummary: wikipediaSummary?.extract || undefined
+    wikipediaSummary: wikipediaSummary?.extract || undefined,
+    shouldTutorSpeak,
+    onTutorMessageSent: handleTutorMessageSent,
   };
 
   return (
@@ -466,6 +580,17 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
           )}
         </div>
       </div>
+
+      {/* Deviation Dialog */}
+      {showDeviationDialog && session?.deviationMoveIndex !== null && (
+        <DeviationDialog
+          openingName={opening.name}
+          movesCompleted={session.deviationMoveIndex}
+          onUndo={handleUndoDeviation}
+          onStartGame={handleStartGameFromPosition}
+          onContinueExploring={handleContinueExploring}
+        />
+      )}
     </div>
   );
 }

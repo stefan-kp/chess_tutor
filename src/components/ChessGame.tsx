@@ -25,6 +25,13 @@ interface ChessGameProps {
     initialPersonality: Personality;
     initialColor: 'white' | 'black';
     initialStockfishDepth?: number;
+    openingContext?: {
+        openingName: string;
+        openingEco: string;
+        movesCompleted: number;
+        wikipediaSummary?: string;
+        contextMessage: string;
+    };
     onBack: () => void;
 }
 
@@ -37,7 +44,7 @@ const PIECE_VALUES: Record<string, number> = {
     'k': 0
 };
 
-export default function ChessGame({ gameId, initialFen, initialPgn, initialPersonality, initialColor, initialStockfishDepth, onBack }: ChessGameProps) {
+export default function ChessGame({ gameId, initialFen, initialPgn, initialPersonality, initialColor, initialStockfishDepth, openingContext, onBack }: ChessGameProps) {
     const gameRef = useRef(new Chess(initialFen || "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"));
     const [fen, setFen] = useState(gameRef.current.fen());
     const [stockfish, setStockfish] = useState<Stockfish | null>(null);
@@ -265,23 +272,31 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
             }
         }
 
-        // If computer is white (player is black) and it's the start of the game, make a move
-        // But only if we are at the start position
-        if (initialColor === 'black' &&
-            gameRef.current.fen() === "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" &&
-            stockfish) {
+        // Check if it's the computer's turn and make a move if needed
+        // This handles both:
+        // 1. Standard new games where computer plays first (player is black)
+        // 2. Games starting from opening trainer with custom FEN where it might be computer's turn
+        if (stockfish && gameRef.current.history().length === 0) {
+            // No moves have been made yet - check whose turn it is
+            const currentTurn = gameRef.current.turn(); // 'w' or 'b'
+            const computerTurn = initialColor === 'white' ? 'b' : 'w';
 
-            // Small delay to ensure stockfish is ready
-            setTimeout(() => {
-                stockfish.evaluate(gameRef.current.fen(), 10).then(evalResult => {
-                    const computerMoveData = {
-                        from: evalResult.bestMove.substring(0, 2),
-                        to: evalResult.bestMove.substring(2, 4),
-                        promotion: evalResult.bestMove.length > 4 ? evalResult.bestMove.substring(4, 5) : "q"
-                    };
-                    makeAMove(computerMoveData);
-                });
-            }, 1000);
+            if (currentTurn === computerTurn) {
+                console.log('[ChessGame] Initial position - computer\'s turn, making move...');
+                // Small delay to ensure stockfish is ready
+                setTimeout(() => {
+                    stockfish.evaluate(gameRef.current.fen(), 10).then(evalResult => {
+                        const computerMoveData = {
+                            from: evalResult.bestMove.substring(0, 2),
+                            to: evalResult.bestMove.substring(2, 4),
+                            promotion: evalResult.bestMove.length > 4 ? evalResult.bestMove.substring(4, 5) : "q"
+                        };
+                        makeAMove(computerMoveData);
+                    }).catch(err => {
+                        console.error('[ChessGame] Failed to make initial computer move:', err);
+                    });
+                }, 1000);
+            }
         }
 
     }, [initialFen, initialColor, stockfish]); // Run when these change
@@ -834,6 +849,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                         playerColor={playerColor}
                         onCheckComputerMove={checkAndMakeComputerMove}
                         resignationContext={resignationContext}
+                        openingContext={openingContext}
                     />
                 </div>
 

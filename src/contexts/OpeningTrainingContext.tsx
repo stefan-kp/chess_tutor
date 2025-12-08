@@ -1,47 +1,35 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef, ReactNode } from 'react';
 import { Chess } from 'chess.js';
-import {
-  TrainingSession,
-  MoveHistoryEntry,
-  MoveFeedback,
-} from '@/types/openingTraining';
-import { StockfishEvaluation } from '@/lib/stockfish';
-import { createEngine, ChessEngine } from '@/lib/engine';
+import { MoveFeedback } from '@/types/openingTraining';
+import { ChessEngine } from '@/lib/engine';
+import { createEngine } from '@/lib/engine';
 import { OpeningMetadata } from '@/lib/openings';
 import {
-  createSession,
-  loadSession,
-  saveSession,
-  updateSession,
-} from '@/lib/openingTrainer/sessionManager';
-import { evaluatePosition } from '@/lib/openingTrainer/engineService';
-import { classifyMove } from '@/lib/openingTrainer/moveValidator';
-import {
-  getExpectedNextMoves,
-  detectTransposition,
-  getOpponentNextMove,
-  isOpponentTurn,
-  getUserColor,
-  isEndOfRepertoire,
-  parseMoveSequence,
-} from '@/lib/openingTrainer/repertoireNavigation';
+  sessionReducer,
+  createInitialState,
+  SessionState,
+  SessionAction,
+  shouldTriggerOpponentMove,
+  toTrainingSession,
+} from '@/lib/openingTrainer/sessionReducer';
+import { SessionOrchestrator } from '@/lib/openingTrainer/sessionOrchestrator';
+import { loadSession, saveSession } from '@/lib/openingTrainer/sessionManager';
 import { STARTING_FEN } from '@/lib/openingTrainer/constants';
-import {
-  buildExplanationPrompt,
-  buildTranspositionPrompt,
-  ExplanationPromptContext,
-} from '@/lib/openingTrainer/feedbackGenerator';
+import { getUserColor } from '@/lib/openingTrainer/gameLogic';
 
 /**
- * Context for managing opening training session state
+ * Refactored Opening Training Context
+ *
+ * This is a CLEAN implementation using the reducer pattern.
+ * No more tangled useEffects! No more race conditions!
  */
 
 interface OpeningTrainingContextType {
-  session: TrainingSession | null;
+  // State
+  session: SessionState | null;
   opening: OpeningMetadata | null;
-  chess: Chess | null;
   stockfish: ChessEngine | null;
   isLoading: boolean;
   error: string | null;
@@ -67,477 +55,276 @@ export function OpeningTrainingProvider({
   children,
   openingId,
 }: OpeningTrainingProviderProps) {
-  const [session, setSession] = useState<TrainingSession | null>(null);
-  const [opening, setOpening] = useState<OpeningMetadata | null>(null);
-  const [chess, setChess] = useState<Chess | null>(null);
-  const [stockfish, setStockfish] = useState<ChessEngine | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [currentFeedback, setCurrentFeedback] = useState<MoveFeedback | null>(null);
-
-  // Cache for move feedback (indexed by move index)
-  const [feedbackCache, setFeedbackCache] = useState<Map<number, MoveFeedback>>(
-    new Map()
+  // Core state - single source of truth via reducer
+  const [session, dispatch] = useReducer(
+    (state: SessionState | null, action: SessionAction): SessionState | null => {
+      if (!state) {
+        // Handle initialization actions when state is null
+        if (action.type === 'INITIALIZE_SESSION') {
+          return createInitialState(action.opening);
+        }
+        // SESSION_LOADED can be called when state is null (loading existing session)
+        // Create a temporary state so the reducer can process it
+        if (action.type === 'SESSION_LOADED') {
+          const tempState = createInitialState(action.opening);
+          return sessionReducer(tempState, action);
+        }
+        return null;
+      }
+      return sessionReducer(state, action);
+    },
+    null as SessionState | null
   );
 
-  // Initialize chess engine (local or remote based on environment)
+  // UI state (not part of session state)
+  const [opening, setOpening] = React.useState<OpeningMetadata | null>(null);
+  const [stockfish, setStockfish] = React.useState<ChessEngine | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [currentFeedback, setCurrentFeedback] = React.useState<MoveFeedback | null>(null);
+
+  // Orchestrator for async operations
+  const orchestratorRef = useRef<SessionOrchestrator | null>(null);
+
+  // Feedback cache (indexed by move index)
+  const feedbackCacheRef = useRef<Map<number, MoveFeedback>>(new Map());
+
+  // ============================================================================
+  // Engine Initialization
+  // ============================================================================
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      createEngine().then((engine) => {
-        setStockfish(engine);
-      }).catch((err) => {
-        console.error('Failed to create chess engine:', err);
-        setError('Failed to initialize chess engine');
-      });
+      createEngine()
+        .then((engine) => {
+          setStockfish(engine);
+          orchestratorRef.current = new SessionOrchestrator(engine);
+        })
+        .catch((err) => {
+          console.error('Failed to create chess engine:', err);
+          setError('Failed to initialize chess engine');
+        });
 
       return () => {
-        // Cleanup will happen when stockfish changes
+        if (stockfish) {
+          stockfish.terminate();
+        }
+        if (orchestratorRef.current) {
+          orchestratorRef.current.destroy();
+        }
       };
     }
   }, []);
 
-  // Cleanup engine when it changes or component unmounts
-  useEffect(() => {
-    return () => {
-      if (stockfish) {
-        stockfish.terminate();
-      }
-    };
-  }, [stockfish]);
+  // ============================================================================
+  // Session Persistence
+  // ============================================================================
 
-  // Initialize chess instance
   useEffect(() => {
-    if (session) {
-      const chessInstance = new Chess(session.currentFEN);
-      setChess(chessInstance);
-    } else {
-      setChess(null);
+    if (session && session.phase !== 'initializing') {
+      saveSession(toTrainingSession(session));
     }
   }, [session]);
 
-  /**
-   * Initialize a new training session for an opening
-   */
+  // ============================================================================
+  // Automatic Opponent Moves
+  // ============================================================================
+
+  useEffect(() => {
+    if (!session || !orchestratorRef.current) {
+      console.log('[OpeningTraining] Opponent move check skipped:', {
+        hasSession: !!session,
+        hasOrchestrator: !!orchestratorRef.current
+      });
+      return;
+    }
+
+    // Debug logging
+    console.log('[OpeningTraining] Checking if opponent should move:', {
+      phase: session.phase,
+      currentMoveIndex: session.currentMoveIndex,
+      moveHistoryLength: session.moveHistory.length,
+      isAtCurrentPosition: session.currentMoveIndex === session.moveHistory.length,
+      pendingOpponentMove: session.pendingOpponentMove,
+    });
+
+    // Check if we should trigger an opponent auto-move
+    if (shouldTriggerOpponentMove(session)) {
+      console.log('[OpeningTraining] ✅ Triggering automatic opponent move');
+
+      // Make the opponent move
+      makeOpponentMove();
+    } else {
+      console.log('[OpeningTraining] ❌ Not triggering opponent move');
+    }
+  }, [session?.phase, session?.currentMoveIndex, session?.moveHistory.length]);
+
+  // ============================================================================
+  // Session Management
+  // ============================================================================
+
   const initializeSession = async (
     openingMetadata: OpeningMetadata,
     forceNew: boolean = false
   ) => {
-    const perfStart = performance.now();
+    console.log('[OpeningTraining] initializeSession called', { eco: openingMetadata.eco, forceNew });
+
+    // Wait for orchestrator to be ready (max 5 seconds)
+    const maxWaitTime = 5000;
+    const startTime = Date.now();
+    while (!orchestratorRef.current && Date.now() - startTime < maxWaitTime) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    if (!orchestratorRef.current) {
+      console.error('[OpeningTraining] Orchestrator not ready after waiting');
+      setError('Chess engine not initialized');
+      return;
+    }
+
+    console.log('[OpeningTraining] Orchestrator ready, proceeding with initialization');
+
     setIsLoading(true);
     setError(null);
 
     try {
       // Try to load existing session (unless forceNew is true)
-      let existingSession = forceNew ? null : loadSession(openingMetadata.eco);
+      const existingSession = forceNew ? null : loadSession(openingMetadata.eco);
 
       if (existingSession && !forceNew) {
         // Resume existing session
-        setSession(existingSession);
+        console.log('[OpeningTraining] Resuming existing session');
+        dispatch({ type: 'SESSION_LOADED', session: existingSession, opening: openingMetadata });
         setOpening(openingMetadata);
       } else {
         // Create new session
-        const newSession = createSession(
-          openingMetadata.eco,
-          openingMetadata.name,
-          STARTING_FEN,
-          0
-        );
+        console.log('[OpeningTraining] Creating new session');
+        dispatch({ type: 'INITIALIZE_SESSION', opening: openingMetadata, forceNew });
 
         // Get initial evaluation
-        if (stockfish) {
-          const initialEval = await evaluatePosition(STARTING_FEN, stockfish);
-          newSession.initialEvaluation = initialEval.score;
-        }
+        console.log('[OpeningTraining] Getting initial evaluation');
+        const initialEval = await orchestratorRef.current.getInitialEvaluation(STARTING_FEN);
+        console.log('[OpeningTraining] Initial evaluation:', initialEval);
 
-        setSession(newSession);
+        dispatch({ type: 'SESSION_INITIALIZED', initialEvaluation: initialEval });
+        console.log('[OpeningTraining] Session initialized');
+
         setOpening(openingMetadata);
-        saveSession(newSession);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to initialize session');
     } finally {
       setIsLoading(false);
-      const perfEnd = performance.now();
-      console.log(
-        `[Performance] Session initialization: ${(perfEnd - perfStart).toFixed(0)}ms`
-      );
     }
   };
 
-  /**
-   * Make a move in the training session
-   */
   const makeMove = async (san: string) => {
-    console.log('[OpeningTraining] makeMove called with:', san);
-
-    if (!session || !opening || !chess || !stockfish) {
-      console.error('[OpeningTraining] Session not initialized:', { session: !!session, opening: !!opening, chess: !!chess, stockfish: !!stockfish });
+    if (!session || !opening || !orchestratorRef.current) {
       setError('Session not initialized');
       return;
     }
 
-    const perfStart = performance.now();
+    console.log('[OpeningTraining] makeMove:', san);
+
     setIsLoading(true);
     setError(null);
 
     try {
-      // Validate and make the move
-      console.log('[OpeningTraining] Attempting to make move:', san);
-      const move = chess.move(san);
-      if (!move) {
-        console.error('[OpeningTraining] Illegal move:', san);
-        setError('Illegal move');
-        setIsLoading(false);
-        return;
-      }
+      // Dispatch action to indicate move started
+      dispatch({ type: 'USER_MOVE_STARTED', san });
 
-      console.log('[OpeningTraining] Move successful:', move);
+      // Check if we're navigated back in history
+      const wasNavigatedBack = session.currentMoveIndex < session.moveHistory.length;
 
-      const newFEN = chess.fen();
-
-      // Get previous evaluation (from last move or initial)
-      const previousEval =
-        session.moveHistory.length > 0
-          ? session.moveHistory[session.moveHistory.length - 1].evaluation
-          : { score: session.initialEvaluation, bestMove: '', ponder: null, mate: null, depth: 0 };
-
-      // Evaluate new position
-      const evalStart = performance.now();
-      const currentEval = await evaluatePosition(newFEN, stockfish);
-      const evalTime = performance.now() - evalStart;
-      console.log(`[Performance] Engine evaluation: ${evalTime.toFixed(0)}ms`);
-
-      // Check if move is in repertoire
-      const expectedMoves = getExpectedNextMoves(opening, session.moveHistory.length);
-      const isInRepertoire = expectedMoves.includes(san);
-
-      // Check for transposition (if user is off-book, see if they've transposed back)
-      let transposedOpening: OpeningMetadata | null = null;
-      if (session.deviationMoveIndex !== null && !isInRepertoire) {
-        transposedOpening = detectTransposition(newFEN);
-      }
-
-      // Classify the move
-      const classification = classifyMove(
+      // Process the move through orchestrator
+      const result = await orchestratorRef.current.processUserMove(
+        session,
         san,
-        isInRepertoire,
-        previousEval as StockfishEvaluation,
-        currentEval,
-        expectedMoves
+        wasNavigatedBack
       );
 
-      // Create move history entry
-      const moveEntry: MoveHistoryEntry = {
-        moveNumber: Math.floor(session.moveHistory.length / 2) + 1,
-        color: move.color === 'w' ? 'white' : 'black',
-        san: move.san,
-        uci: move.from + move.to + (move.promotion || ''),
-        fen: newFEN,
-        evaluation: currentEval,
-        classification,
-        timestamp: Date.now(),
-      };
-
-      // Update session
-      const updatedSession = {
-        ...session,
-        currentFEN: newFEN,
-        currentMoveIndex: session.moveHistory.length + 1,
-        moveHistory: [...session.moveHistory, moveEntry],
-        deviationMoveIndex:
-          !isInRepertoire && session.deviationMoveIndex === null
-            ? session.moveHistory.length
-            : session.deviationMoveIndex,
-      };
-
-      console.log('[OpeningTraining] Updating session with new move. Move history length:', updatedSession.moveHistory.length);
-      setSession(updatedSession);
-      updateSession(updatedSession);
+      // Dispatch actions from orchestrator
+      result.actions.forEach((action) => dispatch(action));
 
       // Create initial feedback (without LLM explanation)
       const initialFeedback: MoveFeedback = {
-        move: moveEntry,
-        classification,
-        evaluation: currentEval,
-        previousEvaluation: previousEval as StockfishEvaluation,
-        llmExplanation: '', // Will be populated asynchronously
+        move: result.moveEntry,
+        classification: result.moveEntry.classification,
+        evaluation: result.moveEntry.evaluation,
+        previousEvaluation: session.moveHistory.length > 0
+          ? session.moveHistory[session.moveHistory.length - 1].evaluation
+          : { score: session.initialEvaluation, mate: null, depth: 0, bestMove: '', ponder: null },
+        llmExplanation: '',
         generatedAt: Date.now(),
       };
 
-      // Cache the initial feedback
-      const moveIndex = updatedSession.moveHistory.length - 1;
-      setFeedbackCache((prev) => {
-        const newCache = new Map(prev);
-        newCache.set(moveIndex, initialFeedback);
-        return newCache;
-      });
+      // Cache feedback
+      const moveIndex = wasNavigatedBack
+        ? session.currentMoveIndex
+        : session.moveHistory.length;
+      feedbackCacheRef.current.set(moveIndex, initialFeedback);
 
       setCurrentFeedback(initialFeedback);
-      setIsLoading(false);
 
-      const feedbackTime = performance.now() - perfStart;
-      console.log(
-        `[Performance] Move processing (engine + classification): ${feedbackTime.toFixed(0)}ms`
-      );
-
-      // Generate LLM explanation asynchronously (don't block user)
-      generateLLMExplanation(
-        initialFeedback,
-        updatedSession,
-        moveIndex,
-        session.deviationMoveIndex === null &&
-          !isInRepertoire &&
-          updatedSession.deviationMoveIndex !== null,
-        transposedOpening
-      );
-
-      // After user's move, check if we should make automatic opponent move
-      // Only if: move was in theory, and it's opponent's turn next
-      const shouldMakeOpponentMove = isInRepertoire && isOpponentTurn(opening, updatedSession.moveHistory.length);
-      console.log('[OpeningTraining] Should make opponent move?', shouldMakeOpponentMove, {
-        isInRepertoire,
-        isOpponentTurn: isOpponentTurn(opening, updatedSession.moveHistory.length),
-        moveHistoryLength: updatedSession.moveHistory.length
-      });
-
-      if (shouldMakeOpponentMove) {
-        // Add delay for natural feel (600ms)
-        console.log('[OpeningTraining] Scheduling automatic opponent move in 600ms');
-        setTimeout(() => {
-          makeAutomaticOpponentMove(updatedSession, opening);
-        }, 600);
-      }
+      // TODO: Generate LLM explanation asynchronously (Phase 5)
+      // generateLLMExplanation(initialFeedback, session, moveIndex);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to process move');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to process move';
+      setError(errorMessage);
+      dispatch({ type: 'ERROR', message: errorMessage });
+    } finally {
       setIsLoading(false);
     }
   };
 
-  /**
-   * Make automatic opponent move from repertoire
-   */
-  const makeAutomaticOpponentMove = async (
-    currentSession: TrainingSession,
-    openingMetadata: OpeningMetadata
-  ) => {
-    if (!chess || !stockfish) return;
+  const makeOpponentMove = async () => {
+    if (!session || !opening || !orchestratorRef.current) return;
+
+    console.log('[OpeningTraining] Making automatic opponent move');
 
     try {
-      // Get opponent's next move from repertoire
-      const opponentMove = getOpponentNextMove(
-        openingMetadata,
-        currentSession.moveHistory.length
-      );
+      // Process opponent move through orchestrator
+      const result = await orchestratorRef.current.processOpponentMove(session, 600);
 
-      if (!opponentMove) {
-        // No opponent move available (end of repertoire)
-        console.log('[AutoMove] End of repertoire - no opponent move available');
-        console.log('[AutoMove] Repertoire moves:', parseMoveSequence(openingMetadata.moves));
-        console.log('[AutoMove] Current move index:', currentSession.moveHistory.length);
-
-        // Mark that we've reached the end of repertoire
-        const updatedSession = {
-          ...currentSession,
-          // Could add a flag here if needed for UI indication
-        };
-        setSession(updatedSession);
-
-        return;
-      }
-
-      // Check if we've reached end of repertoire after this move
-      const willReachEnd = isEndOfRepertoire(openingMetadata, currentSession.moveHistory.length + 1);
-      if (willReachEnd) {
-        console.log('[AutoMove] This will be the last repertoire move');
-      }
-
-      // Make the move on the chess instance
-      const move = chess.move(opponentMove);
-      if (!move) {
-        console.error('[AutoMove] Failed to make opponent move:', opponentMove);
-        return;
-      }
-
-      const newFEN = chess.fen();
-
-      // Get previous evaluation
-      const previousEval =
-        currentSession.moveHistory.length > 0
-          ? currentSession.moveHistory[currentSession.moveHistory.length - 1].evaluation
-          : { score: currentSession.initialEvaluation, bestMove: '', ponder: null, mate: null, depth: 0 };
-
-      // Evaluate new position
-      const currentEval = await evaluatePosition(newFEN, stockfish);
-
-      // Classify the move (should always be "in-theory" for automatic moves)
-      const expectedMoves = [opponentMove];
-      const classification = classifyMove(
-        opponentMove,
-        true, // Always in repertoire
-        previousEval as StockfishEvaluation,
-        currentEval,
-        expectedMoves
-      );
-
-      // Create move history entry
-      const moveEntry: MoveHistoryEntry = {
-        moveNumber: Math.floor(currentSession.moveHistory.length / 2) + 1,
-        color: move.color === 'w' ? 'white' : 'black',
-        san: move.san,
-        uci: move.from + move.to + (move.promotion || ''),
-        fen: newFEN,
-        evaluation: currentEval,
-        classification,
-        timestamp: Date.now(),
-      };
-
-      // Update session
-      const updatedSession = {
-        ...currentSession,
-        currentFEN: newFEN,
-        currentMoveIndex: currentSession.moveHistory.length + 1,
-        moveHistory: [...currentSession.moveHistory, moveEntry],
-      };
-
-      setSession(updatedSession);
-      updateSession(updatedSession);
-
-      console.log(`[AutoMove] Played ${opponentMove} automatically`);
-    } catch (error) {
-      console.error('[AutoMove] Error making automatic opponent move:', error);
+      // Dispatch actions from orchestrator
+      result.actions.forEach((action) => dispatch(action));
+    } catch (err) {
+      console.error('[OpeningTraining] Opponent move failed:', err);
+      // Don't set error - this is expected at end of repertoire
     }
   };
 
-  /**
-   * Generate LLM explanation for a move asynchronously
-   */
-  const generateLLMExplanation = async (
-    feedback: MoveFeedback,
-    currentSession: TrainingSession,
-    moveIndex: number,
-    isDeviationMove: boolean,
-    transposedOpening: OpeningMetadata | null = null
-  ) => {
-    if (!opening) return;
-
-    const llmStart = performance.now();
-
-    try {
-      // Build the prompt
-      let prompt: string;
-
-      if (transposedOpening) {
-        // Special prompt for transposition
-        prompt = buildTranspositionPrompt(transposedOpening, feedback.move.san);
-      } else {
-        // Normal explanation prompt
-        const promptContext: ExplanationPromptContext = {
-          opening,
-          userMove: feedback.move,
-          classification: feedback.classification,
-          currentEval: feedback.evaluation,
-          previousEval: feedback.previousEvaluation,
-          fen: feedback.move.fen,
-          moveHistory: currentSession.moveHistory,
-          isDeviationMove,
-        };
-
-        prompt = buildExplanationPrompt(promptContext);
-      }
-
-      // Call LLM API
-      const response = await fetch('/api/v1/llm/opening-explanation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt,
-          moveSan: feedback.move.san,
-          category: feedback.classification.category,
-          theoreticalMoves: feedback.classification.theoreticalAlternatives,
-          evalChange: feedback.classification.evaluationChange,
-          bestMove: feedback.evaluation.bestMove,
-        }),
-      });
-
-      if (!response.ok) {
-        console.error('LLM API error:', response.statusText);
-        return;
-      }
-
-      const data = await response.json();
-      const explanation = data.explanation || '';
-
-      // Update feedback with explanation
-      const updatedFeedback: MoveFeedback = {
-        ...feedback,
-        llmExplanation: explanation,
-      };
-
-      // Update cache
-      setFeedbackCache((prev) => {
-        const newCache = new Map(prev);
-        newCache.set(moveIndex, updatedFeedback);
-        return newCache;
-      });
-
-      // Update current feedback if this is still the current move
-      setCurrentFeedback((current) => {
-        if (current && current.move.san === feedback.move.san) {
-          return updatedFeedback;
-        }
-        return current;
-      });
-
-      const llmTime = performance.now() - llmStart;
-      console.log(`[Performance] LLM explanation generation: ${llmTime.toFixed(0)}ms`);
-    } catch (error) {
-      console.error('Failed to generate LLM explanation:', error);
-      // Silently fail - user still has engine feedback
-    }
-  };
-
-  /**
-   * Navigate to a specific move in the history
-   */
   const navigateToMove = (index: number) => {
-    if (!session || index < 0 || index > session.moveHistory.length) {
-      return;
-    }
+    if (!session) return;
 
-    const updatedSession = {
-      ...session,
-      currentMoveIndex: index,
-      currentFEN: index === 0 ? STARTING_FEN : session.moveHistory[index - 1].fen,
-    };
+    console.log('[OpeningTraining] Navigating to move index:', index);
 
-    setSession(updatedSession);
+    dispatch({ type: 'NAVIGATE_TO', index });
 
     // Update feedback to show the move at this index
     if (index > 0 && index <= session.moveHistory.length) {
-      const moveIndex = index - 1; // Convert from 1-based display to 0-based array index
+      const moveIndex = index - 1;
 
       // Check cache first
-      const cached = feedbackCache.get(moveIndex);
+      const cached = feedbackCacheRef.current.get(moveIndex);
       if (cached) {
         setCurrentFeedback(cached);
         return;
       }
 
-      // Not in cache - rebuild feedback (shouldn't happen often)
+      // Not in cache - rebuild feedback
       const moveEntry = session.moveHistory[moveIndex];
       const previousEval =
         moveIndex > 0
           ? session.moveHistory[moveIndex - 1].evaluation
-          : { score: session.initialEvaluation, bestMove: '', ponder: null, mate: null, depth: 0 };
+          : { score: session.initialEvaluation, mate: null, depth: 0, bestMove: '', ponder: null };
 
       const feedback: MoveFeedback = {
         move: moveEntry,
         classification: moveEntry.classification,
         evaluation: moveEntry.evaluation,
-        previousEvaluation: previousEval as StockfishEvaluation,
-        llmExplanation: '', // No cached explanation available
+        previousEvaluation: previousEval,
+        llmExplanation: '',
         generatedAt: Date.now(),
       };
 
@@ -547,20 +334,21 @@ export function OpeningTrainingProvider({
     }
   };
 
-  /**
-   * Reset the current session
-   */
   const resetSession = () => {
-    setSession(null);
+    dispatch({ type: 'RESET_SESSION' });
     setOpening(null);
     setCurrentFeedback(null);
     setError(null);
+    feedbackCacheRef.current.clear();
   };
+
+  // ============================================================================
+  // Context Value
+  // ============================================================================
 
   const value: OpeningTrainingContextType = {
     session,
     opening,
-    chess,
     stockfish,
     isLoading,
     error,
@@ -589,4 +377,15 @@ export function useOpeningTraining() {
     );
   }
   return context;
+}
+
+/**
+ * Helper to get a Chess instance for the current position
+ * Creates it on-demand from the current FEN
+ */
+export function useChessInstance(session: SessionState | null): Chess | null {
+  return React.useMemo(() => {
+    if (!session) return null;
+    return new Chess(session.currentFEN);
+  }, [session?.currentFEN]);
 }
