@@ -58,8 +58,14 @@ __pycache__/
 *.pgn
 *.pgn.zst
 
-# Generated opening and Wikipedia data (fetched at Docker startup)
-/public/openings/*.json
+# Opening database files (too large for git, users must provide)
+/public/openings/eco*.json
+
+# Generated move index (should be committed)
+# Note: moveIndex.json is generated from eco files but needs to be in git
+# because Next.js imports it at build time
+
+# Wikipedia data (fetched at Docker startup)
 /public/wikipedia/*.json
 /public/wikipedia/.initialized
 
