@@ -14,7 +14,7 @@ import ReactMarkdown from "react-markdown";
 
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { SupportedLanguage } from '@/lib/i18n/translations';
-import { DetectedTactic } from '@/lib/tacticDetection';
+import { DetectedTactic, filterMeaningfulTactics } from '@/lib/tacticDetection';
 import { useDebug } from '@/contexts/DebugContext';
 import { MoveHistoryItem } from './GameOverModal';
 import { parseGeminiError, GeminiErrorInfo, isGeminiError } from '@/lib/geminiErrorHandler';
@@ -582,7 +582,7 @@ INSTRUCTIONS:
                 // Tactical Analysis Instruction
                 let tacticalInstruction = "";
                 if (missedTactics && missedTactics.length > 0) {
-                    const meaningfulTactics = missedTactics.filter(t => t.tactic_type !== 'none');
+                    const meaningfulTactics = filterMeaningfulTactics(missedTactics);
                     if (meaningfulTactics.length > 0) {
                         const tacticDescriptions = meaningfulTactics.map(t => {
                             let desc = `- ${t.tactic_type.toUpperCase()}`;

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import clsx from "clsx";
 
 interface EvaluationBarProps {
@@ -9,7 +10,11 @@ interface EvaluationBarProps {
     orientation?: 'vertical' | 'horizontal';
 }
 
-export function EvaluationBar({ score, mate, isPlayerWhite, orientation = 'vertical' }: EvaluationBarProps) {
+/**
+ * Visual evaluation bar showing the current position advantage.
+ * Memoized to prevent unnecessary re-renders when props haven't changed.
+ */
+export const EvaluationBar = memo(function EvaluationBar({ score, mate, isPlayerWhite, orientation = 'vertical' }: EvaluationBarProps) {
     // Calculate white's percentage height/width
     // Using sigmoid-like function for score: P = 1 / (1 + 10^(-score/400))
     // This is a standard way to visualize CP advantage.
@@ -78,4 +83,4 @@ export function EvaluationBar({ score, mate, isPlayerWhite, orientation = 'verti
             </div>
         </div>
     );
-}
+});

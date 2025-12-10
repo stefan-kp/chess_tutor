@@ -17,6 +17,7 @@ import { Brain, ArrowLeft, Download, Flag, AlertTriangle, X } from "lucide-react
 import { CapturedPieces } from "./CapturedPieces";
 import { detectMissedTactics, uciToSan, DetectedTactic } from "@/lib/tacticDetection";
 import { upsertSavedGame } from "@/lib/savedGames";
+import { useChessSounds } from "@/lib/hooks/useChessSounds";
 
 interface ChessGameProps {
     gameId: string;
@@ -87,28 +88,8 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const hasRebuiltHistoryRef = useRef(false);
 
-    // Sound Refs
-    const moveSound = useRef<HTMLAudioElement | null>(null);
-    const captureSound = useRef<HTMLAudioElement | null>(null);
-    const checkSound = useRef<HTMLAudioElement | null>(null);
-    const victorySound = useRef<HTMLAudioElement | null>(null);
-    const defeatSound = useRef<HTMLAudioElement | null>(null);
-
-    useEffect(() => {
-        moveSound.current = new Audio('/sounds/move.wav');
-        captureSound.current = new Audio('/sounds/capture.wav');
-        checkSound.current = new Audio('/sounds/check.wav');
-        victorySound.current = new Audio('/sounds/victory.wav');
-        defeatSound.current = new Audio('/sounds/defeat.wav');
-    }, []);
-
-    const playMoveSound = (captured: boolean) => {
-        if (captured) {
-            captureSound.current?.play().catch(e => console.error("Audio play failed", e));
-        } else {
-            moveSound.current?.play().catch(e => console.error("Audio play failed", e));
-        }
-    };
+    // Chess sounds hook
+    const { playMoveSound, playCheck, playVictory, playDefeat } = useChessSounds();
 
     // Removed auto-scroll to prevent page jumping when moves are added
     // Users can manually scroll to see move history if needed
@@ -334,13 +315,13 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                 if (game.turn() === 'w') {
                     result = "Checkmate! You lost.";
                     winner = "Black";
-                    if (playerColor === 'white') defeatSound.current?.play().catch(e => console.error(e));
-                    else victorySound.current?.play().catch(e => console.error(e));
+                    if (playerColor === 'white') playDefeat();
+                    else playVictory();
                 } else {
                     result = "Checkmate! You won!";
                     winner = "White";
-                    if (playerColor === 'white') victorySound.current?.play().catch(e => console.error(e));
-                    else defeatSound.current?.play().catch(e => console.error(e));
+                    if (playerColor === 'white') playVictory();
+                    else playDefeat();
                 }
             } else if (game.isDraw()) {
                 result = "Draw!";
@@ -349,12 +330,12 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                 result = "Stalemate!";
                 winner = "Draw";
             } else if (game.inCheck()) {
-                checkSound.current?.play().catch(e => console.error(e));
+                playCheck();
             }
 
             setGameOverState({ result, winner });
         }
-    }, [fen, playerColor]);
+    }, [fen, playerColor, playDefeat, playVictory, playCheck]);
 
     // Pre-Analysis (P0)
     useEffect(() => {
@@ -764,12 +745,12 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                                     onClick={() => setShowStrengthSlider(!showStrengthSlider)}
                                     className="hover:text-gray-700 dark:hover:text-gray-200 underline decoration-dotted underline-offset-2"
                                 >
-                                    Stockfish Level: {stockfishDepth}
+                                    {t.game.stockfishLevel}: {stockfishDepth}
                                 </button>
                                 {showStrengthSlider && (
                                     <div className="absolute bottom-full left-0 mb-2 w-48 bg-white dark:bg-gray-700 p-3 rounded shadow-xl border border-gray-200 dark:border-gray-600 z-10">
                                         <label className="block text-xs font-bold mb-1 text-gray-700 dark:text-gray-200">
-                                            Strength (Depth: {stockfishDepth})
+                                            {t.game.stockfishStrength} ({t.game.depth}: {stockfishDepth})
                                         </label>
                                         <input
                                             type="range"
@@ -862,7 +843,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                                 onClick={() => setShowDownloadModal(true)}
                                 className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200 dark:bg-green-900 dark:text-green-200 flex items-center gap-1"
                             >
-                                <Download size={12} /> Download
+                                <Download size={12} /> {t.game.download}
                             </button>
                             <button
                                 onClick={() => setShowAnalysisModal(true)}
@@ -879,7 +860,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                                     <th className="py-1 px-2 w-12">#</th>
                                     <th className="py-1 px-2">{t.game.white}</th>
                                     <th className="py-1 px-2">{t.game.black}</th>
-                                    <th className="py-1 px-2 text-center w-20">Eval Δ</th>
+                                    <th className="py-1 px-2 text-center w-20">{t.game.evalChange}</th>
                                 </tr>
                             </thead>
                             <tbody>

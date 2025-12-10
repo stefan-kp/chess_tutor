@@ -361,9 +361,23 @@ export function detectMissedTactics({
   detectionResults.push(...detectFork(chessAfter, playerColor, move.san));
   detectionResults.push(...detectHangingPieces(chessAfter, playerColor, move.san));
 
-  if (detectionResults.length === 0) {
-    return [{ tactic_type: "none", move: move.san }];
-  }
-
+  // Return empty array if no tactics detected (cleaner than returning "none" type)
   return detectionResults;
+}
+
+/**
+ * Helper function to check if tactics were detected.
+ * Use this instead of checking array length to ensure type safety.
+ */
+export function hasTactics(tactics: DetectedTactic[] | null | undefined): boolean {
+  return tactics != null && tactics.length > 0;
+}
+
+/**
+ * Filter out "none" type tactics for backward compatibility with old data.
+ * New code should use empty arrays, but this handles legacy data.
+ */
+export function filterMeaningfulTactics(tactics: DetectedTactic[] | null | undefined): DetectedTactic[] {
+  if (!tactics) return [];
+  return tactics.filter(t => t.tactic_type !== "none");
 }

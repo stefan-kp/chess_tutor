@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 
 interface CapturedPiecesProps {
     captured: string[]; // Array of piece types, e.g., ['p', 'n', 'q']
@@ -15,10 +15,18 @@ const PIECE_ICONS: Record<string, string> = {
     'k': '♚', // King is never captured, but for completeness
 };
 
-export const CapturedPieces: React.FC<CapturedPiecesProps> = ({ captured, color, score }) => {
-    // Sort pieces by value for better display: Q, R, B, N, P
-    const sortOrder = ['q', 'r', 'b', 'n', 'p'];
-    const sortedPieces = [...captured].sort((a, b) => sortOrder.indexOf(a) - sortOrder.indexOf(b));
+const sortOrder = ['q', 'r', 'b', 'n', 'p'];
+
+/**
+ * Displays captured pieces with optional material advantage score.
+ * Memoized to prevent unnecessary re-renders.
+ */
+export const CapturedPieces = memo(function CapturedPieces({ captured, color, score }: CapturedPiecesProps) {
+    // Memoize sorted pieces to prevent recalculation on every render
+    const sortedPieces = useMemo(
+        () => [...captured].sort((a, b) => sortOrder.indexOf(a) - sortOrder.indexOf(b)),
+        [captured]
+    );
 
     return (
         <div className="flex items-center h-8 gap-2 text-gray-600 dark:text-gray-300">
@@ -36,4 +44,4 @@ export const CapturedPieces: React.FC<CapturedPiecesProps> = ({ captured, color,
             )}
         </div>
     );
-};
+});

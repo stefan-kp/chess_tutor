@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { getGenAIModel } from "@/lib/gemini";
 import { Loader2, X, Trophy, AlertTriangle, RefreshCw } from "lucide-react";
 import { StockfishEvaluation } from "@/lib/stockfish";
-import { DetectedTactic } from "@/lib/tacticDetection";
+import { DetectedTactic, filterMeaningfulTactics } from "@/lib/tacticDetection";
 import ReactMarkdown from "react-markdown";
 import { SupportedLanguage } from "@/lib/i18n/translations";
 
@@ -145,8 +145,7 @@ export function GameOverModal({ result, winner, history, apiKey, language, onClo
                     const inaccuracies = detectedMistakes.filter(m => m.category === 'inaccuracy');
 
                     const describeTactics = (tactics?: DetectedTactic[]) => {
-                        if (!tactics || tactics.length === 0) return "";
-                        const meaningful = tactics.filter(t => t.tactic_type !== 'none');
+                        const meaningful = filterMeaningfulTactics(tactics);
                         if (meaningful.length === 0) return "";
                         return meaningful.map(t => {
                             const material = t.material_delta ? ` (~${t.material_delta}cp)` : '';

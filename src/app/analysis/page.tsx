@@ -12,7 +12,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { Personality, PERSONALITIES } from "@/lib/personalities";
 import { Stockfish, StockfishEvaluation } from "@/lib/stockfish";
 import { detectChessFormat, ChessFormat } from "@/lib/chessFormatDetector";
-import { detectMissedTactics, DetectedTactic, uciToSan } from "@/lib/tacticDetection";
+import { detectMissedTactics, DetectedTactic, uciToSan, filterMeaningfulTactics } from "@/lib/tacticDetection";
 import { lookupPossibleOpenings, buildMoveSequenceFromSteps, OpeningMetadata } from "@/lib/openings";
 import { getGenAIModel } from "@/lib/gemini";
 import { ChatSession } from "@google/generative-ai";
@@ -326,8 +326,7 @@ IMPORTANT:
                 const evalBefore = details.evalBefore!.score / 100;
                 const evalAfter = details.evalAfter!.score / 100;
                 const mateInfo = details.evalAfter!.mate !== null ? `Mate in ${details.evalAfter!.mate}` : "No mate detected";
-                const tactics = (details.missedTactics || [])
-                    .filter(t => t.tactic_type !== "none")
+                const tactics = filterMeaningfulTactics(details.missedTactics)
                     .map(t => `${t.tactic_type}${t.material_delta ? ` (~${(t.material_delta / 100).toFixed(1)} pawns)` : ""}`)
                     .join("; ") || "None";
 
@@ -406,7 +405,7 @@ INSTRUCTIONS:
     };
 
     const currentDetails = currentIndex > 0 ? stepDetails[currentIndex] : undefined;
-    const tacticSummary = (currentDetails?.missedTactics || []).filter(t => t.tactic_type !== "none");
+    const tacticSummary = filterMeaningfulTactics(currentDetails?.missedTactics);
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">

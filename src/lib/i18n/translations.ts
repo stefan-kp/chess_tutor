@@ -61,6 +61,7 @@ export interface Translations {
         vs: string;
         backToMenu: string;
         stockfishStrength: string;
+        stockfishLevel: string;
         depth: string;
         undoMove: string;
         resign: string;
@@ -71,6 +72,8 @@ export interface Translations {
         noMovesYet: string;
         white: string;
         black: string;
+        download: string;
+        evalChange: string;
     };
 
     // Tutor
@@ -269,6 +272,7 @@ const en: Translations = {
         vs: 'vs',
         backToMenu: '← Back to Menu',
         stockfishStrength: 'Stockfish Strength',
+        stockfishLevel: 'Stockfish Level',
         depth: 'Depth',
         undoMove: 'Undo Last Move',
         resign: 'Resign',
@@ -279,6 +283,8 @@ const en: Translations = {
         noMovesYet: 'No moves yet.',
         white: 'White',
         black: 'Black',
+        download: 'Download',
+        evalChange: 'Eval Δ',
     },
     tutor: {
         aiCoach: 'AI Coach',
@@ -470,6 +476,7 @@ const de: Translations = {
         vs: 'gegen',
         backToMenu: '← Zurück zum Menü',
         stockfishStrength: 'Stockfish-Stärke',
+        stockfishLevel: 'Stockfish-Stufe',
         depth: 'Tiefe',
         undoMove: 'Letzten Zug rückgängig',
         resign: 'Aufgeben',
@@ -480,6 +487,8 @@ const de: Translations = {
         noMovesYet: 'Noch keine Züge.',
         white: 'Weiß',
         black: 'Schwarz',
+        download: 'Herunterladen',
+        evalChange: 'Bew. Δ',
     },
     tutor: {
         aiCoach: 'KI-Trainer',
@@ -671,6 +680,7 @@ const fr: Translations = {
         vs: 'contre',
         backToMenu: '← Retour au menu',
         stockfishStrength: 'Force de Stockfish',
+        stockfishLevel: 'Niveau Stockfish',
         depth: 'Profondeur',
         undoMove: 'Annuler le dernier coup',
         resign: 'Abandonner',
@@ -681,6 +691,8 @@ const fr: Translations = {
         noMovesYet: 'Aucun coup pour le moment.',
         white: 'Blancs',
         black: 'Noirs',
+        download: 'Télécharger',
+        evalChange: 'Éval Δ',
     },
     tutor: {
         aiCoach: 'Coach IA',
@@ -872,6 +884,7 @@ const it: Translations = {
         vs: 'contro',
         backToMenu: '← Torna al menu',
         stockfishStrength: 'Forza di Stockfish',
+        stockfishLevel: 'Livello Stockfish',
         depth: 'Profondità',
         undoMove: 'Annulla ultima mossa',
         resign: 'Abbandona',
@@ -882,6 +895,8 @@ const it: Translations = {
         noMovesYet: 'Nessuna mossa ancora.',
         white: 'Bianco',
         black: 'Nero',
+        download: 'Scarica',
+        evalChange: 'Val Δ',
     },
     tutor: {
         aiCoach: 'Allenatore IA',
@@ -1073,6 +1088,7 @@ const pl: Translations = {
         vs: 'przeciw',
         backToMenu: '← Powrót do menu',
         stockfishStrength: 'Siła Stockfish',
+        stockfishLevel: 'Poziom Stockfish',
         depth: 'Głębokość',
         undoMove: 'Cofnij ruch',
         resign: 'Poddaj partię',
@@ -1083,6 +1099,8 @@ const pl: Translations = {
         noMovesYet: 'Brak ruchów.',
         white: 'Białe',
         black: 'Czarne',
+        download: 'Pobierz',
+        evalChange: 'Ocena Δ',
     },
     tutor: {
         aiCoach: 'Trener AI',

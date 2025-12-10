@@ -6,6 +6,8 @@ export type StockfishEvaluation = {
   depth: number;
 };
 
+const EVALUATION_TIMEOUT_MS = 30000; // 30 seconds timeout for evaluation
+
 export class Stockfish {
   private worker: Worker | null = null;
   private isReady: boolean = false;
@@ -29,7 +31,7 @@ export class Stockfish {
   async evaluate(fen: string, depth: number = 15, multiPV: number = 1): Promise<StockfishEvaluation> {
     return new Promise<StockfishEvaluation>((resolve, reject) => {
       if (!this.worker) {
-        reject("Stockfish worker not initialized");
+        reject(new Error("Stockfish worker not initialized"));
         return;
       }
 
@@ -38,7 +40,20 @@ export class Stockfish {
       this.lastMate = null;
       this.lastDepth = 0;
 
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      let isResolved = false;
+
+      const cleanup = () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+        this.worker?.removeEventListener("message", handler);
+      };
+
       const handler = (event: MessageEvent) => {
+        if (isResolved) return;
+
         const message = event.data;
         // console.log("Stockfish:", message);
 
@@ -66,8 +81,8 @@ export class Stockfish {
             ponder = parts[3];
           }
 
-          // Remove the event listener to prevent it from interfering with future evaluations
-          this.worker?.removeEventListener("message", handler);
+          isResolved = true;
+          cleanup();
           resolve({
             bestMove,
             ponder,
@@ -77,6 +92,17 @@ export class Stockfish {
           });
         }
       };
+
+      // Set timeout to prevent hanging promises
+      timeoutId = setTimeout(() => {
+        if (!isResolved) {
+          isResolved = true;
+          cleanup();
+          // Stop any ongoing analysis
+          this.worker?.postMessage("stop");
+          reject(new Error(`Stockfish evaluation timed out after ${EVALUATION_TIMEOUT_MS / 1000} seconds`));
+        }
+      }, EVALUATION_TIMEOUT_MS);
 
       this.worker.addEventListener("message", handler);
       this.worker.postMessage(`position fen ${fen}`);

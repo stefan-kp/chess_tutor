@@ -170,7 +170,7 @@ describe('tacticDetection', () => {
                 expect(result).toEqual([]);
             });
 
-            it('should return "none" tactic if no specific tactics found', () => {
+            it('should return empty array if no specific tactics found', () => {
                 const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
                 const result = detectMissedTactics({
                     fen,
@@ -180,8 +180,8 @@ describe('tacticDetection', () => {
                     cpLoss: 60,
                 });
 
-                expect(result.length).toBe(1);
-                expect(result[0].tactic_type).toBe('none');
+                // Returns empty array when no specific tactics detected
+                expect(result).toEqual([]);
             });
 
             it('should handle custom evalLossThreshold', () => {

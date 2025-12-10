@@ -10,6 +10,11 @@
  * This is Phase 5 of the refactoring plan - comprehensive testing.
  */
 
+// Mock uuid before any imports
+jest.mock('uuid', () => ({
+  v4: jest.fn(() => 'test-uuid-1234'),
+}));
+
 import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { OpeningTrainingProvider, useOpeningTraining } from '../OpeningTrainingContext';

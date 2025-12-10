@@ -31,10 +31,15 @@ jest.mock("@/lib/stockfish", () => {
 jest.mock("@/lib/tacticDetection", () => {
     const detectMissedTactics = jest.fn();
     const uciToSan = jest.fn();
+    const filterMeaningfulTactics = jest.fn((tactics) => {
+        if (!tactics) return [];
+        return tactics.filter((t: { tactic_type: string }) => t.tactic_type !== "none");
+    });
     return {
         __esModule: true,
         detectMissedTactics,
         uciToSan,
+        filterMeaningfulTactics,
         __mock: { detectMissedTactics, uciToSan },
     };
 });
