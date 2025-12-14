@@ -215,6 +215,23 @@ export interface Translations {
             backToLearning: string;
             findTheMove: string;
         };
+        openingTrainer: {
+            loadingSession: string;
+            openingNotFound: string;
+            openingNotFoundDescription: string;
+            backToOpeningSelection: string;
+            loadingBackground: string;
+            noBackgroundInfo: string;
+            wikipediaSource: string;
+            deviationTitle: string;
+            deviationMessage: string;
+            deviationTip: string;
+            continuePlayingButton: string;
+            undoReturnButton: string;
+            exploreVariationButton: string;
+            move: string;
+            moves: string;
+        };
     };
 }
 
@@ -418,6 +435,23 @@ const en: Translations = {
             nextExercise: 'Next Exercise',
             backToLearning: 'Back to Learning Area',
             findTheMove: 'Find the move that creates a',
+        },
+        openingTrainer: {
+            loadingSession: 'Loading opening training session...',
+            openingNotFound: 'Opening Not Found',
+            openingNotFoundDescription: 'The requested opening could not be found.',
+            backToOpeningSelection: 'Back to Opening Selection',
+            loadingBackground: 'Loading opening background...',
+            noBackgroundInfo: 'No background information available for this opening.',
+            wikipediaSource: 'Source: Wikipedia (cached',
+            deviationTitle: "You've Left the Opening!",
+            deviationMessage: "You've studied",
+            deviationTip: 'Tip: You can always navigate back using the move history',
+            continuePlayingButton: 'Continue Playing (Start Game)',
+            undoReturnButton: 'Undo & Return to Opening',
+            exploreVariationButton: 'Explore This Variation',
+            move: 'move',
+            moves: 'moves',
         },
     },
 };
@@ -623,6 +657,23 @@ const de: Translations = {
             backToLearning: 'Zurück zum Lernbereich',
             findTheMove: 'Finde den Zug, der eine',
         },
+        openingTrainer: {
+            loadingSession: 'Lade Eröffnungstraining...',
+            openingNotFound: 'Eröffnung nicht gefunden',
+            openingNotFoundDescription: 'Die angeforderte Eröffnung konnte nicht gefunden werden.',
+            backToOpeningSelection: 'Zurück zur Eröffnungsauswahl',
+            loadingBackground: 'Lade Eröffnungshintergrund...',
+            noBackgroundInfo: 'Keine Hintergrundinformationen für diese Eröffnung verfügbar.',
+            wikipediaSource: 'Quelle: Wikipedia (zwischengespeichert',
+            deviationTitle: 'Du hast die Eröffnung verlassen!',
+            deviationMessage: 'Du hast',
+            deviationTip: 'Tipp: Du kannst jederzeit über die Zughistorie zurücknavigieren',
+            continuePlayingButton: 'Weiterspielen (Spiel starten)',
+            undoReturnButton: 'Rückgängig & zur Eröffnung zurück',
+            exploreVariationButton: 'Diese Variante erkunden',
+            move: 'Zug',
+            moves: 'Züge',
+        },
     },
 };
 
@@ -826,6 +877,23 @@ const fr: Translations = {
             nextExercise: 'Exercice suivant',
             backToLearning: 'Retour à la zone d\'apprentissage',
             findTheMove: 'Trouvez le coup qui crée un',
+        },
+        openingTrainer: {
+            loadingSession: 'Chargement de la session d\'entraînement...',
+            openingNotFound: 'Ouverture non trouvée',
+            openingNotFoundDescription: 'L\'ouverture demandée n\'a pas pu être trouvée.',
+            backToOpeningSelection: 'Retour à la sélection d\'ouverture',
+            loadingBackground: 'Chargement des informations sur l\'ouverture...',
+            noBackgroundInfo: 'Aucune information disponible pour cette ouverture.',
+            wikipediaSource: 'Source : Wikipédia (en cache',
+            deviationTitle: 'Vous avez quitté l\'ouverture !',
+            deviationMessage: 'Vous avez étudié',
+            deviationTip: 'Astuce : Vous pouvez toujours revenir en arrière en utilisant l\'historique des coups',
+            continuePlayingButton: 'Continuer à jouer (Démarrer la partie)',
+            undoReturnButton: 'Annuler et retourner à l\'ouverture',
+            exploreVariationButton: 'Explorer cette variante',
+            move: 'coup',
+            moves: 'coups',
         },
     },
 };
@@ -1031,6 +1099,23 @@ const it: Translations = {
             backToLearning: 'Torna all\'area di apprendimento',
             findTheMove: 'Trova la mossa che crea un',
         },
+        openingTrainer: {
+            loadingSession: 'Caricamento sessione di allenamento...',
+            openingNotFound: 'Apertura non trovata',
+            openingNotFoundDescription: 'L\'apertura richiesta non è stata trovata.',
+            backToOpeningSelection: 'Torna alla selezione delle aperture',
+            loadingBackground: 'Caricamento informazioni sull\'apertura...',
+            noBackgroundInfo: 'Nessuna informazione disponibile per questa apertura.',
+            wikipediaSource: 'Fonte: Wikipedia (in cache',
+            deviationTitle: 'Hai lasciato l\'apertura!',
+            deviationMessage: 'Hai studiato',
+            deviationTip: 'Suggerimento: Puoi sempre tornare indietro usando la cronologia delle mosse',
+            continuePlayingButton: 'Continua a giocare (Inizia partita)',
+            undoReturnButton: 'Annulla e torna all\'apertura',
+            exploreVariationButton: 'Esplora questa variante',
+            move: 'mossa',
+            moves: 'mosse',
+        },
     },
 };
 
@@ -1234,6 +1319,23 @@ const pl: Translations = {
             nextExercise: 'Następne ćwiczenie',
             backToLearning: 'Powrót do strefy nauki',
             findTheMove: 'Znajdź ruch, który tworzy',
+        },
+        openingTrainer: {
+            loadingSession: 'Ładowanie sesji treningowej...',
+            openingNotFound: 'Nie znaleziono otwarcia',
+            openingNotFoundDescription: 'Żądane otwarcie nie zostało znalezione.',
+            backToOpeningSelection: 'Powrót do wyboru otwarcia',
+            loadingBackground: 'Ładowanie informacji o otwarciu...',
+            noBackgroundInfo: 'Brak informacji o tym otwarciu.',
+            wikipediaSource: 'Źródło: Wikipedia (w pamięci podręcznej',
+            deviationTitle: 'Opuściłeś otwarcie!',
+            deviationMessage: 'Przestudiowałeś',
+            deviationTip: 'Wskazówka: Zawsze możesz wrócić używając historii ruchów',
+            continuePlayingButton: 'Kontynuuj grę (Rozpocznij partię)',
+            undoReturnButton: 'Cofnij i wróć do otwarcia',
+            exploreVariationButton: 'Zbadaj tę wariant',
+            move: 'ruch',
+            moves: 'ruchy',
         },
     },
 };

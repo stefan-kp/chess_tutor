@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { SupportedLanguage } from '@/lib/i18n/translations';
 
@@ -14,7 +15,7 @@ export default function Header({ language }: HeaderProps) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* App Title/Branding */}
-                    <div className="flex items-center space-x-3">
+                    <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer">
                         <div className="text-2xl">♞</div>
                         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
                             Chess Tutor
@@ -22,7 +23,7 @@ export default function Header({ language }: HeaderProps) {
                         <span className="hidden sm:inline-block text-sm text-gray-500 dark:text-gray-400">
                             {t.header.tagline}
                         </span>
-                    </div>
+                    </Link>
 
                     {/* Action Buttons */}
                     <div className="flex items-center space-x-3">

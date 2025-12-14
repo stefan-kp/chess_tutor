@@ -78,7 +78,7 @@ export default function OpeningTrainingPage() {
             <div className="flex items-center justify-center min-h-[400px]">
               <div className="text-center space-y-4">
                 <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                <p className="text-gray-600 dark:text-gray-400">Loading opening training session...</p>
+                <p className="text-gray-600 dark:text-gray-400">{t.learning.openingTrainer.loadingSession}</p>
               </div>
             </div>
           </div>
@@ -95,16 +95,16 @@ export default function OpeningTrainingPage() {
           <div className="max-w-6xl mx-auto w-full">
             <div className="text-center py-12">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                Opening Not Found
+                {t.learning.openingTrainer.openingNotFound}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                The requested opening could not be found.
+                {t.learning.openingTrainer.openingNotFoundDescription}
               </p>
               <button
                 onClick={() => router.push('/learning/openings')}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Back to Opening Selection
+                {t.learning.openingTrainer.backToOpeningSelection}
               </button>
             </div>
           </div>
@@ -125,7 +125,7 @@ export default function OpeningTrainingPage() {
               className="p-2 md:px-4 md:py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-sm font-medium transition-colors flex items-center gap-2"
             >
               <ArrowLeft size={20} />
-              <span className="hidden md:inline">Back to Opening Selection</span>
+              <span className="hidden md:inline">{t.learning.openingTrainer.backToOpeningSelection}</span>
             </button>
           </div>
 

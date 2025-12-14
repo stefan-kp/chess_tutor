@@ -559,6 +559,7 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
         <WikipediaSummary
           openingName={opening.name}
           wikipediaSlug={opening.wikipediaSlug}
+          language={language}
         />
 
         {/* Session info */}
@@ -589,6 +590,7 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
           onUndo={handleUndoDeviation}
           onStartGame={handleStartGameFromPosition}
           onContinueExploring={handleContinueExploring}
+          language={language}
         />
       )}
     </div>
