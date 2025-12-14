@@ -1,6 +1,9 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
+// Force dynamic rendering to read environment variables at runtime
+export const dynamic = 'force-dynamic';
+
 export default function ImprintPage() {
     return (
         <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">

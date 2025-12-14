@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   description: "Learn chess with AI-powered tutoring from Gemini and Stockfish engine analysis",
 };
 
+// Force dynamic rendering to read environment variables at runtime
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({
   children,
 }: Readonly<{

@@ -9,15 +9,18 @@ services:
     ports:
       - "3050:3050"
 
-      # Data Privacy & Imprint Configuration
-      IMPRINT_URL: ${IMPRINT_URL:-}
-      DATA_PRIVACY_RESPONSIBLE_PERSON: ${DATA_PRIVACY_RESPONSIBLE_PERSON:-}
-      
     env_file:
       - .env
 
     environment:
       - NODE_ENV=production
+      # Data Privacy & Imprint Configuration
+      - IMPRINT_URL=${IMPRINT_URL:-}
+      - DATA_PRIVACY_RESPONSIBLE_PERSON=${DATA_PRIVACY_RESPONSIBLE_PERSON:-}
+
+    volumes:
+      # Persist Wikipedia cache to avoid re-fetching on container restart
+      - wikipedia-cache:/app/public/wikipedia
 
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3050', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
@@ -32,3 +35,7 @@ services:
 networks:
   chess-tutor-network:
     driver: bridge
+
+volumes:
+  wikipedia-cache:
+    driver: local

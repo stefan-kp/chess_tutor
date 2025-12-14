@@ -1,6 +1,9 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
+// Force dynamic rendering to read environment variables at runtime
+export const dynamic = 'force-dynamic';
+
 export default function PrivacyPage() {
     // Read environment variable at runtime (Server Component)
     const responsiblePerson = process.env.DATA_PRIVACY_RESPONSIBLE_PERSON || "[Name of Responsible Person]";
