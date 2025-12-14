@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
   chess-tutor:
-    image: ghcr.io/stefan-kp/chess-tutor:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: chess-tutor:local
     container_name: chess-tutor
     restart: unless-stopped
 
