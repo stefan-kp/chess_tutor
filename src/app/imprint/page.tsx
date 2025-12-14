@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -5,6 +6,13 @@ import Footer from "@/components/Footer";
 export const dynamic = 'force-dynamic';
 
 export default function ImprintPage() {
+    // If external imprint URL is configured, redirect to it
+    const imprintUrl = process.env.IMPRINT_URL;
+
+    if (imprintUrl) {
+        redirect(imprintUrl);
+    }
+
     return (
         <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
             <Header language="en" />
