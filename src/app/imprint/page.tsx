@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 // Force dynamic rendering to read environment variables at runtime
 export const dynamic = 'force-dynamic';
 
-export default function ImprintPage() {
+export default async function ImprintPage() {
     // If external imprint URL is configured, redirect to it
     const imprintUrl = process.env.IMPRINT_URL;
 

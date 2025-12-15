@@ -24,6 +24,9 @@ services:
     volumes:
       # Persist Wikipedia cache to avoid re-fetching on container restart
       - wikipedia-cache:/app/public/wikipedia
+      # Persist tactical puzzles and downloads (user-generated data)
+      - tactical-fixtures:/app/fixtures
+      - puzzle-downloads:/app/downloads
 
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3050', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
@@ -41,4 +44,8 @@ networks:
 
 volumes:
   wikipedia-cache:
+    driver: local
+  tactical-fixtures:
+    driver: local
+  puzzle-downloads:
     driver: local

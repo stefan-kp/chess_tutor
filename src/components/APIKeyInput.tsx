@@ -10,6 +10,8 @@ interface APIKeyInputProps {
 export function APIKeyInput({ onKeySubmit }: APIKeyInputProps) {
     const [key, setKey] = useState("");
     const [isOpen, setIsOpen] = useState(false);
+    const [consentGiven, setConsentGiven] = useState(false);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         const envKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -26,11 +28,21 @@ export function APIKeyInput({ onKeySubmit }: APIKeyInputProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (key.trim()) {
-            localStorage.setItem("gemini_api_key", key.trim());
-            onKeySubmit(key.trim());
-            setIsOpen(false);
+
+        if (!key.trim()) {
+            setError("API key is required");
+            return;
         }
+
+        if (!consentGiven) {
+            setError("You must agree to store the API key in local storage to continue");
+            return;
+        }
+
+        localStorage.setItem("gemini_api_key", key.trim());
+        onKeySubmit(key.trim());
+        setIsOpen(false);
+        setError("");
     };
 
     if (!isOpen) {
@@ -62,6 +74,27 @@ export function APIKeyInput({ onKeySubmit }: APIKeyInputProps) {
                         className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                         required
                     />
+
+                    {/* Consent Checkbox */}
+                    <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <input
+                            type="checkbox"
+                            id="api-key-consent-checkbox"
+                            checked={consentGiven}
+                            onChange={(e) => setConsentGiven(e.target.checked)}
+                            className="mt-0.5 w-4 h-4 text-blue-600 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <label htmlFor="api-key-consent-checkbox" className="text-xs text-gray-800 dark:text-gray-200 cursor-pointer">
+                            I understand and agree that my API key will be stored in my browser's local storage
+                        </label>
+                    </div>
+
+                    {error && (
+                        <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                            {error}
+                        </p>
+                    )}
+
                     <div className="flex justify-end gap-2">
                         <button
                             type="button"

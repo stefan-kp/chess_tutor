@@ -177,6 +177,8 @@ export interface Translations {
             costNote: string;
             privacy: string;
             getKey: string;
+            consentLabel: string;
+            consentRequired: string;
         };
         actions: {
             next: string;
@@ -400,6 +402,8 @@ const en: Translations = {
             costNote: 'LLM tokens are billed by Google, so you control the usage.',
             privacy: 'We never use your key for anything outside this tutor.',
             getKey: 'Get a free Gemini API key',
+            consentLabel: 'I understand and agree that my API key will be stored in my browser\'s local storage',
+            consentRequired: 'You must agree to store the API key in local storage to continue',
         },
         actions: {
             next: 'Next',
@@ -621,6 +625,8 @@ const de: Translations = {
             costNote: 'LLM-Tokens werden von Google abgerechnet – du behältst die Kontrolle.',
             privacy: 'Wir nutzen deinen Schlüssel ausschließlich für diesen Tutor.',
             getKey: 'Kostenlosen Gemini-Schlüssel holen',
+            consentLabel: 'Ich verstehe und stimme zu, dass mein API-Schlüssel im lokalen Speicher meines Browsers gespeichert wird',
+            consentRequired: 'Du musst der Speicherung des API-Schlüssels im lokalen Speicher zustimmen, um fortzufahren',
         },
         actions: {
             next: 'Weiter',
@@ -842,6 +848,8 @@ const fr: Translations = {
             costNote: 'Les jetons LLM sont facturés par Google, vous gardez le contrôle.',
             privacy: 'Nous n’utilisons votre clé que pour ce tuteur.',
             getKey: 'Obtenir une clé Gemini gratuite',
+            consentLabel: 'Je comprends et j\'accepte que ma clé API soit stockée dans le stockage local de mon navigateur',
+            consentRequired: 'Vous devez accepter le stockage de la clé API dans le stockage local pour continuer',
         },
         actions: {
             next: 'Suivant',
@@ -1063,6 +1071,8 @@ const it: Translations = {
             costNote: 'I token LLM sono fatturati da Google, quindi hai tu il controllo.',
             privacy: 'Usiamo la tua chiave solo per questo tutor.',
             getKey: 'Ottieni una chiave Gemini gratuita',
+            consentLabel: 'Comprendo e accetto che la mia chiave API verrà memorizzata nel local storage del mio browser',
+            consentRequired: 'Devi accettare la memorizzazione della chiave API nel local storage per continuare',
         },
         actions: {
             next: 'Avanti',
@@ -1284,6 +1294,8 @@ const pl: Translations = {
             costNote: 'Tokeny LLM są rozliczane przez Google, więc masz kontrolę nad zużyciem.',
             privacy: 'Nigdy nie używamy twojego klucza do niczego poza tym trenerem.',
             getKey: 'Zdobądź darmowy klucz Gemini',
+            consentLabel: 'Rozumiem i zgadzam się, że mój klucz API będzie przechowywany w pamięci lokalnej mojej przeglądarki',
+            consentRequired: 'Musisz wyrazić zgodę na przechowywanie klucza API w pamięci lokalnej, aby kontynuować',
         },
         actions: {
             next: 'Dalej',

@@ -14,6 +14,8 @@ export default function SettingsPage() {
     const [chesscomUsername, setChesscomUsername] = useState("");
     const [lichessUsername, setLichessUsername] = useState("");
     const [mounted, setMounted] = useState(false);
+    const [consentGiven, setConsentGiven] = useState(false);
+    const [showConsentError, setShowConsentError] = useState(false);
 
     // Load settings on mount
     useEffect(() => {
@@ -22,7 +24,11 @@ export default function SettingsPage() {
         const storedChesscomUsername = localStorage.getItem("chesscom_username");
         const storedLichessUsername = localStorage.getItem("lichess_username");
 
-        if (storedKey) setApiKey(storedKey);
+        if (storedKey) {
+            setApiKey(storedKey);
+            // If there's already a stored key, consent was previously given
+            setConsentGiven(true);
+        }
         if (storedLang) setLanguage(storedLang as SupportedLanguage);
         if (storedChesscomUsername) setChesscomUsername(storedChesscomUsername);
         if (storedLichessUsername) setLichessUsername(storedLichessUsername);
@@ -33,6 +39,14 @@ export default function SettingsPage() {
     const t = useTranslation(language);
 
     const handleSave = () => {
+        // Check consent if API key is being set
+        if (apiKey.trim() && !consentGiven) {
+            setShowConsentError(true);
+            return;
+        }
+
+        setShowConsentError(false);
+
         if (apiKey.trim()) {
             localStorage.setItem("gemini_api_key", apiKey.trim());
         } else {
@@ -115,7 +129,7 @@ export default function SettingsPage() {
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     {t.start.apiKey}
                                 </label>
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     <input
                                         type="password"
                                         value={apiKey}
@@ -123,6 +137,27 @@ export default function SettingsPage() {
                                         placeholder={t.start.apiKeyPlaceholder}
                                         className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                                     />
+
+                                    {/* Consent Checkbox */}
+                                    <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                        <input
+                                            type="checkbox"
+                                            id="settings-consent-checkbox"
+                                            checked={consentGiven}
+                                            onChange={(e) => setConsentGiven(e.target.checked)}
+                                            className="mt-1 w-4 h-4 text-blue-600 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="settings-consent-checkbox" className="text-sm text-gray-800 dark:text-gray-200 cursor-pointer">
+                                            {t.onboarding.api.consentLabel}
+                                        </label>
+                                    </div>
+
+                                    {showConsentError && (
+                                        <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                                            {t.onboarding.api.consentRequired}
+                                        </p>
+                                    )}
+
                                     <p className="text-xs text-gray-500 dark:text-gray-400">
                                         {t.start.apiKeyRequired} <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">{t.start.getApiKey}</a>
                                     </p>

@@ -16,6 +16,7 @@ export default function OnboardingPage() {
     const [apiKey, setApiKey] = useState("");
     const [mounted, setMounted] = useState(false);
     const [error, setError] = useState("");
+    const [consentGiven, setConsentGiven] = useState(false);
 
     useEffect(() => {
         const storedKey = localStorage.getItem("gemini_api_key");
@@ -60,6 +61,11 @@ export default function OnboardingPage() {
         const trimmed = apiKey.trim();
         if (!trimmed) {
             setError(t.start.apiKeyRequired);
+            return;
+        }
+
+        if (!consentGiven) {
+            setError(t.onboarding.api.consentRequired);
             return;
         }
 
@@ -205,7 +211,22 @@ export default function OnboardingPage() {
                                         placeholder={t.onboarding.api.placeholder}
                                         className="w-full p-3 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                                     />
-                                    {error && <p className="text-sm text-red-600">{error}</p>}
+
+                                    {/* Consent Checkbox */}
+                                    <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                        <input
+                                            type="checkbox"
+                                            id="consent-checkbox"
+                                            checked={consentGiven}
+                                            onChange={(e) => setConsentGiven(e.target.checked)}
+                                            className="mt-1 w-4 h-4 text-blue-600 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="consent-checkbox" className="text-sm text-gray-800 dark:text-gray-200 cursor-pointer">
+                                            {t.onboarding.api.consentLabel}
+                                        </label>
+                                    </div>
+
+                                    {error && <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error}</p>}
                                     <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                                         <p>There is no such thing as a free lunch – LLM usage requires your own key.</p>
                                         <p>{t.onboarding.api.storage}</p>

@@ -54,9 +54,18 @@ COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
+# Install Python and dependencies for tactical puzzles setup
+# Users can run: docker exec chess-tutor python3 scripts/setup_tactical_puzzles.py
+RUN apk add --no-cache python3 py3-pip zstd && \
+    pip3 install --break-system-packages python-chess
+
 # Copy entrypoint script and make executable
 COPY scripts/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Create directories for user-generated data
+RUN mkdir -p /app/fixtures/tactics /app/downloads && \
+    chown -R nextjs:nodejs /app/fixtures /app/downloads
 
 # Set ownership to non-root user
 RUN chown -R nextjs:nodejs /app
