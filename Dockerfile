@@ -45,9 +45,11 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Copy necessary files from builder
-COPY --from=builder /app/public ./public
+# Note: Copy public first, then standalone (which may have a minimal public/)
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+# Explicitly copy all public assets (standalone doesn't include everything)
+COPY --from=builder /app/public ./public
 
 # Copy scripts and node_modules needed for Wikipedia/opening setup
 COPY --from=builder /app/scripts ./scripts
