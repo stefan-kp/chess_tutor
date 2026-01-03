@@ -1,14 +1,23 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { OpeningFamily } from '@/lib/openingTrainer/openingFamilies';
 
 interface FamilySelectorProps {
   families: OpeningFamily[];
-  onSelectFamily: (familyName: string) => void;
+  onSelectFamily?: (familyName: string) => void; // Made optional - now navigates directly
 }
 
 export default function FamilySelector({ families, onSelectFamily }: FamilySelectorProps) {
+  const router = useRouter();
+
+  const handleSelectFamily = (familyName: string) => {
+    // Navigate directly to family training page
+    const encodedName = encodeURIComponent(familyName);
+    router.push(`/learning/openings/family/${encodedName}`);
+  };
+
   // Group families by ECO range for display
   const groupedFamilies = useMemo(() => {
     const groups: Record<string, OpeningFamily[]> = {
@@ -52,7 +61,7 @@ export default function FamilySelector({ families, onSelectFamily }: FamilySelec
               {categoryFamilies.map((family) => (
                 <button
                   key={family.name}
-                  onClick={() => onSelectFamily(family.name)}
+                  onClick={() => handleSelectFamily(family.name)}
                   className="block p-6 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg transition-all text-left"
                   aria-label={`Select ${family.name} opening family`}
                 >

@@ -434,3 +434,221 @@ export function shouldUseWikipediaContext(opening: OpeningMetadata): boolean {
   // Use Wikipedia if available and not too obscure
   return hasWikipediaPage(opening);
 }
+
+// ============================================================================
+// Multi-Variation Support (Family Training)
+// ============================================================================
+
+/**
+ * Node in the variation tree
+ * Each node represents a position after a move, with children for possible continuations
+ */
+export interface VariationTreeNode {
+  move: string; // SAN notation of the move leading to this position
+  children: Map<string, VariationTreeNode>; // key = SAN, value = child node
+  variations: OpeningMetadata[]; // Openings that pass through this position
+  isEndOfLine: boolean; // True if this is the end of at least one variation
+}
+
+/**
+ * Root of the variation tree (starting position)
+ */
+export interface VariationTree {
+  children: Map<string, VariationTreeNode>;
+  allVariations: OpeningMetadata[];
+  familyName: string;
+}
+
+/**
+ * Build a variation tree from multiple openings
+ * This allows efficient lookup of which variations are still possible
+ */
+export function buildVariationTree(variations: OpeningMetadata[], familyName: string): VariationTree {
+  const tree: VariationTree = {
+    children: new Map(),
+    allVariations: variations,
+    familyName,
+  };
+
+  for (const opening of variations) {
+    const moves = parseMoveSequence(opening.moves);
+    let currentChildren = tree.children;
+
+    for (let i = 0; i < moves.length; i++) {
+      const move = moves[i];
+      const isLast = i === moves.length - 1;
+
+      if (!currentChildren.has(move)) {
+        currentChildren.set(move, {
+          move,
+          children: new Map(),
+          variations: [],
+          isEndOfLine: false,
+        });
+      }
+
+      const node = currentChildren.get(move)!;
+      node.variations.push(opening);
+
+      if (isLast) {
+        node.isEndOfLine = true;
+      }
+
+      currentChildren = node.children;
+    }
+  }
+
+  return tree;
+}
+
+/**
+ * Get the node at a specific position in the variation tree
+ * Returns null if the move sequence doesn't exist in any variation
+ */
+export function getTreeNodeAtPosition(
+  tree: VariationTree,
+  moveHistory: MoveHistoryEntry[]
+): VariationTreeNode | null {
+  if (moveHistory.length === 0) {
+    // Return a virtual root node
+    return {
+      move: '',
+      children: tree.children,
+      variations: tree.allVariations,
+      isEndOfLine: false,
+    };
+  }
+
+  let currentChildren = tree.children;
+  let currentNode: VariationTreeNode | null = null;
+
+  for (const entry of moveHistory) {
+    const node = currentChildren.get(entry.san);
+    if (!node) {
+      return null; // Move sequence not in any variation
+    }
+    currentNode = node;
+    currentChildren = node.children;
+  }
+
+  return currentNode;
+}
+
+/**
+ * Get all variations that match the current move history
+ */
+export function getMatchingVariations(
+  tree: VariationTree,
+  moveHistory: MoveHistoryEntry[]
+): OpeningMetadata[] {
+  const node = getTreeNodeAtPosition(tree, moveHistory);
+  return node ? node.variations : [];
+}
+
+/**
+ * Get all possible next moves from the current position across all matching variations
+ * Returns moves with their associated variations
+ */
+export function getAllPossibleNextMoves(
+  tree: VariationTree,
+  moveHistory: MoveHistoryEntry[]
+): Array<{ move: string; variations: OpeningMetadata[] }> {
+  const node = getTreeNodeAtPosition(tree, moveHistory);
+  if (!node) return [];
+
+  const result: Array<{ move: string; variations: OpeningMetadata[] }> = [];
+
+  for (const [move, childNode] of node.children) {
+    result.push({
+      move,
+      variations: childNode.variations,
+    });
+  }
+
+  return result;
+}
+
+/**
+ * Check if a move is in any of the loaded variations
+ */
+export function isMoveInVariationTree(
+  tree: VariationTree,
+  moveHistory: MoveHistoryEntry[],
+  proposedMove: string
+): boolean {
+  const node = getTreeNodeAtPosition(tree, moveHistory);
+  if (!node) return false;
+  return node.children.has(proposedMove);
+}
+
+/**
+ * Get the specific variation name(s) that match the exact move sequence
+ * This identifies which variation the user is currently playing
+ */
+export function identifyCurrentVariation(
+  tree: VariationTree,
+  moveHistory: MoveHistoryEntry[]
+): { exact: OpeningMetadata[]; possible: OpeningMetadata[] } {
+  const node = getTreeNodeAtPosition(tree, moveHistory);
+  if (!node) {
+    return { exact: [], possible: [] };
+  }
+
+  // Exact matches: variations that end exactly at this position
+  const exact = node.variations.filter(v => {
+    const moves = parseMoveSequence(v.moves);
+    return moves.length === moveHistory.length;
+  });
+
+  // Possible: variations that could continue from here
+  const possible = node.variations.filter(v => {
+    const moves = parseMoveSequence(v.moves);
+    return moves.length > moveHistory.length;
+  });
+
+  return { exact, possible };
+}
+
+/**
+ * Check if we're still in theory (any variation)
+ */
+export function isInAnyVariation(
+  tree: VariationTree,
+  moveHistory: MoveHistoryEntry[]
+): boolean {
+  return getTreeNodeAtPosition(tree, moveHistory) !== null;
+}
+
+/**
+ * Get a human-readable description of the current position in the variation tree
+ */
+export function describeCurrentPosition(
+  tree: VariationTree,
+  moveHistory: MoveHistoryEntry[]
+): {
+  matchingCount: number;
+  nextMoves: string[];
+  currentVariationNames: string[];
+  isEndOfLine: boolean;
+} {
+  const node = getTreeNodeAtPosition(tree, moveHistory);
+
+  if (!node) {
+    return {
+      matchingCount: 0,
+      nextMoves: [],
+      currentVariationNames: [],
+      isEndOfLine: false,
+    };
+  }
+
+  const nextMoves = Array.from(node.children.keys());
+  const variationNames = [...new Set(node.variations.map(v => v.name))];
+
+  return {
+    matchingCount: node.variations.length,
+    nextMoves,
+    currentVariationNames: variationNames,
+    isEndOfLine: node.isEndOfLine && nextMoves.length === 0,
+  };
+}

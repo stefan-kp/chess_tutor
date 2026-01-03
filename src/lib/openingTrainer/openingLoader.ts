@@ -83,3 +83,47 @@ export function getAllOpeningsByFen(): Record<string, OpeningMetadata> {
 export function getAllOpeningsByEco(): Record<string, OpeningMetadata> {
   return OPENINGS_BY_ECO;
 }
+
+/**
+ * Extract the family name from an opening name
+ */
+function extractFamilyName(openingName: string): string {
+  const separators = [':', ',', '–', '—', ' - '];
+  for (const sep of separators) {
+    if (openingName.includes(sep)) {
+      return openingName.split(sep)[0].trim();
+    }
+  }
+  // Handle "Queen's Gambit Declined" -> "Queen's Gambit"
+  if (openingName.includes('Declined') || openingName.includes('Accepted')) {
+    return openingName.replace(/\s+(Declined|Accepted).*$/, '').trim();
+  }
+  return openingName;
+}
+
+/**
+ * Count moves in an opening's move string
+ */
+function countMoves(movesString: string): number {
+  if (!movesString) return 0;
+  return movesString.split(' ').filter(m => !m.match(/^\d+\.$/)).length;
+}
+
+/**
+ * Get all openings belonging to a specific family
+ * Returns variations sorted by move count (most moves first)
+ */
+export function getOpeningsByFamily(familyName: string): OpeningMetadata[] {
+  return OPENINGS_ARRAY
+    .filter((opening) => {
+      const family = extractFamilyName(opening.name);
+      return family === familyName && countMoves(opening.moves) > 1;
+    })
+    .sort((a, b) => {
+      // Sort by move count descending (more moves = deeper line)
+      const movesA = countMoves(a.moves);
+      const movesB = countMoves(b.moves);
+      if (movesA !== movesB) return movesB - movesA;
+      return a.eco.localeCompare(b.eco);
+    });
+}
