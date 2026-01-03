@@ -276,7 +276,10 @@ export default function TacticalPracticePage() {
                 } else {
                     errorSound.current?.play().catch(e => console.error("Audio play failed", e));
                     setFeedback('incorrect');
-                    gameRef.current = new Chess(exercise.startPosition.fen);
+                    // Undo the wrong move instead of resetting to start position
+                    // This allows the user to try again from the same position (like chess.com)
+                    gameRef.current.undo();
+                    setFen(gameRef.current.fen());
 
                     // Update stats for incorrect answer
                     setStats(prev => ({
@@ -313,10 +316,11 @@ export default function TacticalPracticePage() {
             if (!isCorrect) {
                 errorSound.current?.play().catch(e => console.error("Audio play failed", e));
                 setFeedback('incorrect');
-                // Reset the board to starting position
-                gameRef.current = new Chess(exercise.startPosition.fen);
-                setFen(exercise.startPosition.fen);
-                setCurrentMoveIndex(0);
+                // Undo the wrong move instead of resetting to start position
+                // This allows the user to try again from the same position (like chess.com)
+                // The currentMoveIndex stays the same since we're still waiting for the same move
+                gameRef.current.undo();
+                setFen(gameRef.current.fen());
 
                 // Update stats for incorrect answer
                 setStats(prev => ({
@@ -382,10 +386,10 @@ export default function TacticalPracticePage() {
     };
 
     const handleTryAgain = () => {
-        gameRef.current = new Chess(exercise.startPosition.fen);
-        setFen(exercise.startPosition.fen);
+        // Since we now undo the wrong move immediately when it's made,
+        // the board is already in the correct position (before the error).
+        // We just need to reset the feedback state to allow the user to try again.
         setFeedback('none');
-        setCurrentMoveIndex(0);  // Reset move sequence progress
         // Don't reset userMove - keep the chat context
         // The Tutor will know the user tried again because feedback changed to 'none'
     };
