@@ -82,6 +82,14 @@ interface TutorProps {
         wikipediaSummary?: string;  // Optional Wikipedia context
         shouldTutorSpeak?: boolean;  // Guardrail: controls when tutor can send messages
         onTutorMessageSent?: () => void;  // Callback when tutor sends a message
+        // Family mode: training with multiple variations
+        isFamilyMode?: boolean;
+        variationInfo?: {
+            matchingVariations: number;
+            currentVariationNames: string[];
+            possibleMoves: string[];
+            isEndOfLine: boolean;
+        };
     };
 }
 
@@ -359,6 +367,8 @@ Acknowledge this new puzzle briefly (1 sentence) and encourage the student to fi
     const isInTheory = openingPracticeMode?.isInTheory ?? true;
     const currentFeedback = openingPracticeMode?.currentFeedback;
     const repertoireMovesLength = openingPracticeMode?.repertoireMoves?.length ?? 0;
+    const isFamilyMode = openingPracticeMode?.isFamilyMode ?? false;
+    const variationInfo = openingPracticeMode?.variationInfo;
 
     // Automatic commentary for opening practice mode
     useEffect(() => {
@@ -382,6 +392,14 @@ Acknowledge this new puzzle briefly (1 sentence) and encourage the student to fi
         if (userMoveKey && userMoveKey !== lastUserMoveRef.current) {
             lastUserMoveRef.current = userMoveKey;
 
+            // Build variation context for family mode
+            const variationContext = isFamilyMode && variationInfo ? `
+Variation info:
+- Matching variations: ${variationInfo.matchingVariations}
+- Current line(s): ${variationInfo.currentVariationNames.slice(0, 3).join(', ')}${variationInfo.currentVariationNames.length > 3 ? '...' : ''}
+- Possible next moves: ${variationInfo.possibleMoves.join(', ') || 'none (end of line)'}
+${variationInfo.isEndOfLine ? '- This is the end of this variation line' : ''}` : '';
+
             // Generate commentary about user's move
             const moveCommentary = `
 [SYSTEM TRIGGER: user_move_in_opening]
@@ -391,13 +409,25 @@ Move category: ${currentFeedback?.category || 'unknown'}
 Position status: ${isInTheory ? 'In theory' : 'Deviated from repertoire'}
 ${currentFeedback?.evaluationChange !== undefined ? `Evaluation change: ${currentFeedback.evaluationChange.toFixed(2)}` : ''}
 ${currentFeedback?.theoreticalAlternatives && currentFeedback.theoreticalAlternatives.length > 0 ? `Theory suggested: ${currentFeedback.theoreticalAlternatives.join(', ')}` : ''}
+${variationContext}
 
 INSTRUCTIONS:
 ${isInTheory
-    ? `- The student is following the repertoire correctly - praise them briefly
+    ? isFamilyMode
+        ? `- The student is playing a valid move in the ${openingName} family
+- Tell them which specific variation(s) they're now in (if narrowed down)
+- Explain the key idea behind this move (1-2 sentences)
+- If there are multiple possible moves at this position, you can briefly mention alternatives
+- If you're about to make the next move, explain what it accomplishes`
+        : `- The student is following the repertoire correctly - praise them briefly
 - Explain the key idea behind this move (1-2 sentences)
 - If you're about to make the next move, you can mention it naturally`
-    : `- The student deviated from theory
+    : isFamilyMode
+        ? `- The student played a move not in any known variation of ${openingName}
+- Gently mention which moves would have been in theory (${currentFeedback?.theoreticalAlternatives?.join(' or ') || 'the main lines'})
+- Explain why those moves are preferred in the ${openingName}
+- Encourage them to explore or try a different move`
+        : `- The student deviated from theory
 - Gently point out what the repertoire move was
 - Explain why the repertoire move is preferred
 - Ask if they want to try again or continue exploring`}
@@ -469,7 +499,9 @@ Remember: You are both the opponent AND the tutor. Explain your move as if you'r
         language,
         openingName,
         currentFeedback,
-        repertoireMovesLength
+        repertoireMovesLength,
+        isFamilyMode,
+        variationInfo
     ]);
 
     // Scroll chat container to bottom (not the whole page)

@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import Header from '@/components/Header';
-import OpeningSelector from '@/components/OpeningTrainer/OpeningSelector';
 import FamilySelector from '@/components/OpeningTrainer/FamilySelector';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { SupportedLanguage } from '@/lib/i18n/translations';
@@ -15,7 +14,6 @@ export default function OpeningsPage() {
   const router = useRouter();
   const [language, setLanguage] = useState<SupportedLanguage>('en');
   const [mounted, setMounted] = useState(false);
-  const [selectedFamily, setSelectedFamily] = useState<string | null>(null);
 
   useEffect(() => {
     const storedLang = localStorage.getItem('chess_tutor_language');
@@ -35,14 +33,6 @@ export default function OpeningsPage() {
     return groupOpeningsByFamily(allOpenings);
   }, [allOpenings]);
 
-  const handleSelectFamily = (familyName: string) => {
-    setSelectedFamily(familyName);
-  };
-
-  const handleBackToFamilies = () => {
-    setSelectedFamily(null);
-  };
-
   if (!mounted) return null;
 
   return (
@@ -61,28 +51,15 @@ export default function OpeningsPage() {
             </button>
           </div>
 
-          {!selectedFamily ? (
-            <>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Opening Training
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mb-8">
-                Select an opening family to explore. Each family contains multiple variations
-                with engine-backed feedback and AI-powered explanations.
-              </p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Opening Training
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-8">
+            Select an opening family to train. You can play any variation within the family,
+            and your AI coach will guide you through the different lines.
+          </p>
 
-              <FamilySelector
-                families={openingFamilies}
-                onSelectFamily={handleSelectFamily}
-              />
-            </>
-          ) : (
-            <OpeningSelector
-              openings={allOpenings}
-              selectedFamily={selectedFamily}
-              onBackToFamilies={handleBackToFamilies}
-            />
-          )}
+          <FamilySelector families={openingFamilies} />
         </div>
       </div>
     </>
