@@ -275,9 +275,8 @@ export default function TacticalPracticePage() {
                     }));
                 } else {
                     errorSound.current?.play().catch(e => console.error("Audio play failed", e));
-                    setFeedback('incorrect');
-                    // Undo the wrong move instead of resetting to start position
-                    // This allows the user to try again from the same position (like chess.com)
+                    // Don't set feedback to 'incorrect' - just play error sound and undo
+                    // This allows the user to immediately try again without clicking "Try Again"
                     gameRef.current.undo();
                     setFen(gameRef.current.fen());
 
@@ -315,9 +314,8 @@ export default function TacticalPracticePage() {
 
             if (!isCorrect) {
                 errorSound.current?.play().catch(e => console.error("Audio play failed", e));
-                setFeedback('incorrect');
-                // Undo the wrong move instead of resetting to start position
-                // This allows the user to try again from the same position (like chess.com)
+                // Don't set feedback to 'incorrect' - just play error sound and undo
+                // This allows the user to immediately try again without clicking "Try Again"
                 // The currentMoveIndex stays the same since we're still waiting for the same move
                 gameRef.current.undo();
                 setFen(gameRef.current.fen());
@@ -383,15 +381,6 @@ export default function TacticalPracticePage() {
         } catch (e) {
             return false;
         }
-    };
-
-    const handleTryAgain = () => {
-        // Since we now undo the wrong move immediately when it's made,
-        // the board is already in the correct position (before the error).
-        // We just need to reset the feedback state to allow the user to try again.
-        setFeedback('none');
-        // Don't reset userMove - keep the chat context
-        // The Tutor will know the user tried again because feedback changed to 'none'
     };
 
     const handleSkipPuzzle = () => {
@@ -637,7 +626,7 @@ export default function TacticalPracticePage() {
 
                             {/* Action Buttons */}
                             <div className="mt-4 space-y-3">
-                                {feedback === 'correct' && (
+                                {feedback === 'correct' ? (
                                     <button
                                         onClick={handleNextExercise}
                                         className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold shadow-lg transition-all flex items-center justify-center gap-2"
@@ -645,26 +634,7 @@ export default function TacticalPracticePage() {
                                         <RefreshCw size={18} />
                                         {t.learning.practice.nextExercise}
                                     </button>
-                                )}
-                                {feedback === 'incorrect' && (
-                                    <>
-                                        <button
-                                            onClick={handleTryAgain}
-                                            className="w-full py-3 px-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-semibold shadow-lg transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <RefreshCw size={18} />
-                                            {t.learning.practice.tryAgain}
-                                        </button>
-                                        <button
-                                            onClick={handleSkipPuzzle}
-                                            className="w-full py-2 px-4 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <SkipForward size={18} />
-                                            Skip Puzzle
-                                        </button>
-                                    </>
-                                )}
-                                {feedback === 'none' && (
+                                ) : (
                                     <button
                                         onClick={handleSkipPuzzle}
                                         className="w-full py-2 px-4 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium transition-all flex items-center justify-center gap-2"
