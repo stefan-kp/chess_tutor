@@ -29,6 +29,7 @@ const mockOpening: OpeningMetadata = {
   eco: 'C00',
   name: 'French Defense',
   moves: '1. e4 e6 2. d4 d5',
+  src: 'test',
   wikipediaSlug: 'French_Defence',
 };
 
@@ -36,6 +37,7 @@ const mockBlackOpening: OpeningMetadata = {
   eco: 'D00',
   name: "Queen's Pawn Opening",
   moves: '1. d4 d5',
+  src: 'test',
   wikipediaSlug: 'Queens_Pawn_Game',
 };
 

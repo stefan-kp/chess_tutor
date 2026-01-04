@@ -67,9 +67,11 @@ jest.mock("./StartScreen", () => ({
 
 describe("ChessGame Component", () => {
     const mockPersonality = {
+        id: "test",
         name: "Test Personality",
         systemPrompt: "You are a helpful assistant.",
         image: "🤖",
+        description: "Test description",
     };
 
     beforeEach(() => {
