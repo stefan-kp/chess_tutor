@@ -6,7 +6,15 @@ import { Chessboard } from 'react-chessboard';
 import { OpeningMetadata } from '@/lib/openings';
 import { useOpeningTraining, useChessInstance } from '@/contexts/OpeningTrainingContext';
 import { loadSession } from '@/lib/openingTrainer/sessionManager';
-import { parseMoveSequence, getUserColor } from '@/lib/openingTrainer/gameLogic';
+import {
+  parseMoveSequence,
+  getUserColor,
+  VariationTree,
+  getAllPossibleNextMoves,
+  identifyCurrentVariation,
+  isMoveInVariationTree,
+  describeCurrentPosition,
+} from '@/lib/openingTrainer/gameLogic';
 import { getWikipediaSummary } from '@/lib/openingTrainer/wikipediaService';
 import { WikipediaSummary as WikipediaSummaryType } from '@/types/openingTraining';
 import { extractFamilyName } from '@/lib/openingTrainer/openingFamilies';
@@ -22,10 +30,21 @@ interface OpeningTrainerProps {
   personality: Personality;
   apiKey: string;
   language: SupportedLanguage;
+  // Family training mode - allows multiple variations
+  variationTree?: VariationTree;
+  allVariations?: OpeningMetadata[];
 }
 
-export default function OpeningTrainer({ opening, personality, apiKey, language }: OpeningTrainerProps) {
+export default function OpeningTrainer({
+  opening,
+  personality,
+  apiKey,
+  language,
+  variationTree,
+  allVariations,
+}: OpeningTrainerProps) {
   const router = useRouter();
+  const isFamilyMode = !!variationTree && !!allVariations;
 
   const {
     session,
@@ -33,6 +52,7 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
     currentFeedback,
     initializeSession,
     makeMove,
+    undoToMove,
     navigateToMove,
   } = useOpeningTraining();
 
@@ -206,12 +226,12 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
   const handleUndoDeviation = () => {
     if (!session || session.deviationMoveIndex === null) return;
 
-    // Navigate back to the move before deviation
-    navigateToMove(session.deviationMoveIndex - 1);
-    setShowDeviationDialog(false);
+    // Undo to the move before deviation (this truncates move history)
+    const targetIndex = session.deviationMoveIndex - 1;
+    undoToMove(targetIndex);
 
-    // After a brief delay, make another legal move to continue in theory
-    // This allows the player to try again
+    // Close the dialog
+    setShowDeviationDialog(false);
   };
 
   const handleStartGameFromPosition = () => {
@@ -256,6 +276,44 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
     // Update the tracking to prevent rapid-fire messages
     setLastTutorMessageMoveIndex(moveCount);
   };
+
+  // ============================================================================
+  // Family mode hooks - MUST be called before any early returns
+  // ============================================================================
+
+  // Family mode: compute current position info from variation tree
+  // IMPORTANT: Always call useMemo, even if not in family mode (React Hooks rule)
+  const variationPositionInfo = useMemo(() => {
+    if (!isFamilyMode || !variationTree || !session) {
+      return null;
+    }
+    const positionDesc = describeCurrentPosition(variationTree, session.moveHistory);
+    const currentVariations = identifyCurrentVariation(variationTree, session.moveHistory);
+    const possibleMoves = getAllPossibleNextMoves(variationTree, session.moveHistory);
+
+    return {
+      ...positionDesc,
+      currentVariations,
+      possibleMoves,
+      isInAnyVariation: positionDesc.matchingCount > 0,
+    };
+  }, [isFamilyMode, variationTree, session]);
+
+  // Get all possible next moves (for display and tutor context)
+  const theoreticalMoves = useMemo(() => {
+    if (isFamilyMode && variationPositionInfo) {
+      return variationPositionInfo.nextMoves;
+    }
+    // Single variation mode
+    if (!session) return [];
+    const moves = parseMoveSequence(opening.moves);
+    const nextMove = moves[session.moveHistory.length];
+    return nextMove ? [nextMove] : [];
+  }, [isFamilyMode, variationPositionInfo, opening.moves, session]);
+
+  // ============================================================================
+  // Early returns for loading/error states
+  // ============================================================================
 
   // Session recovery dialog
   if (showRecoveryDialog && existingSession) {
@@ -365,12 +423,16 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
   const lastUserMove = userMoves.length > 0 ? userMoves[userMoves.length - 1] : null;
   const lastTutorMove = tutorMoves.length > 0 ? tutorMoves[tutorMoves.length - 1] : null;
 
+  // Note: variationPositionInfo and theoreticalMoves are computed above (before early returns)
+
   const openingPracticeMode = {
     openingName: opening.name,
     openingEco: opening.eco,
     repertoireMoves,
     currentMoveIndex: session.moveHistory.length,
-    isInTheory: session.deviationMoveIndex === null,
+    isInTheory: isFamilyMode
+      ? (variationPositionInfo?.isInAnyVariation ?? false)
+      : session.deviationMoveIndex === null,
     deviationMoveIndex: session.deviationMoveIndex,
     lastUserMove: lastUserMove ? {
       from: lastUserMove.uci.substring(0, 2),
@@ -395,11 +457,23 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
     currentFeedback: currentFeedback ? {
       category: currentFeedback.classification.category,
       evaluationChange: currentFeedback.classification.evaluationChange,
-      theoreticalAlternatives: currentFeedback.classification.theoreticalAlternatives
-    } : null,
+      theoreticalAlternatives: isFamilyMode ? theoreticalMoves : currentFeedback.classification.theoreticalAlternatives
+    } : (isFamilyMode ? {
+      category: 'in-theory' as const,
+      evaluationChange: 0,
+      theoreticalAlternatives: theoreticalMoves
+    } : null),
     wikipediaSummary: wikipediaSummary?.extract || undefined,
     shouldTutorSpeak,
     onTutorMessageSent: handleTutorMessageSent,
+    // Family mode specific info
+    isFamilyMode,
+    variationInfo: isFamilyMode && variationPositionInfo ? {
+      matchingVariations: variationPositionInfo.matchingCount,
+      currentVariationNames: variationPositionInfo.currentVariationNames,
+      possibleMoves: variationPositionInfo.nextMoves,
+      isEndOfLine: variationPositionInfo.isEndOfLine,
+    } : undefined,
   };
 
   return (
@@ -572,10 +646,78 @@ export default function OpeningTrainer({ opening, personality, apiKey, language 
             <span className="text-gray-600 dark:text-gray-400">Moves played:</span>
             <span className="font-medium text-gray-900 dark:text-white">{moveCount}</span>
           </div>
-          {session.deviationMoveIndex !== null && (
+
+          {/* Family mode: show variation info */}
+          {isFamilyMode && variationPositionInfo && (
+            <>
+              <div className="pt-2 border-t border-gray-300 dark:border-gray-600">
+                <div className="flex justify-between mb-1">
+                  <span className="text-gray-600 dark:text-gray-400">Matching variations:</span>
+                  <span className="font-medium text-blue-600 dark:text-blue-400">
+                    {variationPositionInfo.matchingCount}
+                  </span>
+                </div>
+
+                {/* Show possible moves */}
+                {variationPositionInfo.nextMoves.length > 0 && (
+                  <div className="mt-2">
+                    <span className="text-gray-600 dark:text-gray-400 block mb-1">Possible moves:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {variationPositionInfo.nextMoves.map((move) => (
+                        <span
+                          key={move}
+                          className="inline-block px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded text-xs font-mono"
+                        >
+                          {move}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Show current variation names (if narrowed down) */}
+                {variationPositionInfo.matchingCount > 0 && variationPositionInfo.matchingCount <= 3 && (
+                  <div className="mt-2">
+                    <span className="text-gray-600 dark:text-gray-400 block mb-1">Current line:</span>
+                    <div className="space-y-1">
+                      {variationPositionInfo.currentVariationNames.slice(0, 3).map((name) => (
+                        <span
+                          key={name}
+                          className="block text-xs text-gray-700 dark:text-gray-300 truncate"
+                          title={name}
+                        >
+                          {name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {variationPositionInfo.isEndOfLine && (
+                  <div className="mt-2">
+                    <span className="inline-block px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 rounded text-xs">
+                      End of repertoire line
+                    </span>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Show off-book indicator (non-family mode or when truly off-book) */}
+          {!isFamilyMode && session.deviationMoveIndex !== null && (
             <div className="pt-2 border-t border-gray-300 dark:border-gray-600">
               <span className="inline-block px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400 rounded text-xs">
                 Off-book since move {session.deviationMoveIndex + 1}
+              </span>
+            </div>
+          )}
+
+          {/* Family mode: show off-book when not in any variation */}
+          {isFamilyMode && variationPositionInfo && !variationPositionInfo.isInAnyVariation && moveCount > 0 && (
+            <div className="pt-2 border-t border-gray-300 dark:border-gray-600">
+              <span className="inline-block px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400 rounded text-xs">
+                Off-book - move not in any variation
               </span>
             </div>
           )}

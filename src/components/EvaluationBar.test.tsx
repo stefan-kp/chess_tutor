@@ -4,7 +4,7 @@ import "@testing-library/jest-dom";
 
 describe("EvaluationBar", () => {
     it("renders 0.0 for initial state", () => {
-        render(<EvaluationBar score={0} />);
+        render(<EvaluationBar score={0} isPlayerWhite={true} />);
         expect(screen.getByText("0.0")).toBeInTheDocument();
     });
 
@@ -19,12 +19,12 @@ describe("EvaluationBar", () => {
     });
 
     it("renders mate score", () => {
-        render(<EvaluationBar mate={3} />);
+        render(<EvaluationBar mate={3} isPlayerWhite={true} />);
         expect(screen.getByText("M3")).toBeInTheDocument();
     });
 
     it("renders negative mate score", () => {
-        render(<EvaluationBar mate={-5} />);
+        render(<EvaluationBar mate={-5} isPlayerWhite={true} />);
         expect(screen.getByText("M5")).toBeInTheDocument();
     });
 });

@@ -46,14 +46,16 @@ describe('Tutor', () => {
           stockfish={stockfish}
           evalP0={null}
           evalP2={null}
-          openingData={null}
+          openingData={[]}
           missedTactics={null}
           onAnalysisComplete={() => {}}
           apiKey="test-api-key"
           personality={{
+              id: "test",
               name: "Test Personality",
               systemPrompt: "Test Prompt",
-              image: "🤖"
+              image: "🤖",
+              description: "Test description"
           }}
           language="en"
           playerColor="white"
@@ -103,14 +105,16 @@ describe('Tutor', () => {
           stockfish={stockfish}
           evalP0={null}
           evalP2={null}
-          openingData={null}
+          openingData={[]}
           missedTactics={null}
           onAnalysisComplete={() => {}}
           apiKey="test-api-key"
           personality={{
+              id: "test",
               name: "Test Personality",
               systemPrompt: "Test Prompt",
-              image: "🤖"
+              image: "🤖",
+              description: "Test description"
           }}
           language="en"
           playerColor="white"

@@ -93,6 +93,7 @@ export type SessionAction =
   | { type: 'NAVIGATE_PREVIOUS' }
   | { type: 'NAVIGATE_NEXT' }
   | { type: 'NAVIGATE_TO_CURRENT' } // Jump back to end of history
+  | { type: 'UNDO_TO_MOVE'; index: number } // Navigate and truncate history
 
   // Theory tracking
   | { type: 'DEVIATION_DETECTED'; moveIndex: number }
@@ -346,6 +347,47 @@ export function sessionReducer(
         type: 'NAVIGATE_TO',
         index: state.currentMoveIndex + 1,
       });
+    }
+
+    case 'UNDO_TO_MOVE': {
+      const { index } = action;
+
+      // Clamp index to valid range (-1 means start position, truncate all moves)
+      const clampedIndex = Math.max(-1, Math.min(index, state.moveHistory.length - 1));
+
+      // Truncate move history to this point
+      const newHistory = clampedIndex < 0 ? [] : state.moveHistory.slice(0, clampedIndex + 1);
+
+      // Build FEN at target index
+      const newFEN = buildFenAtIndex(newHistory, newHistory.length);
+
+      // Reset deviation if we're now back in theory
+      const isNowInTheory = isInTheory(state.opening, newHistory);
+      const newDeviationIndex = isNowInTheory ? null : state.deviationMoveIndex;
+
+      // Determine phase
+      let phase: SessionPhase;
+      if (newDeviationIndex !== null) {
+        phase = 'off_book';
+      } else if (isEndOfRepertoire(state.opening, newHistory.length)) {
+        phase = 'end_of_repertoire';
+      } else if (isOpponentTurn(state.opening, newHistory)) {
+        phase = 'opponent_turn';
+      } else {
+        phase = 'user_turn';
+      }
+
+      return {
+        ...state,
+        moveHistory: newHistory,
+        currentMoveIndex: newHistory.length,
+        currentFEN: newFEN,
+        deviationMoveIndex: newDeviationIndex,
+        isInTheory: isNowInTheory,
+        phase,
+        pendingOpponentMove: null,
+        lastUpdatedAt: Date.now(),
+      };
     }
 
     case 'NAVIGATE_TO_CURRENT': {

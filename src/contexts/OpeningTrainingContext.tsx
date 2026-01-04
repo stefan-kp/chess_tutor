@@ -38,6 +38,7 @@ interface OpeningTrainingContextType {
   // Actions
   initializeSession: (opening: OpeningMetadata, forceNew?: boolean) => Promise<void>;
   makeMove: (san: string) => Promise<void>;
+  undoToMove: (index: number) => void;
   navigateToMove: (index: number) => void;
   resetSession: () => void;
 }
@@ -294,6 +295,17 @@ export function OpeningTrainingProvider({
     }
   };
 
+  const undoToMove = (index: number) => {
+    if (!session) return;
+
+    console.log('[OpeningTraining] Undoing to move index:', index);
+
+    dispatch({ type: 'UNDO_TO_MOVE', index });
+
+    // Clear feedback when undoing
+    setCurrentFeedback(null);
+  };
+
   const navigateToMove = (index: number) => {
     if (!session) return;
 
@@ -355,6 +367,7 @@ export function OpeningTrainingProvider({
     currentFeedback,
     initializeSession,
     makeMove,
+    undoToMove,
     navigateToMove,
     resetSession,
   };

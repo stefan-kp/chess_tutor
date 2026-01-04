@@ -52,6 +52,7 @@ const mockOpening: OpeningMetadata = {
   eco: 'C00',
   name: 'French Defense',
   moves: '1. e4 e6 2. d4 d5',
+  src: 'test',
   wikipediaSlug: 'French_Defence',
 };
 
