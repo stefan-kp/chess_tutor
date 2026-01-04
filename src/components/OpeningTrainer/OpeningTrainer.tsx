@@ -458,7 +458,11 @@ export default function OpeningTrainer({
       category: currentFeedback.classification.category,
       evaluationChange: currentFeedback.classification.evaluationChange,
       theoreticalAlternatives: isFamilyMode ? theoreticalMoves : currentFeedback.classification.theoreticalAlternatives
-    } : null,
+    } : (isFamilyMode ? {
+      category: 'in-theory' as const,
+      evaluationChange: 0,
+      theoreticalAlternatives: theoreticalMoves
+    } : null),
     wikipediaSummary: wikipediaSummary?.extract || undefined,
     shouldTutorSpeak,
     onTutorMessageSent: handleTutorMessageSent,

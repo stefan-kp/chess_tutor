@@ -58,6 +58,7 @@ function createMoveEntry(
     san,
     uci: 'e2e4',
     fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    timestamp: Date.now(),
     evaluation: { score: 0, mate: null, depth: 15, bestMove: 'e4', ponder: null },
     classification: {
       category: 'in-theory',
