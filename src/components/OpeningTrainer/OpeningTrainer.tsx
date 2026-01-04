@@ -52,6 +52,7 @@ export default function OpeningTrainer({
     currentFeedback,
     initializeSession,
     makeMove,
+    undoToMove,
     navigateToMove,
   } = useOpeningTraining();
 
@@ -225,12 +226,12 @@ export default function OpeningTrainer({
   const handleUndoDeviation = () => {
     if (!session || session.deviationMoveIndex === null) return;
 
-    // Navigate back to the move before deviation
-    navigateToMove(session.deviationMoveIndex - 1);
-    setShowDeviationDialog(false);
+    // Undo to the move before deviation (this truncates move history)
+    const targetIndex = session.deviationMoveIndex - 1;
+    undoToMove(targetIndex);
 
-    // After a brief delay, make another legal move to continue in theory
-    // This allows the player to try again
+    // Close the dialog
+    setShowDeviationDialog(false);
   };
 
   const handleStartGameFromPosition = () => {
