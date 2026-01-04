@@ -276,6 +276,44 @@ export default function OpeningTrainer({
     setLastTutorMessageMoveIndex(moveCount);
   };
 
+  // ============================================================================
+  // Family mode hooks - MUST be called before any early returns
+  // ============================================================================
+
+  // Family mode: compute current position info from variation tree
+  // IMPORTANT: Always call useMemo, even if not in family mode (React Hooks rule)
+  const variationPositionInfo = useMemo(() => {
+    if (!isFamilyMode || !variationTree || !session) {
+      return null;
+    }
+    const positionDesc = describeCurrentPosition(variationTree, session.moveHistory);
+    const currentVariations = identifyCurrentVariation(variationTree, session.moveHistory);
+    const possibleMoves = getAllPossibleNextMoves(variationTree, session.moveHistory);
+
+    return {
+      ...positionDesc,
+      currentVariations,
+      possibleMoves,
+      isInAnyVariation: positionDesc.matchingCount > 0,
+    };
+  }, [isFamilyMode, variationTree, session]);
+
+  // Get all possible next moves (for display and tutor context)
+  const theoreticalMoves = useMemo(() => {
+    if (isFamilyMode && variationPositionInfo) {
+      return variationPositionInfo.nextMoves;
+    }
+    // Single variation mode
+    if (!session) return [];
+    const moves = parseMoveSequence(opening.moves);
+    const nextMove = moves[session.moveHistory.length];
+    return nextMove ? [nextMove] : [];
+  }, [isFamilyMode, variationPositionInfo, opening.moves, session]);
+
+  // ============================================================================
+  // Early returns for loading/error states
+  // ============================================================================
+
   // Session recovery dialog
   if (showRecoveryDialog && existingSession) {
     return (
@@ -384,33 +422,7 @@ export default function OpeningTrainer({
   const lastUserMove = userMoves.length > 0 ? userMoves[userMoves.length - 1] : null;
   const lastTutorMove = tutorMoves.length > 0 ? tutorMoves[tutorMoves.length - 1] : null;
 
-  // Family mode: compute current position info from variation tree
-  const variationPositionInfo = useMemo(() => {
-    if (!isFamilyMode || !variationTree) {
-      return null;
-    }
-    const positionDesc = describeCurrentPosition(variationTree, session.moveHistory);
-    const currentVariations = identifyCurrentVariation(variationTree, session.moveHistory);
-    const possibleMoves = getAllPossibleNextMoves(variationTree, session.moveHistory);
-
-    return {
-      ...positionDesc,
-      currentVariations,
-      possibleMoves,
-      isInAnyVariation: positionDesc.matchingCount > 0,
-    };
-  }, [isFamilyMode, variationTree, session.moveHistory]);
-
-  // Get all possible next moves (for display and tutor context)
-  const theoreticalMoves = useMemo(() => {
-    if (isFamilyMode && variationPositionInfo) {
-      return variationPositionInfo.nextMoves;
-    }
-    // Single variation mode
-    const moves = parseMoveSequence(opening.moves);
-    const nextMove = moves[session.moveHistory.length];
-    return nextMove ? [nextMove] : [];
-  }, [isFamilyMode, variationPositionInfo, opening.moves, session.moveHistory.length]);
+  // Note: variationPositionInfo and theoreticalMoves are computed above (before early returns)
 
   const openingPracticeMode = {
     openingName: opening.name,
