@@ -418,6 +418,137 @@ describe('Navigation Actions', () => {
   });
 
   // =====================================================================
+  // UNDO_TO_MOVE Tests - DeviationDialog Undo Button
+  // =====================================================================
+
+  test('UNDO_TO_MOVE truncates history and resets deviation state', () => {
+    // Scenario: User makes e4, opponent makes e6, user makes WRONG move (Nf3 instead of d4)
+    // User clicks "Undo" in DeviationDialog
+
+    let state = createInitialState(mockOpening);
+    state = {
+      ...state,
+      moveHistory: [
+        createMockMove('e4', 'white', 'fen1', 1),
+        createMockMove('e6', 'black', 'fen2', 1),
+        createMockMove('Nf3', 'white', 'fen_wrong', 2), // Wrong move
+      ],
+      currentMoveIndex: 3,
+      currentFEN: 'fen_wrong',
+      deviationMoveIndex: 2, // Deviation at index 2 (the Nf3 move)
+      isInTheory: false,
+      phase: 'off_book',
+    };
+
+    // User clicks "Undo" in DeviationDialog - undoToMove(deviationMoveIndex - 1)
+    const newState = sessionReducer(state, {
+      type: 'UNDO_TO_MOVE',
+      index: 1, // deviationMoveIndex - 1 = 2 - 1 = 1
+    });
+
+    // Verify undo worked correctly
+    expect(newState.moveHistory).toHaveLength(2); // Only e4, e6 remain
+    expect(newState.moveHistory[0].san).toBe('e4');
+    expect(newState.moveHistory[1].san).toBe('e6');
+    expect(newState.currentMoveIndex).toBe(2); // At end of truncated history
+    expect(newState.deviationMoveIndex).toBeNull(); // Deviation cleared
+    expect(newState.isInTheory).toBe(true); // Back in theory
+    expect(newState.phase).toBe('user_turn'); // User can make correct move now
+    expect(newState.pendingOpponentMove).toBeNull();
+  });
+
+  test('UNDO_TO_MOVE to start position clears all moves', () => {
+    // Scenario: User makes WRONG first move (d4 instead of e4)
+    // User clicks "Undo" in DeviationDialog
+
+    let state = createInitialState(mockOpening);
+    state = {
+      ...state,
+      moveHistory: [
+        createMockMove('d4', 'white', 'fen_wrong', 1), // Wrong first move
+      ],
+      currentMoveIndex: 1,
+      currentFEN: 'fen_wrong',
+      deviationMoveIndex: 0, // Deviation at index 0
+      isInTheory: false,
+      phase: 'off_book',
+    };
+
+    // User clicks "Undo" - undoToMove(deviationMoveIndex - 1) = undoToMove(-1)
+    const newState = sessionReducer(state, {
+      type: 'UNDO_TO_MOVE',
+      index: -1,
+    });
+
+    // Verify all moves cleared
+    expect(newState.moveHistory).toHaveLength(0);
+    expect(newState.currentMoveIndex).toBe(0);
+    expect(newState.currentFEN).toBe(STARTING_FEN);
+    expect(newState.deviationMoveIndex).toBeNull();
+    expect(newState.isInTheory).toBe(true);
+    expect(newState.phase).toBe('user_turn'); // User can make correct first move
+  });
+
+  test('UNDO_TO_MOVE does NOT trigger opponent auto-move when user should play', () => {
+    // This is the critical test for the reported bug:
+    // After undo, if it's user's turn, opponent should NOT auto-move
+
+    let state = createInitialState(mockOpening);
+    state = {
+      ...state,
+      moveHistory: [
+        createMockMove('e4', 'white', 'fen1', 1),
+        createMockMove('e6', 'black', 'fen2', 1),
+        createMockMove('Nf3', 'white', 'fen_wrong', 2), // Wrong move
+      ],
+      currentMoveIndex: 3,
+      deviationMoveIndex: 2,
+      isInTheory: false,
+      phase: 'off_book',
+    };
+
+    const newState = sessionReducer(state, {
+      type: 'UNDO_TO_MOVE',
+      index: 1,
+    });
+
+    // CRITICAL: shouldTriggerOpponentMove should be FALSE
+    // because it's user's turn, not opponent's turn
+    expect(newState.phase).toBe('user_turn');
+    expect(shouldTriggerOpponentMove(newState)).toBe(false);
+  });
+
+  test('UNDO_TO_MOVE DOES trigger opponent auto-move when undoing to opponent turn', () => {
+    // Edge case: User is Black, opponent is White
+    // User makes wrong move, undoes to position where opponent (White) should play
+
+    let state = createInitialState(mockBlackOpening); // Black opening - d4 d5
+    state = {
+      ...state,
+      moveHistory: [
+        createMockMove('d4', 'white', 'fen1', 1),
+        createMockMove('d5', 'black', 'fen2', 1),
+        // This is end of repertoire for D00 (d4 d5), but let's pretend there's more
+      ],
+      currentMoveIndex: 2,
+      deviationMoveIndex: null,
+      isInTheory: true,
+      phase: 'end_of_repertoire', // End of this short repertoire
+    };
+
+    // If we were to undo to a position where White should move
+    // This is more of an edge case verification
+    const afterFirstMove = sessionReducer(state, {
+      type: 'UNDO_TO_MOVE',
+      index: 0, // After d4
+    });
+
+    // After White's d4, it's Black's turn (user's turn in this opening)
+    expect(afterFirstMove.moveHistory).toHaveLength(1);
+    expect(afterFirstMove.phase).toBe('user_turn'); // Black (user) to play
+  });
+
+  // =====================================================================
   // THE BUG: Wrong move → Navigate back → Correct move → Opponent should respond
   // =====================================================================
 

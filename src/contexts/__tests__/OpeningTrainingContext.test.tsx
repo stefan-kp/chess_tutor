@@ -633,6 +633,164 @@ describe('OpeningTrainingContext Integration Tests', () => {
   });
 
   // ==========================================================================
+  // UNDO Functionality (DeviationDialog Undo Button)
+  // ==========================================================================
+
+  describe('UNDO Functionality', () => {
+    test('undoToMove truncates history and resets deviation', async () => {
+      const { result } = renderHook(() => useOpeningTraining(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.stockfish).not.toBeNull();
+      }, { timeout: 3000 });
+
+      await act(async () => {
+        await result.current.initializeSession(mockOpening, true);
+      });
+
+      await waitFor(() => {
+        expect(result.current.session?.phase).toBe('user_turn');
+      });
+
+      // Make correct move e4
+      await act(async () => {
+        await result.current.makeMove('e4');
+      });
+
+      // Wait for opponent move e6
+      await waitFor(() => {
+        expect(result.current.session?.moveHistory.length).toBe(2);
+        expect(result.current.session?.moveHistory[1].san).toBe('e6');
+      }, { timeout: 3000 });
+
+      // Make wrong move (Nf3 instead of d4)
+      await act(async () => {
+        await result.current.makeMove('Nf3');
+      });
+
+      // Verify deviation detected
+      await waitFor(() => {
+        expect(result.current.session?.moveHistory.length).toBe(3);
+        expect(result.current.session?.deviationMoveIndex).toBe(2);
+        expect(result.current.session?.phase).toBe('off_book');
+      });
+
+      // User clicks "Undo" in DeviationDialog - undoToMove(deviationMoveIndex - 1)
+      await act(async () => {
+        result.current.undoToMove(1); // Undo to after e4, e6
+      });
+
+      // Verify undo worked correctly
+      await waitFor(() => {
+        expect(result.current.session?.moveHistory.length).toBe(2); // Only e4, e6 remain
+        expect(result.current.session?.moveHistory[0].san).toBe('e4');
+        expect(result.current.session?.moveHistory[1].san).toBe('e6');
+        expect(result.current.session?.deviationMoveIndex).toBeNull(); // Deviation cleared
+        expect(result.current.session?.phase).toBe('user_turn'); // User can make correct move
+      });
+
+      // CRITICAL: Verify feedback is cleared
+      expect(result.current.currentFeedback).toBeNull();
+    });
+
+    test('undo allows user to make correct move afterwards', async () => {
+      const { result } = renderHook(() => useOpeningTraining(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.stockfish).not.toBeNull();
+      }, { timeout: 3000 });
+
+      await act(async () => {
+        await result.current.initializeSession(mockOpening, true);
+      });
+
+      await waitFor(() => {
+        expect(result.current.session?.phase).toBe('user_turn');
+      });
+
+      // Make correct move e4
+      await act(async () => {
+        await result.current.makeMove('e4');
+      });
+
+      // Wait for opponent move e6
+      await waitFor(() => {
+        expect(result.current.session?.moveHistory.length).toBe(2);
+      }, { timeout: 3000 });
+
+      // Make wrong move
+      await act(async () => {
+        await result.current.makeMove('Nf3');
+      });
+
+      await waitFor(() => {
+        expect(result.current.session?.phase).toBe('off_book');
+      });
+
+      // Undo
+      await act(async () => {
+        result.current.undoToMove(1);
+      });
+
+      await waitFor(() => {
+        expect(result.current.session?.phase).toBe('user_turn');
+      });
+
+      // Now make the CORRECT move d4
+      await act(async () => {
+        await result.current.makeMove('d4');
+      });
+
+      // Wait for the move to be processed and opponent to respond
+      await waitFor(() => {
+        expect(result.current.session?.moveHistory.length).toBe(4); // e4, e6, d4, d5
+        expect(result.current.session?.moveHistory[2].san).toBe('d4');
+        expect(result.current.session?.moveHistory[3].san).toBe('d5');
+        expect(result.current.session?.deviationMoveIndex).toBeNull(); // Still in theory
+      }, { timeout: 5000 });
+    });
+
+    test('undo from first wrong move returns to starting position', async () => {
+      const { result } = renderHook(() => useOpeningTraining(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.stockfish).not.toBeNull();
+      }, { timeout: 3000 });
+
+      await act(async () => {
+        await result.current.initializeSession(mockOpening, true);
+      });
+
+      await waitFor(() => {
+        expect(result.current.session?.phase).toBe('user_turn');
+      });
+
+      // Make wrong first move (d4 instead of e4)
+      await act(async () => {
+        await result.current.makeMove('d4');
+      });
+
+      await waitFor(() => {
+        expect(result.current.session?.deviationMoveIndex).toBe(0);
+        expect(result.current.session?.phase).toBe('off_book');
+      });
+
+      // Undo to before first move (-1)
+      await act(async () => {
+        result.current.undoToMove(-1);
+      });
+
+      // Verify return to starting position
+      await waitFor(() => {
+        expect(result.current.session?.moveHistory.length).toBe(0);
+        expect(result.current.session?.currentMoveIndex).toBe(0);
+        expect(result.current.session?.deviationMoveIndex).toBeNull();
+        expect(result.current.session?.phase).toBe('user_turn');
+      });
+    });
+  });
+
+  // ==========================================================================
   // Deviation Tracking
   // ==========================================================================
 
