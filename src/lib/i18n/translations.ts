@@ -12,6 +12,13 @@ export interface Translations {
         clearAllData: string;
         clearAllDataConfirm: string;
         clearAllDataDescription: string;
+        clearWikipediaCache: string;
+        clearWikipediaCacheConfirm: string;
+        clearWikipediaCacheDescription: string;
+        clearWikipediaCacheSuccess: string;
+        rebuildWikipediaCache: string;
+        rebuildWikipediaCacheConfirm: string;
+        rebuildWikipediaCacheStarted: string;
     };
 
     // Header
@@ -248,6 +255,13 @@ const en: Translations = {
         clearAllData: 'Clear All Data',
         clearAllDataConfirm: 'Are you sure you want to clear all data? This will delete all saved games, settings, and usernames. This action cannot be undone.',
         clearAllDataDescription: 'Remove all saved games, settings, and cached data from your browser.',
+        clearWikipediaCache: 'Clear Wikipedia Cache',
+        clearWikipediaCacheConfirm: 'Are you sure you want to clear the Wikipedia cache? This will delete all downloaded opening backgrounds. They will be re-downloaded when needed or during the next build.',
+        clearWikipediaCacheDescription: 'Delete all locally cached Wikipedia opening backgrounds. They will be reloaded on next restart, or you can click rebuild below.',
+        clearWikipediaCacheSuccess: 'Wikipedia cache cleared successfully!',
+        rebuildWikipediaCache: 'Rebuild Wikipedia Cache',
+        rebuildWikipediaCacheConfirm: 'This will start a background process to rebuild the Wikipedia cache. It may take several minutes depending on your internet connection. Continue?',
+        rebuildWikipediaCacheStarted: 'Wikipedia cache rebuild started in the background.',
     },
     header: {
         tagline: 'with Gemini & Stockfish',
@@ -471,6 +485,13 @@ const de: Translations = {
         clearAllData: 'Alle Daten löschen',
         clearAllDataConfirm: 'Sind Sie sicher, dass Sie alle Daten löschen möchten? Dies löscht alle gespeicherten Spiele, Einstellungen und Benutzernamen. Diese Aktion kann nicht rückgängig gemacht werden.',
         clearAllDataDescription: 'Alle gespeicherten Spiele, Einstellungen und zwischengespeicherten Daten aus Ihrem Browser entfernen.',
+        clearWikipediaCache: 'Wikipedia-Cache leeren',
+        clearWikipediaCacheConfirm: 'Sind Sie sicher, dass Sie den Wikipedia-Cache leeren möchten? Dies löscht alle heruntergeladenen Eröffnungshintergründe. Sie werden bei Bedarf oder beim nächsten Build erneut heruntergeladen.',
+        clearWikipediaCacheDescription: 'Alle lokal zwischengespeicherten Wikipedia-Eröffnungshintergründe löschen. Sie werden beim nächsten Neustart neu geladen, oder Sie können unten auf "Neu aufbauen" klicken.',
+        clearWikipediaCacheSuccess: 'Wikipedia-Cache erfolgreich geleert!',
+        rebuildWikipediaCache: 'Wikipedia-Cache neu aufbauen',
+        rebuildWikipediaCacheConfirm: 'Dies startet einen Hintergrundprozess zum Neuaufbau des Wikipedia-Caches. Je nach Internetverbindung kann dies einige Minuten dauern. Fortfahren?',
+        rebuildWikipediaCacheStarted: 'Der Neuaufbau des Wikipedia-Caches wurde im Hintergrund gestartet.',
     },
     header: {
         tagline: 'mit Gemini & Stockfish',
@@ -694,6 +715,13 @@ const fr: Translations = {
         clearAllData: 'Effacer toutes les données',
         clearAllDataConfirm: 'Êtes-vous sûr de vouloir effacer toutes les données ? Cela supprimera toutes les parties sauvegardées, les paramètres et les noms d\'utilisateur. Cette action est irréversible.',
         clearAllDataDescription: 'Supprimer toutes les parties sauvegardées, les paramètres et les données en cache de votre navigateur.',
+        clearWikipediaCache: 'Vider le cache Wikipédia',
+        clearWikipediaCacheConfirm: 'Êtes-vous sûr de vouloir vider le cache Wikipédia ? Cela supprimera tous les arrière-plans d\'ouverture téléchargés.',
+        clearWikipediaCacheDescription: 'Supprimer tous les arrière-plans d\'ouverture Wikipédia mis en cache localement. Ils seront rechargés au prochain redémarrage, ou vous pouvez cliquer sur reconstruire ci-dessous.',
+        clearWikipediaCacheSuccess: 'Le cache Wikipédia a été vidé avec succès !',
+        rebuildWikipediaCache: 'Reconstruire le cache Wikipédia',
+        rebuildWikipediaCacheConfirm: 'Cela lancera un processus en arrière-plan pour reconstruire le cache Wikipédia. Cela peut prendre plusieurs minutes. Continuer ?',
+        rebuildWikipediaCacheStarted: 'La reconstruction du cache Wikipédia a commencé en arrière-plan.',
     },
     header: {
         tagline: 'avec Gemini & Stockfish',
@@ -917,6 +945,13 @@ const it: Translations = {
         clearAllData: 'Cancella tutti i dati',
         clearAllDataConfirm: 'Sei sicuro di voler cancellare tutti i dati? Questo eliminerà tutte le partite salvate, le impostazioni e i nomi utente. Questa azione non può essere annullata.',
         clearAllDataDescription: 'Rimuovi tutte le partite salvate, le impostazioni e i dati memorizzati dal tuo browser.',
+        clearWikipediaCache: 'Svuota cache Wikipedia',
+        clearWikipediaCacheConfirm: 'Sei sicuro di voler svuotare la cache di Wikipedia? Questo eliminerà tutti gli sfondi delle aperture scaricati.',
+        clearWikipediaCacheDescription: 'Elimina tutti gli sfondi delle aperture di Wikipedia memorizzati localmente. Verranno ricaricati al prossimo riavvio, oppure puoi cliccare su ricostruisci qui sotto.',
+        clearWikipediaCacheSuccess: 'Cache di Wikipedia svuotata con successo!',
+        rebuildWikipediaCache: 'Ricostruisci cache Wikipedia',
+        rebuildWikipediaCacheConfirm: 'Questo avvierà un processo in background per ricostruire la cache di Wikipedia. Potrebbero essere necessari diversi minuti. Continuare?',
+        rebuildWikipediaCacheStarted: 'La ricostruzione della cache di Wikipedia è iniziata in background.',
     },
     header: {
         tagline: 'con Gemini & Stockfish',
@@ -1140,6 +1175,13 @@ const pl: Translations = {
         clearAllData: 'Wyczyść wszystkie dane',
         clearAllDataConfirm: 'Czy na pewno chcesz wyczyścić wszystkie dane? Spowoduje to usunięcie wszystkich zapisanych gier, ustawień i nazw użytkowników. Ta akcja jest nieodwracalna.',
         clearAllDataDescription: 'Usuń wszystkie zapisane gry, ustawienia i dane z pamięci podręcznej przeglądarki.',
+        clearWikipediaCache: 'Wyczyść pamięć podręczną Wikipedii',
+        clearWikipediaCacheConfirm: 'Czy na pewno chcesz wyczyścić pamięć podręczną Wikipedii? Spowoduje to usunięcie wszystkich pobranych opisów otwarć.',
+        clearWikipediaCacheDescription: 'Usuń wszystkie lokalnie zapisane opisy otwarć z Wikipedii. Zostaną one przeładowane przy następnym restarcie lub możesz kliknąć odbuduj poniżej.',
+        clearWikipediaCacheSuccess: 'Pamięć podręczna Wikipedii została wyczyszczona!',
+        rebuildWikipediaCache: 'Odbuduj pamięć podręczną Wikipedii',
+        rebuildWikipediaCacheConfirm: 'To uruchomi proces w tle w celu odbudowania pamięci podręcznej Wikipedii. Może to potrwać kilka minut. Kontynuować?',
+        rebuildWikipediaCacheStarted: 'Odbudowywanie pamięci podręcznej Wikipedii rozpoczęło się w tle.',
     },
     header: {
         tagline: 'z Gemini i Stockfish',

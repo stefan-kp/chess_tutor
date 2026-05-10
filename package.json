@@ -4,8 +4,8 @@
   "license": "GPL-3.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3050",
-    "build": "next build",
+    "dev": "node scripts/ensure-cache.js && next dev -p 3050",
+    "build": "node scripts/ensure-cache.js && next build",
     "start": "next start -p 3050",
     "lint": "eslint",
     "test": "jest",

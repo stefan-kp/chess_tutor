@@ -157,6 +157,19 @@ function removeCachedSummary(openingName: string): void {
 }
 
 /**
+ * Clears all Wikipedia cache entries from localStorage
+ */
+export function clearWikipediaLocalStorage(): void {
+  try {
+    const keys = Object.keys(localStorage);
+    const wikiKeys = keys.filter((key) => key.startsWith(WIKI_CACHE_KEY_PREFIX));
+    wikiKeys.forEach((key) => localStorage.removeItem(key));
+  } catch (error) {
+    console.error('Error clearing Wikipedia localStorage:', error);
+  }
+}
+
+/**
  * Checks if cached summary has expired (30 days)
  */
 function isCacheExpired(summary: WikipediaSummary): boolean {

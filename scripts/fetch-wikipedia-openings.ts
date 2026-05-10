@@ -88,6 +88,30 @@ const WIKIPEDIA_OVERRIDES: Record<string, string> = {
 };
 
 /**
+ * Enhanced fetch with retry and exponential backoff
+ */
+async function fetchWithRetry(url: string, options: RequestInit, retries = 3, backoff = 2000): Promise<Response> {
+  try {
+    const response = await fetch(url, options);
+    
+    if (response.status === 429 && retries > 0) {
+      console.log(`  ⚠️  Rate limited (429). Retrying in ${backoff}ms... (${retries} retries left)`);
+      await sleep(backoff);
+      return fetchWithRetry(url, options, retries - 1, backoff * 2);
+    }
+    
+    return response;
+  } catch (error) {
+    if (retries > 0) {
+      console.log(`  ⚠️  Fetch error. Retrying in ${backoff}ms... (${retries} retries left)`);
+      await sleep(backoff);
+      return fetchWithRetry(url, options, retries - 1, backoff * 2);
+    }
+    throw error;
+  }
+}
+
+/**
  * Search Wikipedia for the best matching article
  */
 async function searchWikipedia(openingFamily: string): Promise<string | null> {
@@ -115,9 +139,9 @@ async function searchWikipedia(openingFamily: string): Promise<string | null> {
 
     console.log(`  Searching Wikipedia for: "${query}"`);
 
-    const response = await fetch(searchUrl.toString(), {
+    const response = await fetchWithRetry(searchUrl.toString(), {
       headers: {
-        'User-Agent': 'ChessTutorApp/1.0 (Educational chess training app; cache builder)',
+        'User-Agent': 'ChessTutorApp/1.0 (Educational chess training app; cache builder; contact: your-email@example.com)',
       },
     });
 
@@ -202,9 +226,9 @@ async function fetchWikipediaArticle(
 
   console.log(`  Fetching full article...`);
 
-  const response = await fetch(apiUrl.toString(), {
+  const response = await fetchWithRetry(apiUrl.toString(), {
     headers: {
-      'User-Agent': 'ChessTutorApp/1.0 (Educational chess training app; cache builder)',
+      'User-Agent': 'ChessTutorApp/1.0 (Educational chess training app; cache builder; contact: your-email@example.com)',
     },
   });
 
@@ -352,88 +376,107 @@ function escapeRegex(str: string): string {
  * Main execution
  */
 async function main() {
-  console.log('🌐 Wikipedia Opening Cache Builder\n');
-  console.log('📚 Extracting opening families from database...');
-
-  const families = extractOpeningFamilies();
-  console.log(`✓ Found ${families.length} unique opening families\n`);
-
   const outputDir = path.join(__dirname, '..', 'public', 'wikipedia');
+  const lockFile = path.join(outputDir, '.rebuilding');
 
-  // Create output directory if it doesn't exist
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-    console.log(`✓ Created directory: ${outputDir}\n`);
-  }
+  try {
+    console.log('🌐 Wikipedia Opening Cache Builder\n');
+    console.log('📚 Extracting opening families from database...');
 
-  const results = {
-    successful: 0,
-    failed: 0,
-    skipped: 0,
-  };
+    const families = extractOpeningFamilies();
+    console.log(`✓ Found ${families.length} unique opening families\n`);
 
-  // Process each family
-  for (const family of families) {
-    console.log(`\n📖 Processing: ${family}`);
+    // Create output directory if it doesn't exist
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+      console.log(`✓ Created directory: ${outputDir}\n`);
+    }
 
-    try {
-      // Search for the article
-      const articleTitle = await searchWikipedia(family);
+    const results = {
+      successful: 0,
+      failed: 0,
+      skipped: 0,
+      cached: 0,
+    };
 
-      if (!articleTitle) {
-        console.log(`  ⚠️  Skipping (no Wikipedia article found)`);
-        results.skipped++;
-        continue;
-      }
+    // Process each family
+    for (const family of families) {
+      console.log(`\n📖 Processing: ${family}`);
 
-      // Fetch full article
-      const article = await fetchWikipediaArticle(family, articleTitle);
+      try {
+        const slug = family.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const filename = `${slug}.json`;
+        const filepath = path.join(outputDir, filename);
 
-      if (!article) {
-        console.log(`  ❌ Failed to fetch article`);
+        // Skip if already cached
+        if (fs.existsSync(filepath)) {
+          console.log(`  ✓ Skipping (already cached: ${filename})`);
+          results.cached++;
+          continue;
+        }
+
+        // Search for the article
+        const articleTitle = await searchWikipedia(family);
+
+        if (!articleTitle) {
+          console.log(`  ⚠️  Skipping (no Wikipedia article found)`);
+          results.skipped++;
+          continue;
+        }
+
+        // Fetch full article
+        const article = await fetchWikipediaArticle(family, articleTitle);
+
+        if (!article) {
+          console.log(`  ❌ Failed to fetch article`);
+          results.failed++;
+          continue;
+        }
+
+        // Save to file
+        fs.writeFileSync(filepath, JSON.stringify(article, null, 2));
+        console.log(`  ✓ Saved to: ${filename}`);
+        results.successful++;
+
+        // Rate limiting - be nice to Wikipedia
+        await sleep(2000);
+      } catch (error) {
+        console.error(`  ❌ Error:`, error);
         results.failed++;
-        continue;
       }
+    }
 
-      // Save to file
-      const slug = family.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      const filename = `${slug}.json`;
-      const filepath = path.join(outputDir, filename);
+    // Create index file
+    console.log('\n📝 Creating index file...');
+    const indexPath = path.join(outputDir, 'index.json');
+    const indexData = {
+      generatedAt: new Date().toISOString(),
+      totalFamilies: families.length,
+      successful: results.successful,
+      cached: results.cached,
+      failed: results.failed,
+      skipped: results.skipped,
+      license: 'Wikipedia content licensed under CC BY-SA 3.0',
+      licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/',
+    };
+    fs.writeFileSync(indexPath, JSON.stringify(indexData, null, 2));
 
-      fs.writeFileSync(filepath, JSON.stringify(article, null, 2));
-      console.log(`  ✓ Saved to: ${filename}`);
-      results.successful++;
-
-      // Rate limiting - be nice to Wikipedia
-      await sleep(1000);
-    } catch (error) {
-      console.error(`  ❌ Error:`, error);
-      results.failed++;
+    // Summary
+    console.log('\n' + '='.repeat(50));
+    console.log('✨ Wikipedia Cache Build Complete!\n');
+    console.log(`✓ Successful: ${results.successful}`);
+    console.log(`📦 Cached:     ${results.cached}`);
+    console.log(`⚠️  Skipped:    ${results.skipped}`);
+    console.log(`❌ Failed:     ${results.failed}`);
+    console.log(`📁 Output:     ${outputDir}`);
+    console.log('='.repeat(50) + '\n');
+  } finally {
+    // Remove lock file if it exists
+    if (fs.existsSync(lockFile)) {
+      console.log('🧹 Removing lock file...');
+      fs.unlinkSync(lockFile);
     }
   }
-
-  // Create index file
-  console.log('\n📝 Creating index file...');
-  const indexPath = path.join(outputDir, 'index.json');
-  const indexData = {
-    generatedAt: new Date().toISOString(),
-    totalFamilies: families.length,
-    successful: results.successful,
-    failed: results.failed,
-    skipped: results.skipped,
-    license: 'Wikipedia content licensed under CC BY-SA 3.0',
-    licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/',
-  };
-  fs.writeFileSync(indexPath, JSON.stringify(indexData, null, 2));
-
-  // Summary
-  console.log('\n' + '='.repeat(50));
-  console.log('✨ Wikipedia Cache Build Complete!\n');
-  console.log(`✓ Successful: ${results.successful}`);
-  console.log(`⚠️  Skipped:    ${results.skipped}`);
-  console.log(`❌ Failed:     ${results.failed}`);
-  console.log(`📁 Output:     ${outputDir}`);
-  console.log('='.repeat(50) + '\n');
 }
 
 function sleep(ms: number): Promise<void> {

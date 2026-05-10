@@ -300,6 +300,21 @@ The generated files are **safe to commit** to your repository:
 
 The script includes a 1-second delay between requests to be respectful to Wikipedia's servers.
 
+## Persistent Storage (Docker)
+
+To prevent re-downloading ~12,000 openings on every container restart, it is recommended to map a persistent volume to the Wikipedia cache directory:
+
+```yaml
+# docker-compose.yml
+services:
+  chess-tutor:
+    # ...
+    volumes:
+      - ./wikipedia-cache:/app/public/wikipedia
+```
+
+The script is optimized to skip already cached files, so only new openings will be fetched during subsequent runs.
+
 **Estimated time:**
 - 50 opening families = ~1-2 minutes
 - 100 opening families = ~2-3 minutes

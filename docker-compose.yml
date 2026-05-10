@@ -12,6 +12,9 @@ services:
     ports:
       - "3050:3050"
 
+    volumes:
+      - ./wikipedia-cache:/app/public/wikipedia
+
     env_file:
       - .env
 

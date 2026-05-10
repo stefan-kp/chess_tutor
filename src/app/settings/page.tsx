@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { SupportedLanguage } from "@/lib/i18n/translations";
-import { ArrowLeft, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Trash2, RefreshCw, Loader2 } from "lucide-react";
 import { useHasHydrated } from "@/lib/useHasHydrated";
+import { clearWikipediaLocalStorage } from "@/lib/openingTrainer/wikipediaService";
+import { useEffect } from "react";
 
 export default function SettingsPage() {
     const router = useRouter();
@@ -22,9 +24,38 @@ export default function SettingsPage() {
     const [lichessUsername, setLichessUsername] = useState(() => typeof window === "undefined" ? "" : localStorage.getItem("lichess_username") || "");
     const [consentGiven, setConsentGiven] = useState(false);
     const [showConsentError, setShowConsentError] = useState(false);
+    const [isRebuilding, setIsRebuilding] = useState(false);
     const hasHydrated = useHasHydrated();
 
     const t = useTranslation(language);
+
+    // Check if rebuild is in progress on mount
+    useEffect(() => {
+        if (hasHydrated) {
+            checkRebuildStatus();
+        }
+    }, [hasHydrated]);
+
+    const checkRebuildStatus = async () => {
+        try {
+            const response = await fetch("/api/v1/cache/wikipedia");
+            const data = await response.json();
+            setIsRebuilding(data.isRebuilding);
+        } catch (error) {
+            console.error("Failed to check rebuild status:", error);
+        }
+    };
+
+    // Poll if rebuilding
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isRebuilding) {
+            interval = setInterval(checkRebuildStatus, 5000);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [isRebuilding]);
 
     const handleSave = () => {
         // Check consent if API key is being set
@@ -60,10 +91,57 @@ export default function SettingsPage() {
         router.push("/");
     };
 
-    const handleClearAllData = () => {
+    const handleClearAllData = async () => {
         if (window.confirm(t.common.clearAllDataConfirm)) {
+            try {
+                // Clear server-side cache
+                await fetch("/api/v1/cache/wikipedia", {
+                    method: "DELETE",
+                });
+            } catch (error) {
+                console.error("Failed to clear server-side cache during full wipe:", error);
+            }
+            
             localStorage.clear();
             router.push("/onboarding");
+        }
+    };
+
+    const handleClearWikipediaCache = async () => {
+        if (window.confirm(t.common.clearWikipediaCacheConfirm)) {
+            try {
+                const response = await fetch("/api/v1/cache/wikipedia", {
+                    method: "DELETE",
+                });
+                const data = await response.json();
+                if (data.success) {
+                    clearWikipediaLocalStorage();
+                    alert(t.common.clearWikipediaCacheSuccess);
+                } else {
+                    alert(t.common.error + ": " + data.error);
+                }
+            } catch (error) {
+                alert(t.common.error);
+            }
+        }
+    };
+
+    const handleRebuildWikipediaCache = async () => {
+        if (window.confirm(t.common.rebuildWikipediaCacheConfirm)) {
+            try {
+                const response = await fetch("/api/v1/cache/wikipedia", {
+                    method: "POST",
+                });
+                const data = await response.json();
+                if (data.success) {
+                    setIsRebuilding(true);
+                    alert(t.common.rebuildWikipediaCacheStarted);
+                } else {
+                    alert(t.common.error + ": " + data.error);
+                }
+            } catch (error) {
+                alert(t.common.error);
+            }
         }
     };
 
@@ -186,6 +264,39 @@ export default function SettingsPage() {
                                             className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                                         />
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* Data Management */}
+                            <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                    Data Management
+                                </h2>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                    {t.common.clearWikipediaCacheDescription}
+                                </p>
+                                <div className="flex flex-wrap gap-3">
+                                    <button
+                                        onClick={handleClearWikipediaCache}
+                                        className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium transition-all"
+                                    >
+                                        <Trash2 size={18} />
+                                        {t.common.clearWikipediaCache}
+                                    </button>
+                                    <button
+                                        onClick={handleRebuildWikipediaCache}
+                                        disabled={isRebuilding}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all border ${isRebuilding 
+                                            ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-700 cursor-not-allowed'
+                                            : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 border-blue-200 dark:border-blue-800'}`}
+                                    >
+                                        {isRebuilding ? (
+                                            <Loader2 size={18} className="animate-spin" />
+                                        ) : (
+                                            <RefreshCw size={18} />
+                                        )}
+                                        {t.common.rebuildWikipediaCache}
+                                    </button>
                                 </div>
                             </div>
 

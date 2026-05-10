@@ -72,3 +72,7 @@ __pycache__/
 # Capacitor native projects (generated)
 /ios/
 /android/
+
+# Gemini CLI
+.gemini/
+.geminiignore
