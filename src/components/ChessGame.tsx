@@ -85,8 +85,12 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
         result: string;
         winner: "White" | "Black" | "Draw";
     } | null>(null);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
     const hasRebuiltHistoryRef = useRef(false);
+    // Bumped whenever the board is reset/changed out from under an in-flight
+    // engine turn (new game, undo, resign). Async computer-move callbacks
+    // captured before the bump are abandoned so they cannot mutate the new
+    // position or resurrect a finished game.
+    const moveGenerationRef = useRef(0);
 
     // Chess sounds hook
     const { playMoveSound, playCheck, playVictory, playDefeat } = useChessSounds();
@@ -259,16 +263,21 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
         // This handles both:
         // 1. Standard new games where computer plays first (player is black)
         // 2. Games starting from opening trainer with custom FEN where it might be computer's turn
+        let initialMoveTimer: ReturnType<typeof setTimeout> | undefined;
         if (stockfish && gameRef.current.history().length === 0) {
             // No moves have been made yet - check whose turn it is
             const currentTurn = gameRef.current.turn(); // 'w' or 'b'
             const computerTurn = initialColor === 'white' ? 'b' : 'w';
 
             if (currentTurn === computerTurn) {
-                console.log('[ChessGame] Initial position - computer\'s turn, making move...');
+                const generation = moveGenerationRef.current;
                 // Small delay to ensure stockfish is ready
-                setTimeout(() => {
-                    stockfish.evaluate(gameRef.current.fen(), 10).then(evalResult => {
+                initialMoveTimer = setTimeout(() => {
+                    if (generation !== moveGenerationRef.current) return;
+                    const fenAtRequest = gameRef.current.fen();
+                    stockfish.evaluate(fenAtRequest, 10).then(evalResult => {
+                        if (generation !== moveGenerationRef.current) return;
+                        if (gameRef.current.fen() !== fenAtRequest) return;
                         const computerMoveData = {
                             from: evalResult.bestMove.substring(0, 2),
                             to: evalResult.bestMove.substring(2, 4),
@@ -282,10 +291,16 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
             }
         }
 
+        return () => {
+            if (initialMoveTimer) clearTimeout(initialMoveTimer);
+        };
     }, [initialFen, initialColor, stockfish]); // Run when these change
 
     // Save Game State on Change
     useEffect(() => {
+        // Don't persist a fresh, unplayed board (avoids a junk entry per visit).
+        if (gameRef.current.history().length === 0) return;
+
         const saveData = {
             id: gameId,
             fen,
@@ -302,48 +317,55 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
         };
 
         upsertSavedGame(saveData);
-        localStorage.setItem("chess_tutor_save", JSON.stringify(saveData));
     }, [fen, language, selectedPersonality, playerColor, gameId, evalP0]);
 
     // Game Over Detection
     useEffect(() => {
         const game = gameRef.current;
-        if (game.isGameOver()) {
-            let result = "";
-            let winner: "White" | "Black" | "Draw" = "Draw";
 
-            if (game.isCheckmate()) {
-                if (game.turn() === 'w') {
-                    result = "Checkmate! You lost.";
-                    winner = "Black";
-                    if (playerColor === 'white') playDefeat();
-                    else playVictory();
-                } else {
-                    result = "Checkmate! You won!";
-                    winner = "White";
-                    if (playerColor === 'white') playVictory();
-                    else playDefeat();
-                }
-            } else if (game.isDraw()) {
-                result = "Draw!";
-                winner = "Draw";
-            } else if (game.isStalemate()) {
-                result = "Stalemate!";
-                winner = "Draw";
-            } else if (game.inCheck()) {
-                playCheck();
-            }
-
-            setGameOverState({ result, winner });
+        if (!game.isGameOver()) {
+            // A normal check (game continues) — this is the only place the check
+            // sound can fire; previously it sat inside the isGameOver() branch
+            // and was dead code.
+            if (game.inCheck()) playCheck();
+            return;
         }
+
+        let result = "";
+        let winner: "White" | "Black" | "Draw" = "Draw";
+
+        if (game.isCheckmate()) {
+            // The side to move has been checkmated and therefore lost.
+            const loserColor = game.turn() === 'w' ? 'white' : 'black';
+            winner = loserColor === 'white' ? "Black" : "White";
+            const playerWon = playerColor !== loserColor;
+            result = playerWon ? "Checkmate! You won!" : "Checkmate! You lost.";
+            if (playerWon) playVictory();
+            else playDefeat();
+        } else if (game.isStalemate()) {
+            // Must be checked before isDraw(), which also reports true for stalemate.
+            result = "Stalemate!";
+            winner = "Draw";
+        } else if (game.isDraw()) {
+            result = "Draw!";
+            winner = "Draw";
+        }
+
+        setGameOverState({ result, winner });
     }, [fen, playerColor, playDefeat, playVictory, playCheck]);
 
     // Pre-Analysis (P0)
     useEffect(() => {
         const playerTurn = playerColor === 'white' ? 'w' : 'b';
         if (stockfish && gameRef.current.turn() === playerTurn && !isAnalyzing && !gameOverState) {
-            stockfish.evaluate(gameRef.current.fen(), stockfishDepth).then(evalResult => {
-                setEvalP0(evalResult);
+            const fenAtRequest = gameRef.current.fen();
+            stockfish.evaluate(fenAtRequest, stockfishDepth).then(evalResult => {
+                // Discard a stale result if the position changed while we waited
+                // (undo, new game, depth change) — otherwise evalP0 would describe
+                // a position that is no longer on the board.
+                if (gameRef.current.fen() === fenAtRequest) {
+                    setEvalP0(evalResult);
+                }
             }).catch(err => console.error("Pre-analysis failed:", err));
         }
     }, [playerColor, fen, stockfish, stockfishDepth, isAnalyzing, gameOverState]);
@@ -352,24 +374,33 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
         const history = gameRef.current.history({ verbose: true });
         const whitePiecesLost: string[] = [];
         const blackPiecesLost: string[] = [];
-        let whiteLostScore = 0;
-        let blackLostScore = 0;
 
         history.forEach(move => {
             if (move.captured) {
                 if (move.color === 'w') { // White moved, captured a black piece. So a black piece was lost.
                     blackPiecesLost.push(move.captured);
-                    blackLostScore += PIECE_VALUES[move.captured] || 0;
                 } else { // Black moved, captured a white piece. So a white piece was lost.
                     whitePiecesLost.push(move.captured);
-                    whiteLostScore += PIECE_VALUES[move.captured] || 0;
                 }
             }
         });
 
         setCapturedWhitePieces(whitePiecesLost);
         setCapturedBlackPieces(blackPiecesLost);
-        setMaterialScore({ white: whiteLostScore, black: blackLostScore });
+
+        // Material advantage from the actual board rather than capture history,
+        // so promotions (and under-promotions) are reflected correctly.
+        let whiteMaterial = 0;
+        let blackMaterial = 0;
+        for (const row of gameRef.current.board()) {
+            for (const square of row) {
+                if (!square) continue;
+                const value = PIECE_VALUES[square.type] || 0;
+                if (square.color === 'w') whiteMaterial += value;
+                else blackMaterial += value;
+            }
+        }
+        setMaterialScore({ white: whiteMaterial, black: blackMaterial });
     }, []);
 
     const makeAMove = useCallback(
@@ -441,9 +472,14 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
 
         setIsAnalyzing(true);
         const { newFen: fenP1 } = moveResult;
+        // Snapshot the current turn generation; if the board is reset/undone
+        // while the engine is thinking, this chain aborts instead of moving on
+        // the wrong position.
+        const generation = moveGenerationRef.current;
 
         // 2. Bot Move (P1 -> P2)
         stockfish.evaluate(fenP1, stockfishDepth).then(p1Eval => {
+            if (generation !== moveGenerationRef.current) return;
             // Store partial history data if evalP0 is available
             const partialHistoryItem = evalP0 ? {
                 moveNumber: gameRef.current.moveNumber(),
@@ -457,6 +493,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
 
             // Computer should ALWAYS move, even if evalP0 is missing
             setTimeout(() => {
+                if (generation !== moveGenerationRef.current) return;
                 const computerMoveData = {
                     from: p1Eval.bestMove.substring(0, 2),
                     to: p1Eval.bestMove.substring(2, 4),
@@ -470,6 +507,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
 
                     // 3. Post-Eval (P2)
                     stockfish.evaluate(fenP2, stockfishDepth).then(p2Eval => {
+                        if (generation !== moveGenerationRef.current) return;
                         setEvalP2(p2Eval);
 
                         // 4. Opening Lookup - Get multiple possible openings
@@ -544,11 +582,15 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
 
         // If it's the computer's turn and we're not already analyzing, make a move
         if (currentTurn === computerTurn) {
-            console.log("Safety check: Computer's turn detected, making move...");
             setIsAnalyzing(true);
+            const generation = moveGenerationRef.current;
 
             const currentFen = gameRef.current.fen();
             stockfish.evaluate(currentFen, stockfishDepth).then(evalResult => {
+                if (generation !== moveGenerationRef.current || gameRef.current.fen() !== currentFen) {
+                    setIsAnalyzing(false);
+                    return;
+                }
                 const computerMoveData = {
                     from: evalResult.bestMove.substring(0, 2),
                     to: evalResult.bestMove.substring(2, 4),
@@ -562,6 +604,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
 
                     // Evaluate the position after computer's move
                     stockfish.evaluate(newFen, stockfishDepth).then(p2Eval => {
+                        if (generation !== moveGenerationRef.current) return;
                         setEvalP2(p2Eval);
                         const currentPgn = gameRef.current.pgn();
                         const moveSequence = extractMoveSequenceFromPGN(currentPgn);
@@ -583,8 +626,8 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
     }, [stockfish, gameOverState, isAnalyzing, playerColor, stockfishDepth, makeAMove]);
 
     const handleNewGame = () => {
-        // Reset game to initial props or just reload?
-        // For now, let's just reset the board
+        // Invalidate any in-flight engine turn so it can't move on the new board.
+        moveGenerationRef.current++;
         const newGame = new Chess();
         gameRef.current = newGame;
         setFen(newGame.fen());
@@ -596,6 +639,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
         setEvalP2(null);
         setOpeningData([]);
         setResignationContext(null);
+        setIsAnalyzing(false);
         updateCapturedPieces();
     };
 
@@ -607,6 +651,8 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
     const handleResignConfirm = useCallback(async () => {
         setShowResignConfirm(false);
         setIsAnalyzing(false);
+        // Cancel any pending computer move so it can't play after resignation.
+        moveGenerationRef.current++;
 
         const currentFen = gameRef.current.fen();
         let evaluation: StockfishEvaluation | null = null;
@@ -671,8 +717,9 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
 
     // Determine material advantage
     // If Black lost more value, White has advantage
-    const whiteAdvantage = materialScore.black - materialScore.white;
-    const blackAdvantage = materialScore.white - materialScore.black;
+    // materialScore now holds total board material per side.
+    const whiteAdvantage = materialScore.white - materialScore.black;
+    const blackAdvantage = materialScore.black - materialScore.white;
 
     const [showStrengthSlider, setShowStrengthSlider] = useState(false);
 
@@ -770,6 +817,8 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => {
+                                        // Cancel any in-flight engine turn before mutating the board.
+                                        moveGenerationRef.current++;
                                         const game = gameRef.current;
                                         game.undo();
                                         game.undo();
@@ -779,10 +828,14 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                                         setEvalP0(null);
                                         setEvalP2(null);
                                         setOpeningData([]);
+                                        // Drop the undone move from the analysis history so the
+                                        // rolled-back blunder isn't shown or fed to the coach.
+                                        setMoveHistory(prev => prev.slice(0, -1));
+                                        setIsAnalyzing(false);
                                         updateCapturedPieces();
                                     }}
-                                    className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    disabled={!!gameOverState}
+                                    className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors disabled:opacity-40"
+                                    disabled={!!gameOverState || isAnalyzing}
                                 >
                                     <ArrowLeft size={12} /> {t.game.undoMove}
                                 </button>
@@ -911,7 +964,6 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                                 )}
                             </tbody>
                         </table>
-                        <div ref={messagesEndRef} />
                     </div>
                 </div>
             </div>
@@ -930,6 +982,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                 <GameOverModal
                     result={gameOverState.result}
                     winner={gameOverState.winner}
+                    playerColor={playerColor}
                     history={moveHistory}
                     apiKey={apiKey}
                     language={language}

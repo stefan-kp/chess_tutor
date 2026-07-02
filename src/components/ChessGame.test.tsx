@@ -156,8 +156,9 @@ describe("ChessGame Component", () => {
         });
 
         await waitFor(() => {
-            const saved = JSON.parse(localStorage.getItem("chess_tutor_save") || "{}");
-            expect(saved.id).toBe("restore-game");
+            const saves = JSON.parse(localStorage.getItem("chess_tutor_saves") || "[]");
+            const saved = saves.find((g: { id: string }) => g.id === "restore-game");
+            expect(saved).toBeTruthy();
             expect(saved.pgn).toContain("1. e4 e5");
             expect(saved).not.toHaveProperty("apiKey");
         });

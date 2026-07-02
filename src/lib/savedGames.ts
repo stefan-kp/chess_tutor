@@ -15,22 +15,33 @@ export type SavedGame = {
 
 const STORAGE_KEY = "chess_tutor_saves";
 const LEGACY_KEY = "chess_tutor_save";
+// Cap the number of persisted games so the list cannot grow without bound and
+// blow the localStorage quota (each game carries a full PGN + personality).
+const MAX_SAVED_GAMES = 50;
+
+const isValidSavedGame = (game: unknown): game is SavedGame =>
+    !!game &&
+    typeof game === "object" &&
+    typeof (game as SavedGame).id === "string" &&
+    typeof (game as SavedGame).fen === "string" &&
+    typeof (game as SavedGame).updatedAt === "number" &&
+    !!(game as SavedGame).selectedPersonality;
 
 const parseSavedGames = (): SavedGame[] => {
+    if (typeof window === "undefined") return [];
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
 
     try {
         const data = JSON.parse(raw);
         if (!Array.isArray(data)) return [];
-        return data.filter(Boolean).map((game) => {
-            if (game && typeof game === "object" && "apiKey" in game) {
+        return data.filter(isValidSavedGame).map((game) => {
+            if ("apiKey" in game) {
                 const safeGame = { ...(game as SavedGame & { apiKey?: string | null }) };
                 delete safeGame.apiKey;
                 return safeGame;
             }
-
-            return game as SavedGame;
+            return game;
         });
     } catch (e) {
         console.error("Failed to parse saved games", e);
@@ -39,7 +50,16 @@ const parseSavedGames = (): SavedGame[] => {
 };
 
 const persistSavedGames = (games: SavedGame[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+    try {
+        // Keep only the most recent games within the cap.
+        const trimmed = [...games]
+            .sort((a, b) => b.updatedAt - a.updatedAt)
+            .slice(0, MAX_SAVED_GAMES);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
+    } catch (e) {
+        // QuotaExceededError etc. must not bubble up and unmount the app.
+        console.error("Failed to persist saved games", e);
+    }
 };
 
 const loadLegacySave = (): SavedGame[] => {

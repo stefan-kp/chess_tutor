@@ -49,6 +49,7 @@ export interface MoveHistoryItem {
 interface GameOverModalProps {
     result: string; // "Checkmate", "Draw", etc.
     winner: "White" | "Black" | "Draw";
+    playerColor: "white" | "black";
     history: MoveHistoryItem[];
     apiKey: string | null;
     language: SupportedLanguage;
@@ -57,7 +58,10 @@ interface GameOverModalProps {
     onAnalyze: () => void;
 }
 
-export function GameOverModal({ result, winner, history, apiKey, language, onClose, onNewGame, onAnalyze }: GameOverModalProps) {
+export function GameOverModal({ result, winner, playerColor, history, apiKey, language, onClose, onNewGame, onAnalyze }: GameOverModalProps) {
+    // Victory/Defeat is relative to the human player, not the absolute colour.
+    const playerWon = winner !== "Draw" && winner.toLowerCase() === playerColor;
+    const playerLost = winner !== "Draw" && !playerWon;
     const [analysis, setAnalysis] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
     const [mistakes, setMistakes] = useState<MoveHistoryItem[]>([]);
@@ -229,9 +233,9 @@ Plain text paragraph (2-3 sentences).
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden border border-gray-200 dark:border-gray-700 animate-in fade-in zoom-in duration-300">
                 {/* Header */}
-                <div className={`p-6 text-center ${winner === "White" ? "bg-green-100 dark:bg-green-900/30" : winner === "Black" ? "bg-red-100 dark:bg-red-900/30" : "bg-gray-100 dark:bg-gray-800"}`}>
+                <div className={`p-6 text-center ${playerWon ? "bg-green-100 dark:bg-green-900/30" : playerLost ? "bg-red-100 dark:bg-red-900/30" : "bg-gray-100 dark:bg-gray-800"}`}>
                     <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                        {winner === "White" ? "Victory!" : winner === "Black" ? "Defeat" : "Draw"}
+                        {playerWon ? "Victory!" : playerLost ? "Defeat" : "Draw"}
                     </h2>
                     <p className="text-lg text-gray-600 dark:text-gray-300">{result}</p>
                 </div>
