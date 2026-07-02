@@ -86,6 +86,9 @@ export function OpeningTrainingProvider({
 
   // Orchestrator for async operations
   const orchestratorRef = useRef<SessionOrchestrator | null>(null);
+  // Resolves once the engine + orchestrator are ready, so callers can await
+  // instead of busy-polling.
+  const orchestratorReadyRef = useRef<Promise<SessionOrchestrator | null> | null>(null);
 
   // Feedback cache (indexed by move index)
   const feedbackCacheRef = useRef<Map<number, MoveFeedback>>(new Map());
@@ -95,26 +98,39 @@ export function OpeningTrainingProvider({
   // ============================================================================
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      createEngine()
-        .then((engine) => {
-          setStockfish(engine);
-          orchestratorRef.current = new SessionOrchestrator(engine);
-        })
-        .catch((err) => {
-          console.error('Failed to create chess engine:', err);
-          setError('Failed to initialize chess engine');
-        });
+    if (typeof window === 'undefined') return;
 
-      return () => {
-        if (stockfish) {
-          stockfish.terminate();
+    let disposed = false;
+    let createdEngine: ChessEngine | null = null;
+
+    orchestratorReadyRef.current = createEngine()
+      .then((engine) => {
+        if (disposed) {
+          // Effect was cleaned up before the engine finished initializing
+          // (e.g. React StrictMode double-mount) — dispose it immediately.
+          engine.terminate();
+          return null;
         }
-        if (orchestratorRef.current) {
-          orchestratorRef.current.destroy();
-        }
-      };
-    }
+        createdEngine = engine;
+        setStockfish(engine);
+        orchestratorRef.current = new SessionOrchestrator(engine);
+        return orchestratorRef.current;
+      })
+      .catch((err) => {
+        console.error('Failed to create chess engine:', err);
+        if (!disposed) setError('Failed to initialize chess engine');
+        return null;
+      });
+
+    return () => {
+      disposed = true;
+      // Terminate the actual engine created by THIS effect run (the previous
+      // code read `stockfish` from the mount closure, where it was still null,
+      // so the worker was never terminated and leaked on every mount).
+      createdEngine?.terminate();
+      orchestratorRef.current?.destroy();
+      orchestratorRef.current = null;
+    };
   }, []);
 
   // ============================================================================
@@ -170,23 +186,23 @@ export function OpeningTrainingProvider({
   ) => {
     console.log('[OpeningTraining] initializeSession called', { eco: openingMetadata.eco, forceNew });
 
-    // Wait for orchestrator to be ready (max 5 seconds)
-    const maxWaitTime = 5000;
-    const startTime = Date.now();
-    while (!orchestratorRef.current && Date.now() - startTime < maxWaitTime) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+    // Enter loading state immediately (we may also be waiting for the engine).
+    setIsLoading(true);
+    setError(null);
+
+    // Wait for the engine/orchestrator initialization promise to settle.
+    if (orchestratorReadyRef.current) {
+      await orchestratorReadyRef.current;
     }
 
     if (!orchestratorRef.current) {
-      console.error('[OpeningTraining] Orchestrator not ready after waiting');
+      console.error('[OpeningTraining] Orchestrator not ready');
       setError('Chess engine not initialized');
+      setIsLoading(false);
       return;
     }
 
     console.log('[OpeningTraining] Orchestrator ready, proceeding with initialization');
-
-    setIsLoading(true);
-    setError(null);
 
     try {
       // Try to load existing session (unless forceNew is true)
