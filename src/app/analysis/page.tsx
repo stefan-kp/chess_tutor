@@ -60,6 +60,9 @@ export default function AnalysisPage() {
 
     const [stockfish, setStockfish] = useState<Stockfish | null>(null);
     const evaluationCache = useRef<Record<string, StockfishEvaluation>>({});
+    // In-flight evaluations, so concurrent requests for the same position share
+    // one engine search instead of queuing a duplicate.
+    const evaluationPromises = useRef<Record<string, Promise<StockfishEvaluation>>>({});
     const [evaluationVersion, setEvaluationVersion] = useState(0);
     const [stepDetails, setStepDetails] = useState<Record<number, StepDetails>>({});
     const [isCommenting, setIsCommenting] = useState(false);
@@ -151,13 +154,23 @@ IMPORTANT:
         setDetectedFormat(value.trim() ? detectChessFormat(value) : null);
     };
 
-    const ensureEvaluation = useCallback(async (fen: string) => {
+    const ensureEvaluation = useCallback((fen: string): Promise<StockfishEvaluation> | null => {
         if (!stockfish) return null;
-        if (evaluationCache.current[fen]) return evaluationCache.current[fen];
-        const result = await stockfish.evaluate(fen, 14);
-        evaluationCache.current[fen] = result;
-        setEvaluationVersion(v => v + 1);
-        return result;
+        if (evaluationCache.current[fen]) return Promise.resolve(evaluationCache.current[fen]);
+        if (!evaluationPromises.current[fen]) {
+            evaluationPromises.current[fen] = stockfish.evaluate(fen, 14)
+                .then(result => {
+                    evaluationCache.current[fen] = result;
+                    setEvaluationVersion(v => v + 1);
+                    return result;
+                })
+                .catch(err => {
+                    // Allow a retry on failure rather than caching a rejection.
+                    delete evaluationPromises.current[fen];
+                    throw err;
+                });
+        }
+        return evaluationPromises.current[fen];
     }, [stockfish]);
 
     const handleLoadGame = () => {
@@ -221,6 +234,7 @@ IMPORTANT:
             }
 
             evaluationCache.current = {};
+            evaluationPromises.current = {};
             setEvaluationVersion(v => v + 1);
             setInitialFen(startFen);
             setSteps(nextSteps);
@@ -250,6 +264,7 @@ IMPORTANT:
         setComments({});
         setInitialFen(DEFAULT_START);
         evaluationCache.current = {};
+        evaluationPromises.current = {};
         setEvaluationVersion(v => v + 1);
         setError(null);
     };

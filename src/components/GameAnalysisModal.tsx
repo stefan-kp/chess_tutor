@@ -22,6 +22,7 @@ export function GameAnalysisModal({ fen, stockfish, apiKey, language, onClose }:
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        let cancelled = false;
         const analyze = async () => {
             setIsLoading(true);
             try {
@@ -29,11 +30,13 @@ export function GameAnalysisModal({ fen, stockfish, apiKey, language, onClose }:
                 let evalResult: StockfishEvaluation | null = null;
                 if (stockfish) {
                     evalResult = await stockfish.evaluate(fen, 15); // Quick depth
+                    if (cancelled) return;
                     setEvaluation(evalResult);
                 }
 
                 // 2. Opening Lookup
                 const openingData = lookupOpening(fen);
+                if (cancelled) return;
                 setOpening(openingData);
 
                 // 3. LLM Summary
@@ -65,19 +68,22 @@ Plain text paragraph.
                     `;
 
                     const result = await model.generateContent(prompt);
+                    if (cancelled) return;
                     setSummary(result.response.text());
                 } else if (!apiKey) {
                     setSummary("Please provide an API Key to get an AI summary.");
                 }
             } catch (e) {
+                if (cancelled) return;
                 console.error("Analysis failed:", e);
                 setSummary("Failed to generate analysis.");
             } finally {
-                setIsLoading(false);
+                if (!cancelled) setIsLoading(false);
             }
         };
 
         analyze();
+        return () => { cancelled = true; };
     }, [fen, stockfish, apiKey, language]);
 
     return (

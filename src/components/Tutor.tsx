@@ -130,10 +130,17 @@ export function Tutor({ game, currentFen, userMove, computerMove, stockfish, eva
     // Track last opening moves to detect when new moves are made
     const lastUserMoveRef = useRef<string | null>(null);
     const lastTutorMoveRef = useRef<string | null>(null);
+    // Guards so the resignation / opening-context messages are sent once per
+    // trigger, not re-fired when unrelated dependencies change.
+    const lastResignationTriggerRef = useRef<number | null>(null);
+    const openingContextSentRef = useRef(false);
 
     // Initialize chat session with Personality System Prompt (only once per pattern type)
     useEffect(() => {
         if (apiKey) {
+            // If this effect re-runs (e.g. wikipediaSummary loads mid-session),
+            // a superseded run's async greeting must not overwrite the live chat.
+            let cancelled = false;
             const model = getGenAIModel(apiKey, "gemini-2.5-flash");
 
             // Build system prompt based on mode
@@ -288,9 +295,11 @@ Keep your response to 3-4 sentences, be engaging, and respond in ${language}.`
                 : `Introduce yourself briefly to start our game. Keep it short and in ${language}.`;
 
             session.sendMessage(greetingPrompt).then(result => {
+                if (cancelled) return;
                 const greetingText = result.response.text();
                 setMessages([{ role: "model", text: greetingText, timestamp: Date.now() }]);
             }).catch(err => {
+                if (cancelled) return;
                 console.error("Failed to get greeting:", err);
 
                 // Check if it's a Gemini API error
@@ -307,6 +316,8 @@ Keep your response to 3-4 sentences, be engaging, and respond in ${language}.`
                     : `Hello! I am ${personality.name}. Let's play!`;
                 setMessages([{ role: "model", text: fallbackText, timestamp: Date.now() }]);
             });
+
+            return () => { cancelled = true; };
         }
     }, [apiKey, personality, language, playerColor, patternName, openingName, wikipediaSummary]);
     // NOTE: Removed solutionMoveKey from dependencies - we don't want to reset chat when puzzle changes
@@ -902,6 +913,9 @@ INSTRUCTIONS:
     useEffect(() => {
         const handleResignationMessage = async () => {
             if (!resignationContext || !chatSession) return;
+            // Send exactly one message per resignation event.
+            if (lastResignationTriggerRef.current === resignationContext.trigger) return;
+            lastResignationTriggerRef.current = resignationContext.trigger;
             setIsLoading(true);
 
             try {
@@ -949,9 +963,11 @@ INSTRUCTIONS:
         const handleOpeningContextMessage = async () => {
             if (!openingContext || !chatSession) return;
 
-            // Only send this message once when the context is first loaded
-            // We can check if messages array is still just the greeting
+            // Send the transition message exactly once, and only before the
+            // conversation has moved past the greeting.
+            if (openingContextSentRef.current) return;
             if (messages.length > 1) return;
+            openingContextSentRef.current = true;
 
             setIsLoading(true);
 

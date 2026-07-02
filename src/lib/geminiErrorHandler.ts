@@ -16,14 +16,20 @@ export interface GeminiErrorInfo {
 export function parseGeminiError(error: any): GeminiErrorInfo {
   const errorMessage = error?.message || error?.toString() || 'Unknown error';
 
-  // Check for quota exceeded (429 error)
-  const isQuotaError = errorMessage.includes('quota') ||
-                       errorMessage.includes('429') ||
-                       errorMessage.includes('exceeded your current quota');
+  // Prefer the structured HTTP status (GoogleGenerativeAIFetchError carries a
+  // numeric `status`) over brittle string matching on the message text.
+  const status: number | undefined =
+    typeof error?.status === 'number' ? error.status : undefined;
+  const lower = errorMessage.toLowerCase();
+  const is429 = status === 429 || errorMessage.includes('429');
 
-  // Check for rate limit errors
-  const isRateLimitError = errorMessage.includes('rate limit') ||
-                           errorMessage.includes('429');
+  // 429 with quota wording is a quota error; a bare 429 is a rate limit.
+  const isQuotaError =
+    lower.includes('quota') ||
+    lower.includes('exceeded your current quota') ||
+    (is429 && lower.includes('quota'));
+
+  const isRateLimitError = !isQuotaError && (is429 || lower.includes('rate limit'));
 
   // Extract retry delay if available
   let retryAfterSeconds: number | undefined;
