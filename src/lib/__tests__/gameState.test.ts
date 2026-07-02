@@ -44,7 +44,7 @@ describe("gameState", () => {
     expect(historyItem.computerMove).toBe("e5");
     expect(historyItem.opening).toBe("King's Pawn Game");
     expect(historyItem.bestMoveSan).toBe("Nf3");
-    expect(historyItem.cpLoss).toBe(100);
+    expect(historyItem.cpLoss).toBe(60);
     expect(missedTactics).toHaveLength(1);
   });
 });

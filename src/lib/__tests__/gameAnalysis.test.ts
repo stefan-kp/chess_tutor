@@ -25,14 +25,14 @@ describe("gameAnalysis", () => {
     expect(mistakes).toHaveLength(1);
     expect(mistakes[0].category).toBe("mistake");
     expect(mistakes[0].evalBefore).toBe(120);
-    expect(mistakes[0].evalAfter).toBe(-10);
+    expect(mistakes[0].evalAfter).toBe(10);
   });
 
   it("builds a narrative with opening and evaluation swings", () => {
     const narrative = buildGameNarrative([historyItem]);
 
     expect(narrative).toContain("1. e4 - e5 [King's Pawn Game]");
-    expect(narrative).toContain("(eval: 120 → -10 → 0)");
+    expect(narrative).toContain("(eval: 120 → 10 → 0)");
   });
 
   it("builds a game-over prompt with aggregated mistake counts", () => {

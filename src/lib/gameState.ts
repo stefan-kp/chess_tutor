@@ -78,9 +78,11 @@ export function buildMoveHistoryItem(args: BuildMoveHistoryItemArgs): {
     } = args;
 
     const isWhite = playerColor === "white";
-    const evalBefore = isWhite ? evalP0.score : -evalP0.score;
-    const evalAfterPlayerMove = isWhite ? -p1Eval.score : p1Eval.score;
-    const cpLoss = evalBefore - evalAfterPlayerMove;
+    // evalP0/p1Eval scores are already normalized to White's perspective by
+    // Stockfish.evaluate(); cpLoss is how much the player's own eval dropped.
+    const cpLoss = isWhite
+        ? evalP0.score - p1Eval.score
+        : p1Eval.score - evalP0.score;
     const bestMoveSan = uciToSan(fenBeforePlayerMove, evalP0.bestMove);
     const missedTactics = detectMissedTactics({
         fen: fenBeforePlayerMove,

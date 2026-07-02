@@ -88,17 +88,11 @@ export function GameOverModal({ result, winner, history, apiKey, language, onClo
                     let missedTactics = item.missedTactics;
                     let cpLoss: number | undefined = item.cpLoss;
 
+                    const isWhite = item.playerColor === 'white';
                     if (item.evalBeforePlayerMove && item.evalAfterPlayerMove) {
-                        // New enhanced format
-                        // Convert evaluations to player's perspective
-                        const isWhite = item.playerColor === 'white';
-
-                        // P0: Before player's move (from player's perspective)
-                        evalBefore = isWhite ? item.evalBeforePlayerMove.score : -item.evalBeforePlayerMove.score;
-
-                        // P1: After player's move (from opponent's perspective, so negate it)
-                        evalAfter = isWhite ? -item.evalAfterPlayerMove.score : item.evalAfterPlayerMove.score;
-
+                        // Scores are already White-perspective (Stockfish.evaluate normalizes).
+                        evalBefore = item.evalBeforePlayerMove.score;
+                        evalAfter = item.evalAfterPlayerMove.score;
                         playerMove = item.playerMove;
                         bestMove = item.evalBeforePlayerMove.bestMove;
                         bestMoveSan = item.bestMoveSan;
@@ -110,9 +104,9 @@ export function GameOverModal({ result, winner, history, apiKey, language, onClo
                         bestMove = item.bestMove;
                     }
 
-                    // Calculate centipawn loss
-                    // Positive delta = position got worse for player
-                    const delta = evalBefore - evalAfter;
+                    // Centipawn loss from the moving player's own perspective.
+                    // Positive delta = position got worse for the player.
+                    const delta = isWhite ? evalBefore - evalAfter : evalAfter - evalBefore;
                     const cpLossValue = cpLoss ?? delta;
                     let category: 'inaccuracy' | 'mistake' | 'blunder' | null = null;
 
@@ -171,10 +165,10 @@ export function GameOverModal({ result, winner, history, apiKey, language, onClo
                         // Evaluation swing
                         let evalInfo = '';
                         if (item.evalBeforePlayerMove && item.evalAfterPlayerMove && item.evalAfterComputerMove) {
-                            const isWhite = item.playerColor === 'white';
-                            const p0 = isWhite ? item.evalBeforePlayerMove.score : -item.evalBeforePlayerMove.score;
-                            const p1 = isWhite ? -item.evalAfterPlayerMove.score : item.evalAfterPlayerMove.score;
-                            const p2 = isWhite ? item.evalAfterComputerMove.score : -item.evalAfterComputerMove.score;
+                            // All scores are already White-perspective; show as-is.
+                            const p0 = item.evalBeforePlayerMove.score;
+                            const p1 = item.evalAfterPlayerMove.score;
+                            const p2 = item.evalAfterComputerMove.score;
                             evalInfo = ` (eval: ${Math.round(p0)} → ${Math.round(p1)} → ${Math.round(p2)})`;
                         }
 

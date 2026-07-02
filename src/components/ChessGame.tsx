@@ -171,9 +171,11 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                     }
 
                     const isWhite = playerColor === 'white';
-                    const evalBeforePerspective = isWhite ? evalBeforePlayerMove.score : -evalBeforePlayerMove.score;
-                    const evalAfterPerspective = isWhite ? -evalAfterPlayerMove.score : evalAfterPlayerMove.score;
-                    const cpLoss = evalBeforePerspective - evalAfterPerspective;
+                    // Scores are already White-perspective (Stockfish.evaluate normalizes);
+                    // cpLoss is how much the player's own evaluation dropped.
+                    const cpLoss = isWhite
+                        ? evalBeforePlayerMove.score - evalAfterPlayerMove.score
+                        : evalAfterPlayerMove.score - evalBeforePlayerMove.score;
 
                     const bestMoveUci = evalBeforePlayerMove.bestMove;
                     const bestMoveSan = bestMoveUci ? uciToSan(fenBeforePlayerMove, bestMoveUci) : null;
@@ -479,9 +481,11 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
                         // 5. Complete the history item with computer's move data (only if we have evalP0)
                         if (partialHistoryItem && evalP0) {
                             const isWhite = playerColor === 'white';
-                            const evalBefore = isWhite ? evalP0.score : -evalP0.score;
-                            const evalAfterPlayerMove = isWhite ? -p1Eval.score : p1Eval.score;
-                            const cpLoss = evalBefore - evalAfterPlayerMove;
+                            // Scores are already White-perspective (Stockfish.evaluate normalizes);
+                            // cpLoss is how much the player's own evaluation dropped.
+                            const cpLoss = isWhite
+                                ? evalP0.score - p1Eval.score
+                                : p1Eval.score - evalP0.score;
                             const bestMoveSan = uciToSan(fenP0, evalP0.bestMove);
                             const missedTactics = detectMissedTactics({
                                 fen: fenP0,

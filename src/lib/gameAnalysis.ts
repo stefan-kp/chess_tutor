@@ -25,10 +25,11 @@ export function classifyMoveHistory(history: MoveHistoryItem[]) {
         const missedTactics = item.missedTactics;
         const cpLoss = item.cpLoss;
 
+        const isWhite = item.playerColor === "white";
         if (item.evalBeforePlayerMove && item.evalAfterPlayerMove) {
-            const isWhite = item.playerColor === "white";
-            evalBefore = isWhite ? item.evalBeforePlayerMove.score : -item.evalBeforePlayerMove.score;
-            evalAfter = isWhite ? -item.evalAfterPlayerMove.score : item.evalAfterPlayerMove.score;
+            // Scores are already White-perspective (Stockfish.evaluate normalizes).
+            evalBefore = item.evalBeforePlayerMove.score;
+            evalAfter = item.evalAfterPlayerMove.score;
             playerMove = item.playerMove;
             bestMove = item.evalBeforePlayerMove.bestMove;
             bestMoveSan = item.bestMoveSan;
@@ -39,7 +40,8 @@ export function classifyMoveHistory(history: MoveHistoryItem[]) {
             bestMove = item.bestMove;
         }
 
-        const delta = evalBefore - evalAfter;
+        // Loss from the moving player's own perspective.
+        const delta = isWhite ? evalBefore - evalAfter : evalAfter - evalBefore;
         const cpLossValue = cpLoss ?? delta;
         let category: MistakeCategory | null = null;
 
@@ -70,10 +72,10 @@ export function buildGameNarrative(history: MoveHistoryItem[]) {
 
         let evalInfo = "";
         if (item.evalBeforePlayerMove && item.evalAfterPlayerMove && item.evalAfterComputerMove) {
-            const isWhite = item.playerColor === "white";
-            const p0 = isWhite ? item.evalBeforePlayerMove.score : -item.evalBeforePlayerMove.score;
-            const p1 = isWhite ? -item.evalAfterPlayerMove.score : item.evalAfterPlayerMove.score;
-            const p2 = isWhite ? item.evalAfterComputerMove.score : -item.evalAfterComputerMove.score;
+            // All scores are already White-perspective; show the trajectory as-is.
+            const p0 = item.evalBeforePlayerMove.score;
+            const p1 = item.evalAfterPlayerMove.score;
+            const p2 = item.evalAfterComputerMove.score;
             evalInfo = ` (eval: ${Math.round(p0)} → ${Math.round(p1)} → ${Math.round(p2)})`;
         }
 
