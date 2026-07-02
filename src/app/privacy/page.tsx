@@ -1,8 +1,8 @@
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
-// Force dynamic rendering to read environment variables at runtime
-export const dynamic = 'force-dynamic';
+// Static server component: the responsible-person value is read at build time.
+// (force-dynamic is incompatible with the `output: 'export'` mobile build, and
+// Next requires `dynamic` to be a static literal, so it can't be conditional.)
 
 export default function PrivacyPage() {
     // Read environment variable at runtime (Server Component)
@@ -52,8 +52,6 @@ export default function PrivacyPage() {
                     </section>
                 </div>
             </main>
-
-            <Footer />
         </div>
     );
 }

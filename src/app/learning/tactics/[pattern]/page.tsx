@@ -46,6 +46,9 @@ export default function TacticalPracticePage() {
     });
 
     const gameRef = useRef<Chess>(new Chess());
+    // Pending opponent-reply timer, so loading/skipping a puzzle can cancel it
+    // before it plays a move on the next puzzle's board.
+    const opponentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Sound Refs
     const moveSound = useRef<HTMLAudioElement | null>(null);
@@ -101,7 +104,22 @@ export default function TacticalPracticePage() {
         }
     }, [mounted, pattern]);
 
-    const loadNewExercise = () => {
+    // Clear any pending opponent-reply timer on unmount.
+    useEffect(() => {
+        return () => {
+            if (opponentTimerRef.current) clearTimeout(opponentTimerRef.current);
+        };
+    }, []);
+
+    const loadNewExercise = (overrideDifficulty?: typeof difficulty) => {
+        // Cancel any pending opponent reply from the previous puzzle.
+        if (opponentTimerRef.current) {
+            clearTimeout(opponentTimerRef.current);
+            opponentTimerRef.current = null;
+        }
+        // Use the explicitly requested difficulty when changing it, so we don't
+        // read a stale value from this closure right after setDifficulty().
+        const effectiveDifficulty = overrideDifficulty ?? difficulty;
         try {
             // Try to load a puzzle for either side (white or black)
             // The library will randomly pick from available puzzles
@@ -109,14 +127,11 @@ export default function TacticalPracticePage() {
             const newExercise = generateTacticExercise({
                 patternType: pattern,
                 side: randomSide,
-                difficulty: difficulty,  // Use selected difficulty
+                difficulty: effectiveDifficulty,
             });
 
-            console.log('📚 Loaded new exercise:');
-            console.log('  FEN:', newExercise.startPosition.fen);
-            console.log('  Solution move:', newExercise.solutionMove);
-            console.log('  Move sequence:', newExercise.moves);
-            console.log('  Rating:', newExercise.rating);
+            // NB: don't log the solution move — it leaks the puzzle answer to
+            // anyone with the console open.
 
             setExercise(newExercise);
             setFen(newExercise.startPosition.fen);
@@ -129,7 +144,7 @@ export default function TacticalPracticePage() {
 
             // Check if error is due to missing fixtures
             if (error instanceof Error && error.message.includes('No fixture available')) {
-                setSetupError(`No ${difficulty} puzzles available for this pattern. Try a different difficulty.`);
+                setSetupError(`No ${effectiveDifficulty} puzzles available for this pattern. Try a different difficulty.`);
             } else {
                 setSetupError('Failed to load tactical exercise. Please try again.');
             }
@@ -215,7 +230,9 @@ export default function TacticalPracticePage() {
             'BACK_RANK_WEAKNESS': 'backRankWeakness',
             'TRAPPED_PIECE': 'trappedPiece',
         };
-        return t.learning.patterns[mapping[pattern]];
+        // Fall back to the raw slug for unknown patterns so callers that do
+        // getPatternName().toLowerCase() can't crash on undefined.
+        return t.learning.patterns[mapping[pattern]] ?? pattern;
     };
 
     const onDrop = ({ sourceSquare, targetSquare }: { sourceSquare: Square; targetSquare: Square | null }) => {
@@ -357,8 +374,12 @@ export default function TacticalPracticePage() {
             const opponentMove = moves[nextMoveIndex];
 
             if (opponentMove && !opponentMove.player) {
-                // Make opponent's move after a short delay
-                setTimeout(() => {
+                // Make opponent's move after a short delay. Snapshot the position
+                // so a stale timer (puzzle skipped/reloaded meanwhile) is ignored.
+                const fenAfterPlayerMove = gameRef.current.fen();
+                if (opponentTimerRef.current) clearTimeout(opponentTimerRef.current);
+                opponentTimerRef.current = setTimeout(() => {
+                    if (gameRef.current.fen() !== fenAfterPlayerMove) return;
                     try {
                         const oppMove = gameRef.current.move(opponentMove.uci);
                         if (oppMove) {
@@ -422,7 +443,7 @@ export default function TacticalPracticePage() {
                                 <button
                                     onClick={() => {
                                         setDifficulty('easy');
-                                        loadNewExercise();
+                                        loadNewExercise('easy');
                                     }}
                                     className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
                                         difficulty === 'easy'
@@ -435,7 +456,7 @@ export default function TacticalPracticePage() {
                                 <button
                                     onClick={() => {
                                         setDifficulty('medium');
-                                        loadNewExercise();
+                                        loadNewExercise('medium');
                                     }}
                                     className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
                                         difficulty === 'medium'
@@ -448,7 +469,7 @@ export default function TacticalPracticePage() {
                                 <button
                                     onClick={() => {
                                         setDifficulty('hard');
-                                        loadNewExercise();
+                                        loadNewExercise('hard');
                                     }}
                                     className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
                                         difficulty === 'hard'

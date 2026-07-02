@@ -14,7 +14,8 @@ const TACTICAL_PATTERNS = [
     { id: 'FORK', icon: '🍴' },
     { id: 'DISCOVERED_CHECK', icon: '🔍' },
     { id: 'DOUBLE_ATTACK', icon: '⚔️' },
-    { id: 'OVERLOADING', icon: '⚖️' },
+    // OVERLOADING intentionally omitted: its only fixture puzzle is unsound
+    // (the "solution" hangs the queen). Re-add once real puzzles are sourced.
     { id: 'BACK_RANK_WEAKNESS', icon: '🏰' },
     { id: 'TRAPPED_PIECE', icon: '🪤' },
 ] as const;

@@ -20,7 +20,9 @@ export default function SettingsPage() {
     });
     const [chesscomUsername, setChesscomUsername] = useState(() => typeof window === "undefined" ? "" : localStorage.getItem("chesscom_username") || "");
     const [lichessUsername, setLichessUsername] = useState(() => typeof window === "undefined" ? "" : localStorage.getItem("lichess_username") || "");
-    const [consentGiven, setConsentGiven] = useState(false);
+    const [consentGiven, setConsentGiven] = useState(() =>
+        typeof window === "undefined" ? false : localStorage.getItem("gemini_consent") === "true"
+    );
     const [showConsentError, setShowConsentError] = useState(false);
     const hasHydrated = useHasHydrated();
 
@@ -37,8 +39,12 @@ export default function SettingsPage() {
 
         if (apiKey.trim()) {
             localStorage.setItem("gemini_api_key", apiKey.trim());
+            // Remember consent so returning users can change other settings
+            // without being blocked by the consent gate.
+            localStorage.setItem("gemini_consent", "true");
         } else {
             localStorage.removeItem("gemini_api_key");
+            localStorage.removeItem("gemini_consent");
         }
 
         localStorage.setItem("chess_tutor_language", language);

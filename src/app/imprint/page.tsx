@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
-// Force dynamic rendering to read environment variables at runtime
-export const dynamic = 'force-dynamic';
+// Static server component: imprint URL is read at build time. (force-dynamic is
+// incompatible with the `output: 'export'` mobile build.)
 
 export default async function ImprintPage() {
     // If external imprint URL is configured, redirect to it
@@ -28,8 +27,6 @@ export default async function ImprintPage() {
                     </div>
                 </div>
             </main>
-
-            <Footer />
         </div>
     );
 }

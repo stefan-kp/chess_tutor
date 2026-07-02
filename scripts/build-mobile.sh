@@ -5,6 +5,16 @@
 
 set -e
 
+# Always restore the API folder, even if the build fails, so a failed run
+# never leaves the working tree with src/app/api missing.
+restore_api() {
+  if [ -d ".api_temp_mobile_build" ]; then
+    echo "📦 Restoring API routes..."
+    mv .api_temp_mobile_build src/app/api
+  fi
+}
+trap restore_api EXIT
+
 echo "🔧 Preparing mobile build..."
 
 # Clean previous build (suppress errors for non-empty directories)
@@ -20,11 +30,5 @@ fi
 # Build with mobile configuration
 echo "🏗️  Building static export for mobile..."
 BUILD_TARGET=mobile NEXT_PUBLIC_USE_REMOTE_ENGINE=true next build
-
-# Restore API folder
-if [ -d ".api_temp_mobile_build" ]; then
-  echo "📦 Restoring API routes..."
-  mv .api_temp_mobile_build src/app/api
-fi
 
 echo "✅ Mobile build complete! Output in ./out"

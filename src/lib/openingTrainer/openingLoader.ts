@@ -110,6 +110,20 @@ function countMoves(movesString: string): number {
 }
 
 /**
+ * All distinct family names that have at least one trainable variation
+ * (more than one move). Used to statically generate the family training routes.
+ */
+export function getAllFamilyNames(): string[] {
+  const families = new Set<string>();
+  for (const opening of OPENINGS_ARRAY) {
+    if (countMoves(opening.moves) > 1) {
+      families.add(extractFamilyName(opening.name));
+    }
+  }
+  return [...families];
+}
+
+/**
  * Get all openings belonging to a specific family
  * Returns variations sorted by move count (most moves first)
  */
