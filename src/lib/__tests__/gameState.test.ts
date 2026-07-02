@@ -33,7 +33,7 @@ describe("gameState", () => {
       evalP0: { bestMove: "g1f3", ponder: null, score: 80, mate: null, depth: 15 },
       fenAfterComputerMove: game.fen(),
       fenBeforePlayerMove: "start-fen",
-      openingData: [{ name: "King's Pawn Game", eco: "C20", moves: "1. e4 e5" }],
+      openingData: [{ name: "King's Pawn Game", eco: "C20", moves: "1. e4 e5", src: "" }],
       p1Eval: { bestMove: "e7e5", ponder: null, score: 20, mate: null, depth: 15 },
       p2Eval: { bestMove: "g1f3", ponder: null, score: 10, mate: null, depth: 15 },
       playerColor: "white",

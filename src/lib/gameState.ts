@@ -92,7 +92,7 @@ export function buildMoveHistoryItem(args: BuildMoveHistoryItemArgs): {
 
     return {
         historyItem: {
-            moveNumber: Math.ceil(playerMove.ply / 2),
+            moveNumber: parseInt(playerMove.before.split(" ")[5], 10) || 1,
             playerMove: playerMove.san,
             playerColor,
             fenBeforePlayerMove,

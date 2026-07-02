@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start -p 3050",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",

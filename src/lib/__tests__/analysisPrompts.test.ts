@@ -8,7 +8,7 @@ describe("analysisPrompts", () => {
       "Give me a hint",
       "test-fen",
       { bestMove: "e2e4", ponder: null, score: 34, mate: null, depth: 15 },
-      [{ name: "Ruy Lopez", eco: "C60", moves: "1. e4 e5 2. Nf3 Nc6 3. Bb5" }],
+      [{ name: "Ruy Lopez", eco: "C60", moves: "1. e4 e5 2. Nf3 Nc6 3. Bb5", src: "" }],
       "en"
     );
 
@@ -36,7 +36,7 @@ describe("analysisPrompts", () => {
         piece_roles: ["white knight"],
         move: "Nf3",
       }],
-      openingData: [{ name: "King's Pawn Game", eco: "C20", moves: "1. e4 e5" }],
+      openingData: [{ name: "King's Pawn Game", eco: "C20", moves: "1. e4 e5", src: "" }],
       playerColorName: "White",
       tutorColorName: "Black",
       userMove: userMove!,

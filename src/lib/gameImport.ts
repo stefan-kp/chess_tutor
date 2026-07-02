@@ -130,10 +130,10 @@ function parseChessComGame(game: ChessComGame): GameMetadata {
     const headers = chess.header();
     
     return {
-        id: game.uuid || game.url,
+        id: game.uuid || game.url || `${game.end_time}-${headers.White ?? 'game'}`,
         platform: 'chesscom',
-        white: game.white.username || headers.White || 'Unknown',
-        black: game.black.username || headers.Black || 'Unknown',
+        white: game.white?.username || headers.White || 'Unknown',
+        black: game.black?.username || headers.Black || 'Unknown',
         result: headers.Result || '*',
         date: formatChessComDate(game.end_time),
         timeControl: game.time_class || headers.TimeControl || 'Unknown',
@@ -217,7 +217,9 @@ function parseLichessGame(game: LichessGame): GameMetadata {
         platform: 'lichess',
         white: players.white?.user?.name || 'Unknown',
         black: players.black?.user?.name || 'Unknown',
-        result: game.status === 'draw' ? '1/2-1/2' : game.winner === 'white' ? '1-0' : game.winner === 'black' ? '0-1' : '*',
+        result: game.winner === 'white' ? '1-0' : game.winner === 'black' ? '0-1'
+            : (['draw', 'stalemate'].includes(game.status ?? '') || game.status === 'outoftime')
+                ? '1/2-1/2' : (chess.header().Result || '*'),
         date: new Date(game.createdAt).toISOString(),
         timeControl: game.speed || 'Unknown',
         opening: opening ? `${opening.eco}: ${opening.name}` : undefined,
