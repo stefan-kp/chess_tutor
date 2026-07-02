@@ -74,6 +74,20 @@ export function loadSession(openingId: string): TrainingSession | null {
 
     const session = JSON.parse(data) as TrainingSession;
 
+    // Validate the shape before trusting it — a corrupt/old entry would
+    // otherwise blow up deep in the reducer / chess.js and loop the error
+    // boundary (checkForExistingSession reloads it).
+    if (
+      !session ||
+      typeof session !== 'object' ||
+      typeof session.currentFEN !== 'string' ||
+      !Array.isArray(session.moveHistory) ||
+      typeof session.lastUpdatedAt !== 'number'
+    ) {
+      localStorage.removeItem(key);
+      return null;
+    }
+
     // Check expiration
     const daysSinceUpdate =
       (Date.now() - session.lastUpdatedAt) / (1000 * 60 * 60 * 24);

@@ -74,7 +74,8 @@ export class SessionOrchestrator {
       expectedMoves,
       expectedMoves, // For MVP, variants = expected
       currentEval,
-      previousEval
+      previousEval,
+      moveResult.color
     );
 
     // Create move entry
@@ -158,11 +159,14 @@ export class SessionOrchestrator {
       timestamp: Date.now(),
     };
 
-    // Return actions for reducer
+    // Return actions for reducer. parentFEN lets the reducer reject this
+    // completion if the position changed while we were thinking (the user
+    // navigated back or moved during the delay/evaluation).
     const actions: SessionAction[] = [
       {
         type: 'OPPONENT_MOVE_COMPLETED',
         moveEntry,
+        parentFEN: state.currentFEN,
       },
     ];
 

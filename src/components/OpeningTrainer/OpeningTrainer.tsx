@@ -16,7 +16,7 @@ import {
   describeCurrentPosition,
 } from '@/lib/openingTrainer/gameLogic';
 import { getWikipediaSummary } from '@/lib/openingTrainer/wikipediaService';
-import { WikipediaSummary as WikipediaSummaryType } from '@/types/openingTraining';
+import { WikipediaSummary as WikipediaSummaryType, TrainingSession } from '@/types/openingTraining';
 import { extractFamilyName } from '@/lib/openingTrainer/openingFamilies';
 import WikipediaSummary from './WikipediaSummary';
 import DeviationDialog from './DeviationDialog';
@@ -65,7 +65,7 @@ export default function OpeningTrainer({
   const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
-  const [existingSession, setExistingSession] = useState<any>(null);
+  const [existingSession, setExistingSession] = useState<TrainingSession | null>(null);
   const [wikipediaSummary, setWikipediaSummary] = useState<WikipediaSummaryType | null>(null);
 
   // Tutor message control - track when tutor last spoke
@@ -73,6 +73,9 @@ export default function OpeningTrainer({
 
   // Deviation handling
   const [showDeviationDialog, setShowDeviationDialog] = useState(false);
+  // Remember which deviation the user has already dismissed ("keep exploring")
+  // so the dialog doesn't immediately reopen while the deviation persists.
+  const [dismissedDeviationIndex, setDismissedDeviationIndex] = useState<number | null>(null);
 
   // ============================================================================
   // Tutor Message Guardrail (computed values - must be before early returns)
@@ -105,13 +108,24 @@ export default function OpeningTrainer({
 
   // Detect deviation and show dialog
   useEffect(() => {
-    if (session?.deviationMoveIndex !== null && !showDeviationDialog) {
-      const timer = setTimeout(() => {
-        setShowDeviationDialog(true);
-      }, 500);
-      return () => clearTimeout(timer);
+    // Guard against session === null (undefined !== null is true) and against
+    // family mode, where leaving the main line is expected, not a deviation.
+    const deviationIndex = session?.deviationMoveIndex ?? null;
+    if (!session || isFamilyMode || deviationIndex === null) {
+      // Back in theory (or no session): clear any prior dismissal.
+      if (deviationIndex === null && dismissedDeviationIndex !== null) {
+        setDismissedDeviationIndex(null);
+      }
+      return;
     }
-  }, [session?.deviationMoveIndex, showDeviationDialog]);
+    // Already acknowledged this specific deviation — don't reopen.
+    if (deviationIndex === dismissedDeviationIndex || showDeviationDialog) return;
+
+    const timer = setTimeout(() => {
+      setShowDeviationDialog(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [session, isFamilyMode, dismissedDeviationIndex, showDeviationDialog]);
 
   useEffect(() => {
     checkForExistingSession();
@@ -183,7 +197,16 @@ export default function OpeningTrainer({
     sourceSquare: string,
     targetSquare: string
   ): boolean => {
-    if (!chess) return false;
+    if (!chess || !session) return false;
+
+    // Only allow input on the user's own turn, and only for the user's pieces.
+    // Blocks moving the opponent's pieces during the auto-move delay and
+    // double-moves while a move is still being processed.
+    const interactivePhases = ['user_turn', 'off_book', 'end_of_repertoire', 'navigating'];
+    if (!interactivePhases.includes(session.phase)) return false;
+    const userColor = getUserColor(opening);
+    const piece = chess.get(sourceSquare as Parameters<typeof chess.get>[0]);
+    if (!piece || (piece.color === 'w' ? 'white' : 'black') !== userColor) return false;
 
     try {
       // Create a temporary clone to test if the move is legal
@@ -252,10 +275,10 @@ export default function OpeningTrainer({
     const openingContext = {
       openingName: opening.name,
       openingEco: opening.eco,
-      movesCompleted: session.deviationMoveIndex || session.moveHistory.length,
+      movesCompleted: session.deviationMoveIndex ?? session.moveHistory.length,
       wikipediaSummary: wikipediaSummary?.extract,
       contextMessage: `You've studied the ${opening.name} (${opening.eco}) up to move ${
-        session.deviationMoveIndex || session.moveHistory.length
+        session.deviationMoveIndex ?? session.moveHistory.length
       }. Let's continue playing from here!`,
     };
 
@@ -266,8 +289,9 @@ export default function OpeningTrainer({
   };
 
   const handleContinueExploring = () => {
-    // User wants to continue exploring off-book moves
-    // Just close the dialog and let them continue
+    // User wants to continue exploring off-book moves. Remember the dismissed
+    // deviation so the effect doesn't immediately reopen the dialog.
+    setDismissedDeviationIndex(session?.deviationMoveIndex ?? null);
     setShowDeviationDialog(false);
   };
 
@@ -350,7 +374,7 @@ export default function OpeningTrainer({
 
             <p className="text-xs text-gray-500 mt-4 text-center">
               Last updated:{' '}
-              {new Date(existingSession.lastUpdated).toLocaleString()}
+              {new Date(existingSession.lastUpdatedAt).toLocaleString()}
             </p>
           </div>
         </div>
@@ -524,10 +548,10 @@ export default function OpeningTrainer({
               <button
                 onClick={() =>
                   navigateToMove(
-                    Math.min(moveCount - 1, session.currentMoveIndex + 1)
+                    Math.min(moveCount, session.currentMoveIndex + 1)
                   )
                 }
-                disabled={session.currentMoveIndex >= moveCount - 1}
+                disabled={session.currentMoveIndex >= moveCount}
                 className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 aria-label="Go to next move"
               >
@@ -550,10 +574,13 @@ export default function OpeningTrainer({
               session.moveHistory.map((move, index) => (
                 <div
                   key={index}
-                  onClick={() => navigateToMove(index)}
+                  // currentMoveIndex = k means "after move k", so to view the
+                  // position after this move navigate to index + 1, and the
+                  // played move is highlighted when currentMoveIndex - 1 === index.
+                  onClick={() => navigateToMove(index + 1)}
                   role="listitem"
                   className={`p-2 rounded cursor-pointer transition-colors ${
-                    index === session.currentMoveIndex
+                    index === session.currentMoveIndex - 1
                       ? 'bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700'
                       : 'bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}

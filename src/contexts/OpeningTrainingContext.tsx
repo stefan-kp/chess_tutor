@@ -148,32 +148,14 @@ export function OpeningTrainingProvider({
   // ============================================================================
 
   useEffect(() => {
-    if (!session || !orchestratorRef.current) {
-      console.log('[OpeningTraining] Opponent move check skipped:', {
-        hasSession: !!session,
-        hasOrchestrator: !!orchestratorRef.current
-      });
-      return;
-    }
+    if (!session || !orchestratorRef.current) return;
 
-    // Debug logging
-    console.log('[OpeningTraining] Checking if opponent should move:', {
-      phase: session.phase,
-      currentMoveIndex: session.currentMoveIndex,
-      moveHistoryLength: session.moveHistory.length,
-      isAtCurrentPosition: session.currentMoveIndex === session.moveHistory.length,
-      pendingOpponentMove: session.pendingOpponentMove,
-    });
-
-    // Check if we should trigger an opponent auto-move
+    // Trigger an automatic opponent auto-move when it is the opponent's turn
+    // at the live position.
     if (shouldTriggerOpponentMove(session)) {
-      console.log('[OpeningTraining] ✅ Triggering automatic opponent move');
-
-      // Make the opponent move
       makeOpponentMove();
-    } else {
-      console.log('[OpeningTraining] ❌ Not triggering opponent move');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.phase, session?.currentMoveIndex, session?.moveHistory.length]);
 
   // ============================================================================

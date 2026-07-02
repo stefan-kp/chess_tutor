@@ -219,7 +219,8 @@ export function classifyMove(
   expectedMoves: string[],
   variantMoves: string[],
   evaluation: StockfishEvaluation,
-  previousEvaluation: StockfishEvaluation
+  previousEvaluation: StockfishEvaluation,
+  moverColor: 'w' | 'b' = 'w'
 ): {
   category: MoveCategory;
   evaluationChange: number;
@@ -228,7 +229,6 @@ export function classifyMove(
   newOpening?: OpeningMetadata;
 } {
   const isInRepertoire = expectedMoves.includes(san);
-  const isVariant = !isInRepertoire && variantMoves.includes(san);
 
   // Calculate evaluation change (White's perspective)
   const evalChange = evaluation.score - previousEvaluation.score;
@@ -239,8 +239,12 @@ export function classifyMove(
   if (isInRepertoire) {
     category = 'in-theory';
   } else {
-    // Not in main repertoire - check if weak or playable
-    const cpLoss = Math.abs(evalChange);
+    // Not in main repertoire — a move is only "weak" if it LOSES value for the
+    // side that played it. White loses when eval drops; Black loses when it
+    // rises. A move that gains material must never be flagged as weak.
+    const cpLoss = moverColor === 'w'
+      ? Math.max(0, -evalChange)
+      : Math.max(0, evalChange);
 
     if (cpLoss >= MOVE_CATEGORIZATION_THRESHOLDS.WEAK_MOVE_CP_LOSS) {
       category = 'weak';

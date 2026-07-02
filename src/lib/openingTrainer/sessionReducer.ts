@@ -86,7 +86,7 @@ export type SessionAction =
 
   // Move actions (opponent)
   | { type: 'OPPONENT_MOVE_QUEUED'; san: string }
-  | { type: 'OPPONENT_MOVE_COMPLETED'; moveEntry: MoveHistoryEntry }
+  | { type: 'OPPONENT_MOVE_COMPLETED'; moveEntry: MoveHistoryEntry; parentFEN?: string }
 
   // Navigation actions
   | { type: 'NAVIGATE_TO'; index: number }
@@ -281,7 +281,20 @@ export function sessionReducer(
     }
 
     case 'OPPONENT_MOVE_COMPLETED': {
-      const { moveEntry } = action;
+      const { moveEntry, parentFEN } = action;
+
+      // Reject a stale completion: the user must still be at the live position
+      // with the opponent to move, and the move must have been computed from
+      // the current position. Otherwise navigating/moving during the auto-move
+      // delay would append a move that doesn't follow from the board.
+      if (
+        state.phase !== 'opponent_turn' ||
+        state.currentMoveIndex !== state.moveHistory.length ||
+        (parentFEN !== undefined && parentFEN !== state.currentFEN)
+      ) {
+        return { ...state, pendingOpponentMove: null };
+      }
+
       const newHistory = [...state.moveHistory, moveEntry];
       const newMoveIndex = newHistory.length;
 
