@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getGenAIModel } from "@/lib/gemini";
+import { getGenAIModel, isAllowedModel } from "@/lib/gemini";
 import { PERSONALITIES } from "@/lib/personalities";
 import { SupportedLanguage } from "@/lib/i18n/translations";
 import {
@@ -53,6 +53,15 @@ export async function POST(request: NextRequest) {
     }
     if (!message || typeof message !== "string") {
       return NextResponse.json({ error: "Missing message" }, { status: 400 });
+    }
+    if (message.length > 8000) {
+      return NextResponse.json({ error: "Message too long" }, { status: 400 });
+    }
+    if (history !== undefined && !Array.isArray(history)) {
+      return NextResponse.json({ error: "history must be an array" }, { status: 400 });
+    }
+    if (modelName !== undefined && (typeof modelName !== "string" || !isAllowedModel(modelName))) {
+      return NextResponse.json({ error: "Unsupported model" }, { status: 400 });
     }
 
     const personality = PERSONALITIES.find((p) => p.id === personalityId);

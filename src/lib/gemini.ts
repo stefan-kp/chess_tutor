@@ -1,37 +1,27 @@
-import { GoogleGenerativeAI, SchemaType, FunctionDeclaration } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export async function getAvailableModels(): Promise<string[]> {
-    // Prioritize newer models
-    return [
-        "gemini-3-pro-preview",
-        "gemini-2.5-pro",
-        "gemini-2.5-flash"
-    ];
+// Models the app is allowed to call. Used both as the UI list and to validate
+// a client-supplied modelName server-side.
+export const AVAILABLE_MODELS = [
+    "gemini-2.5-pro",
+    "gemini-2.5-flash",
+] as const;
+
+export function getAvailableModels(): string[] {
+    return [...AVAILABLE_MODELS];
 }
 
-const evaluatePositionTool: FunctionDeclaration = {
-    name: "evaluate_position",
-    description: "Evaluates a chess position using the Stockfish engine to get the best move and score. Use this when the user asks for the best move, evaluation, or why a move is good/bad.",
-    parameters: {
-        type: SchemaType.OBJECT,
-        properties: {
-            fen: {
-                type: SchemaType.STRING,
-                description: "The FEN string of the position to evaluate.",
-            },
-            depth: {
-                type: SchemaType.NUMBER,
-                description: "The search depth for the engine (default 15).",
-            },
-        },
-        required: ["fen"],
-    },
-};
+export function isAllowedModel(modelName: string): boolean {
+    return (AVAILABLE_MODELS as readonly string[]).includes(modelName);
+}
 
 export function getGenAIModel(apiKey: string, modelName: string = "gemini-2.5-flash") {
     const genAI = new GoogleGenerativeAI(apiKey);
+    // NOTE: no function-calling tools are registered. There is no
+    // functionCalls() handling loop in the app, so a tool call would surface as
+    // an empty text response and stall the chat. Add a proper loop before
+    // reintroducing tools.
     return genAI.getGenerativeModel({
         model: modelName,
-        tools: [{ functionDeclarations: [evaluatePositionTool] }],
     });
 }

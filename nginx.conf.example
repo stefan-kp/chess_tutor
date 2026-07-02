@@ -1,6 +1,12 @@
 # Example nginx configuration for reverse proxy
 # Copy this file to your nginx sites-available directory and modify as needed
 # Example: /etc/nginx/sites-available/chess-tutor
+#
+# Rate limiting: `limit_req_zone` is only valid in the `http {}` context, NOT
+# inside `server {}`. Put the next line in /etc/nginx/nginx.conf (http block)
+# or a file under /etc/nginx/conf.d/, then apply `limit_req` per location below:
+#
+#   limit_req_zone $binary_remote_addr zone=chess_tutor_limit:10m rate=10r/s;
 
 upstream chess_tutor {
     server localhost:3050;
@@ -90,7 +96,11 @@ server {
 #     gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json application/javascript;
 #     gzip_disable "MSIE [1-6]\.";
 #
-#     # Rate limiting (optional but recommended)
-#     # limit_req_zone $binary_remote_addr zone=chess_tutor_limit:10m rate=10r/s;
-#     # limit_req zone=chess_tutor_limit burst=20 nodelay;
+#     # Rate limiting (optional but recommended). The matching
+#     # limit_req_zone MUST be declared in the http{} context (see top of file);
+#     # apply it here, ideally scoped to the API:
+#     # location /api/ {
+#     #     limit_req zone=chess_tutor_limit burst=20 nodelay;
+#     #     proxy_pass http://chess_tutor;
+#     # }
 # }

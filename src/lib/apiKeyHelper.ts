@@ -40,15 +40,10 @@ export function getApiKeyInfo(): ApiKeyInfo {
     }
   }
 
-  // Check environment variable (fallback)
-  const envKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-  if (envKey && envKey.trim()) {
-    return {
-      key: envKey,
-      source: 'env',
-      anonymized: anonymizeApiKey(envKey),
-    };
-  }
+  // NOTE: We deliberately do NOT fall back to a NEXT_PUBLIC_* env key here.
+  // Such a value would be inlined into the client bundle and extractable by
+  // any visitor. Operator-provided keys must stay server-side (GEMINI_API_KEY)
+  // and be used only via the API routes.
 
   // No key found
   return {

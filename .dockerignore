@@ -24,10 +24,10 @@ jest.setup.ts
 # Development files
 .git
 .gitignore
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Never copy secrets into image layers / build cache
+.env
+.env.*
+!.env.example
 
 # IDE
 .vscode

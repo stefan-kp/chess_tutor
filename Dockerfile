@@ -20,9 +20,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set environment variable for build (optional - can be overridden at runtime)
-ARG NEXT_PUBLIC_GEMINI_API_KEY
-ENV NEXT_PUBLIC_GEMINI_API_KEY=$NEXT_PUBLIC_GEMINI_API_KEY
+# SECURITY: Do NOT bake a Gemini API key into the build. NEXT_PUBLIC_* values
+# are inlined into the client bundle and readable by every visitor. The server
+# reads GEMINI_API_KEY at RUNTIME (see the API routes); users supply their own
+# key in the browser. Never reintroduce NEXT_PUBLIC_GEMINI_API_KEY here.
 
 # Build Next.js application with standalone output
 ENV NEXT_TELEMETRY_DISABLED=1

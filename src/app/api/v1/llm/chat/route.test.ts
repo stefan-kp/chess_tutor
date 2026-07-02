@@ -7,6 +7,8 @@ import { PERSONALITIES } from "@/lib/personalities";
 
 jest.mock("@/lib/gemini", () => ({
   getGenAIModel: jest.fn(),
+  isAllowedModel: (model: string) =>
+    ["gemini-2.5-pro", "gemini-2.5-flash"].includes(model),
 }));
 
 const mockSendMessage = jest.fn();
@@ -97,7 +99,7 @@ describe("POST /api/v1/llm/chat", () => {
     expect(prompt).toContain("User Message: How should I continue?");
   });
 
-  it("honors custom model names", async () => {
+  it("honors allowed model names", async () => {
     const personality = PERSONALITIES[1];
     setupModelMock("Another reply");
 
@@ -108,10 +110,29 @@ describe("POST /api/v1/llm/chat", () => {
         language: "en",
         playerColor: "black",
         message: "Explain this move",
+        modelName: "gemini-2.5-pro",
+      })
+    );
+
+    expect(getGenAIModel).toHaveBeenCalledWith("key-123", "gemini-2.5-pro");
+  });
+
+  it("rejects unsupported model names", async () => {
+    const personality = PERSONALITIES[1];
+    setupModelMock("Another reply");
+
+    const response = await POST(
+      makeRequest({
+        apiKey: "key-123",
+        personalityId: personality.id,
+        language: "en",
+        playerColor: "black",
+        message: "Explain this move",
         modelName: "gemini-custom",
       })
     );
 
-    expect(getGenAIModel).toHaveBeenCalledWith("key-123", "gemini-custom");
+    expect(response.status).toBe(400);
+    expect(getGenAIModel).not.toHaveBeenCalled();
   });
 });
