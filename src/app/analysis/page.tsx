@@ -242,7 +242,7 @@ IMPORTANT:
             setStepDetails({});
             setComments({});
             setError(null);
-            ensureEvaluation(startFen);
+            ensureEvaluation(startFen)?.catch(() => {});
         } catch (e) {
             console.error("Failed to load game", e);
             setError(t.analysis.importError);
@@ -283,10 +283,12 @@ IMPORTANT:
 
     useEffect(() => {
         if (!stockfish || !currentFen) return;
-        ensureEvaluation(currentFen);
+        // Fire-and-forget prefetches: swallow rejections here (ensureEvaluation
+        // rethrows so awaited callers see errors) to avoid unhandled rejections.
+        ensureEvaluation(currentFen)?.catch(() => {});
         const currentStep = steps[currentIndex - 1];
         if (currentStep) {
-            ensureEvaluation(currentStep.fenBefore);
+            ensureEvaluation(currentStep.fenBefore)?.catch(() => {});
         }
     }, [stockfish, currentFen, steps, currentIndex, ensureEvaluation]);
 

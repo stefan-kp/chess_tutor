@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    name: Typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build (web)
+        run: npm run build
+
+      # Lint is non-blocking until the remaining no-explicit-any errors in
+      # src/lib/tacticalLibrary.ts are cleaned up (tracked in the code review).
+      # Flip continue-on-error to false once `npm run lint` exits 0.
+      - name: Lint (non-blocking)
+        run: npm run lint
+        continue-on-error: true
+
+  mobile-export:
+    name: Build (mobile static export)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build mobile export
+        run: npm run build:mobile
