@@ -28,7 +28,7 @@
     "@capacitor/android": "^7.4.4",
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",
-    "@capacitor/ios": "^7.4.4",
+    "@capacitor/ios": "^7.6.9",
     "@google/generative-ai": "^0.24.1",
     "chess.js": "^1.4.0",
     "clsx": "^2.1.1",
