@@ -2,7 +2,9 @@
  * Helper utilities for API key management
  */
 
-export type ApiKeySource = 'localStorage' | 'env' | 'none';
+import { getServerManagedKeySentinel, llmRequiresUserApiKey } from './llm/config';
+
+export type ApiKeySource = 'localStorage' | 'env' | 'server' | 'none';
 
 export interface ApiKeyInfo {
   key: string | null;
@@ -28,6 +30,17 @@ export function anonymizeApiKey(key: string | null): string {
  * Get the current API key and its source
  */
 export function getApiKeyInfo(): ApiKeyInfo {
+  // Server-managed providers (e.g. a self-hosted Ollama/LiteLLM endpoint)
+  // don't need a user-supplied key at all.
+  if (!llmRequiresUserApiKey()) {
+    const sentinel = getServerManagedKeySentinel();
+    return {
+      key: sentinel,
+      source: 'server',
+      anonymized: anonymizeApiKey(sentinel),
+    };
+  }
+
   // Check localStorage first (user-set key takes precedence)
   if (typeof window !== 'undefined') {
     const storedKey = localStorage.getItem('gemini_api_key');
@@ -67,6 +80,8 @@ export function getApiKeySourceDescription(source: ApiKeySource): string {
       return 'User Settings (localStorage)';
     case 'env':
       return 'Environment Variable (.env)';
+    case 'server':
+      return 'Server-managed (no key needed)';
     case 'none':
       return 'Not configured';
   }

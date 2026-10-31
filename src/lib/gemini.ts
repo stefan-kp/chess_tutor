@@ -1,6 +1,13 @@
 import { GoogleGenerativeAI, SchemaType, FunctionDeclaration } from "@google/generative-ai";
+import { getLLMProviderKind } from "./llm/config";
+import { getProxyModel } from "./llm/proxyModel";
+import { LLMModel } from "./llm/types";
 
 export async function getAvailableModels(): Promise<string[]> {
+    if (getLLMProviderKind() === "openai-compatible") {
+        return [process.env.NEXT_PUBLIC_LLM_MODEL || "llama3.1:8b"];
+    }
+
     // Prioritize newer models
     return [
         "gemini-3-pro-preview",
@@ -28,7 +35,11 @@ const evaluatePositionTool: FunctionDeclaration = {
     },
 };
 
-export function getGenAIModel(apiKey: string, modelName: string = "gemini-2.5-flash") {
+export function getGenAIModel(apiKey: string, modelName: string = "gemini-2.5-flash"): LLMModel {
+    if (getLLMProviderKind() === "openai-compatible") {
+        return getProxyModel(modelName);
+    }
+
     const genAI = new GoogleGenerativeAI(apiKey);
     return genAI.getGenerativeModel({
         model: modelName,

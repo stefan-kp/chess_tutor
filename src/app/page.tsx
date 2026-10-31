@@ -7,6 +7,7 @@ import StartScreen from "@/components/StartScreen";
 import { Personality, PERSONALITIES } from "@/lib/personalities";
 import { SavedGame, deleteSavedGame, loadSavedGames } from "@/lib/savedGames";
 import { useHasHydrated } from "@/lib/useHasHydrated";
+import { getApiKeyInfo } from "@/lib/apiKeyHelper";
 
 type ViewState = 'start' | 'game';
 
@@ -43,7 +44,7 @@ export default function Home() {
         hasInitializedRef.current = true;
 
         // Check for API Key
-        const apiKey = localStorage.getItem("gemini_api_key");
+        const apiKey = getApiKeyInfo().key;
         if (!apiKey) {
             router.push("/onboarding");
             return;

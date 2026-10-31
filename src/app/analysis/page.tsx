@@ -15,7 +15,8 @@ import { detectChessFormat, ChessFormat } from "@/lib/chessFormatDetector";
 import { detectMissedTactics, DetectedTactic, uciToSan, filterMeaningfulTactics } from "@/lib/tacticDetection";
 import { lookupPossibleOpenings, buildMoveSequenceFromSteps, OpeningMetadata } from "@/lib/openings";
 import { getGenAIModel } from "@/lib/gemini";
-import { ChatSession } from "@google/generative-ai";
+import { LLMChatSession } from "@/lib/llm/types";
+import { getApiKeyInfo } from "@/lib/apiKeyHelper";
 import ReactMarkdown from "react-markdown";
 import { useDebug } from "@/contexts/DebugContext";
 import { GameImportModal } from "@/components/GameImportModal";
@@ -64,7 +65,7 @@ export default function AnalysisPage() {
     const [stepDetails, setStepDetails] = useState<Record<number, StepDetails>>({});
     const [isCommenting, setIsCommenting] = useState(false);
     const [comments, setComments] = useState<Record<number, string>>({});
-    const [chatSession, setChatSession] = useState<ChatSession | null>(null);
+    const [chatSession, setChatSession] = useState<LLMChatSession | null>(null);
     const [showImportModal, setShowImportModal] = useState(false);
     const [showPlayModal, setShowPlayModal] = useState(false);
     const [showOpeningsModal, setShowOpeningsModal] = useState(false);
@@ -73,7 +74,7 @@ export default function AnalysisPage() {
     const [playStrength, setPlayStrength] = useState(15);
 
     useEffect(() => {
-        const storedKey = localStorage.getItem("gemini_api_key");
+        const storedKey = getApiKeyInfo().key;
         const storedLang = localStorage.getItem("chess_tutor_language");
         if (storedKey) setApiKey(storedKey);
         if (storedLang) setLanguage(storedLang as SupportedLanguage);

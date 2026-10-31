@@ -90,9 +90,13 @@ export function buildMoveHistoryItem(args: BuildMoveHistoryItemArgs): {
         cpLoss,
     });
 
+    // chess.js's Move doesn't carry a ply/move number; the fullmove field in
+    // the FEN before this move is the correct move number for either color.
+    const moveNumber = parseInt(fenBeforePlayerMove.split(" ")[5], 10);
+
     return {
         historyItem: {
-            moveNumber: Math.ceil(playerMove.ply / 2),
+            moveNumber,
             playerMove: playerMove.san,
             playerColor,
             fenBeforePlayerMove,

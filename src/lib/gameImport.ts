@@ -130,10 +130,10 @@ function parseChessComGame(game: ChessComGame): GameMetadata {
     const headers = chess.header();
     
     return {
-        id: game.uuid || game.url,
+        id: game.uuid || game.url || 'unknown',
         platform: 'chesscom',
-        white: game.white.username || headers.White || 'Unknown',
-        black: game.black.username || headers.Black || 'Unknown',
+        white: game.white?.username || headers.White || 'Unknown',
+        black: game.black?.username || headers.Black || 'Unknown',
         result: headers.Result || '*',
         date: formatChessComDate(game.end_time),
         timeControl: game.time_class || headers.TimeControl || 'Unknown',
