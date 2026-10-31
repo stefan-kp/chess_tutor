@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChatSession } from "@google/generative-ai";
 import { Chess } from "chess.js";
 
 import { useDebug } from "@/contexts/DebugContext";
 import { buildMoveCommentaryPrompt } from "@/lib/analysisPrompts";
 import { detectChessFormat, ChessFormat } from "@/lib/chessFormatDetector";
 import { getGenAIModel } from "@/lib/gemini";
+import { LLMChatSession } from "@/lib/llm/types";
+import { getApiKeyInfo } from "@/lib/apiKeyHelper";
 import { SupportedLanguage } from "@/lib/i18n/translations";
 import { lookupPossibleOpenings, buildMoveSequenceFromSteps } from "@/lib/openings";
 import { Personality, PERSONALITIES } from "@/lib/personalities";
@@ -53,11 +54,11 @@ export function useAnalysisSession({ importError }: UseAnalysisSessionArgs) {
     const [stepDetails, setStepDetails] = useState<Record<number, StepDetails>>({});
     const [isCommenting, setIsCommenting] = useState(false);
     const [comments, setComments] = useState<Record<number, string>>({});
-    const [chatSession, setChatSession] = useState<ChatSession | null>(null);
+    const [chatSession, setChatSession] = useState<LLMChatSession | null>(null);
     const evaluationCache = useRef<Record<string, StockfishEvaluation>>({});
 
     useEffect(() => {
-        const storedKey = localStorage.getItem("gemini_api_key");
+        const storedKey = getApiKeyInfo().key;
         const storedLang = localStorage.getItem("chess_tutor_language");
         if (storedKey) setApiKey(storedKey);
         if (storedLang) setLanguage(storedLang as SupportedLanguage);
@@ -287,6 +288,9 @@ IMPORTANT:
         const details = stepDetails[currentIndex];
         if (!step || !details?.evalBefore || !details?.evalAfter || comments[currentIndex]) return;
 
+        const evalBefore = details.evalBefore;
+        const evalAfter = details.evalAfter;
+
         let cancelled = false;
         setIsCommenting(true);
 
@@ -299,14 +303,14 @@ IMPORTANT:
                     .join("; ") || "None";
 
                 const prompt = buildMoveCommentaryPrompt({
-                    bestMove: details.bestMoveSan ?? details.evalBefore.bestMove,
+                    bestMove: details.bestMoveSan ?? evalBefore.bestMove,
                     color: step.color,
                     cpLoss: delta,
-                    evalAfter: details.evalAfter.score / 100,
-                    evalBefore: details.evalBefore.score / 100,
+                    evalAfter: evalAfter.score / 100,
+                    evalBefore: evalBefore.score / 100,
                     fenAfter: step.fenAfter,
                     fenBefore: step.fenBefore,
-                    mateInfo: details.evalAfter.mate !== null ? `Mate in ${details.evalAfter.mate}` : "No mate detected",
+                    mateInfo: evalAfter.mate !== null ? `Mate in ${evalAfter.mate}` : "No mate detected",
                     moveNumber: step.moveNumber,
                     openings: possibleOpenings.length > 0 ? possibleOpenings.map((opening) => `${opening.name} (${opening.eco})`).join(", ") : "Unknown/Midgame",
                     san: step.san,

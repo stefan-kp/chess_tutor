@@ -24,6 +24,12 @@ COPY . .
 ARG NEXT_PUBLIC_GEMINI_API_KEY
 ENV NEXT_PUBLIC_GEMINI_API_KEY=$NEXT_PUBLIC_GEMINI_API_KEY
 
+# LLM provider selection is a NEXT_PUBLIC_ var, so it must be baked in at
+# build time - Next.js inlines it into the client bundle, it can't be
+# swapped at container runtime like LLM_BASE_URL/LLM_API_KEY/LLM_MODEL can.
+ARG NEXT_PUBLIC_LLM_PROVIDER=gemini
+ENV NEXT_PUBLIC_LLM_PROVIDER=$NEXT_PUBLIC_LLM_PROVIDER
+
 # Build Next.js application with standalone output
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build

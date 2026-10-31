@@ -6,6 +6,8 @@ import {
   OPENING_TUTOR_MAX_TOKENS,
   generateFallbackExplanation,
 } from '@/lib/server/openingTutorPrompt';
+import { getLLMProviderKind } from '@/lib/llm/config';
+import { sendOpenAICompatibleCompletion } from '@/lib/llm/openAICompatibleServer';
 
 export const runtime = 'nodejs';
 export const maxDuration = 10; // 10 second timeout
@@ -31,6 +33,28 @@ export async function POST(request: NextRequest) {
         { error: 'Missing prompt parameter' },
         { status: 400 }
       );
+    }
+
+    if (getLLMProviderKind() === 'openai-compatible') {
+      try {
+        const explanation = await sendOpenAICompatibleCompletion({
+          prompt,
+          systemPrompt: OPENING_TUTOR_SYSTEM_PROMPT,
+          temperature: OPENING_TUTOR_TEMPERATURE,
+          maxTokens: OPENING_TUTOR_MAX_TOKENS,
+        });
+
+        if (!explanation || explanation.trim().length === 0) {
+          const fallback = generateFallbackExplanation(category, moveSan, theoreticalMoves, evalChange, bestMove);
+          return NextResponse.json({ explanation: fallback, usedFallback: true });
+        }
+
+        return NextResponse.json({ explanation: explanation.trim(), usedFallback: false });
+      } catch (error) {
+        console.error('LLM explanation error (openai-compatible):', error);
+        const fallback = generateFallbackExplanation(category, moveSan, theoreticalMoves, evalChange, bestMove);
+        return NextResponse.json({ explanation: fallback, usedFallback: true, error: 'LLM request failed' });
+      }
     }
 
     // Check for API key

@@ -18,6 +18,7 @@ import { CapturedPieces } from "./CapturedPieces";
 import { detectMissedTactics, uciToSan, DetectedTactic } from "@/lib/tacticDetection";
 import { upsertSavedGame } from "@/lib/savedGames";
 import { useChessSounds } from "@/lib/hooks/useChessSounds";
+import { getApiKeyInfo } from "@/lib/apiKeyHelper";
 
 interface ChessGameProps {
     gameId: string;
@@ -229,7 +230,7 @@ export default function ChessGame({ gameId, initialFen, initialPgn, initialPerso
 
     // Load Settings & Initial State
     useEffect(() => {
-        const storedKey = localStorage.getItem("gemini_api_key");
+        const storedKey = getApiKeyInfo().key;
         const storedLang = localStorage.getItem("chess_tutor_language");
 
         if (storedKey) setApiKey(storedKey);

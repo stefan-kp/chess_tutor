@@ -5,7 +5,7 @@ import { StockfishEvaluation } from "@/lib/stockfish";
 import { ChessEngine } from "@/lib/engine";
 import { Chess, Move } from "chess.js";
 import { getGenAIModel } from "@/lib/gemini";
-import { ChatSession } from "@google/generative-ai";
+import { LLMChatSession } from "@/lib/llm/types";
 import { Send, Bot, User as UserIcon, Loader2, Lightbulb, Trophy } from "lucide-react";
 import clsx from "clsx";
 import { Personality } from "@/lib/personalities";
@@ -103,7 +103,7 @@ export function Tutor({ game, currentFen, userMove, computerMove, stockfish, eva
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [chatSession, setChatSession] = useState<ChatSession | null>(null);
+    const [chatSession, setChatSession] = useState<LLMChatSession | null>(null);
     const [geminiError, setGeminiError] = useState<GeminiErrorInfo | null>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const { addEntry } = useDebug();

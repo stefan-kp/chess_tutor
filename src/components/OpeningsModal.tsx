@@ -4,7 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { X, Loader2, Send, BookOpen } from "lucide-react";
 import { OpeningMetadata } from "@/lib/openings";
 import { getGenAIModel } from "@/lib/gemini";
-import { ChatSession } from "@google/generative-ai";
+import { LLMChatSession } from "@/lib/llm/types";
+import { getApiKeyInfo } from "@/lib/apiKeyHelper";
 import ReactMarkdown from "react-markdown";
 import { SupportedLanguage, translations } from "@/lib/i18n/translations";
 import { Personality } from "@/lib/personalities";
@@ -20,7 +21,7 @@ interface OpeningsModalProps {
 interface OpeningExplanation {
     content: string;
     isLoading: boolean;
-    chatSession?: ChatSession;
+    chatSession?: LLMChatSession;
     messages: { role: "user" | "assistant"; content: string }[];
 }
 
@@ -51,7 +52,7 @@ export function OpeningsModal({
         if (explanations[index]?.content || explanations[index]?.isLoading) return;
 
         const opening = openings[index];
-        const apiKey = typeof window !== "undefined" ? localStorage.getItem("gemini_api_key") : null;
+        const apiKey = typeof window !== "undefined" ? getApiKeyInfo().key : null;
         if (!apiKey) return;
 
         setExplanations(prev => ({

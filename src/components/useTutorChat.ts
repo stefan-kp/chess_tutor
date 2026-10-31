@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { ChatSession } from "@google/generative-ai";
+import { LLMChatSession } from "@/lib/llm/types";
 import { Chess, Move } from "chess.js";
 
 import { useDebug } from "@/contexts/DebugContext";
@@ -57,7 +57,7 @@ export function useTutorChat({
     const [messages, setMessages] = useState<TutorMessage[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [chatSession, setChatSession] = useState<ChatSession | null>(null);
+    const [chatSession, setChatSession] = useState<LLMChatSession | null>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const lastAnalyzedMoveRef = useRef<string | null>(null);
     const { addEntry } = useDebug();
